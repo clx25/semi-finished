@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    master:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://192.168.2.3:3306/javdb?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+      username: root
+      password: XYvw#P5f$tc
+    test:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://192.168.2.3:3306/evaluation?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true
+      username: root
+      password: XYvw#P5f$tc
+
+
+
+server:
+  port: 4000
+semi-finished:
+  core:
+    join:
+      info.id: info_category.info_id
+      actors_info.info_id: info.id
+      actors.id: actors_info.actors_id
+      category.id: info_category.category_id
+    mapping:
+      enable: true
+      table:
+        info: iifo
+      column:
+        info:
+          evaluate: xxx
+    page-size-key: psize
+    page-num-key: pnum
+    excludes:
+      info:
+        - comment
+
+
+logging:
+  level:
+    root: DEBUG
