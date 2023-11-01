@@ -68,7 +68,7 @@ public class RangeParamsParser implements SelectParamsParser {
             if ((lastIndex = hasLast(chars)) > 0) {
                 Assert.isFalse(chars[0] == chars[lastIndex], () -> new ParamsException(key + "参数错误"));
                 String column = new String(chars, offset, lastIndex - offset);
-                column = commonParser.getActualColumn(table, column);
+                column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
                 TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
                 valueCondition.setColumn(column);
                 String[] values = value.asText().split(",");
@@ -111,7 +111,7 @@ public class RangeParamsParser implements SelectParamsParser {
 
         String column = new String(chars, offset, count);
 
-        column = commonParser.getActualColumn(table, column);
+        column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
 
         TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
         valueCondition.setColumn(column);

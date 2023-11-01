@@ -27,7 +27,7 @@ public class TableUtils {
      */
     public static void validColumnsName(SemiCache semiCache, SqlDefinition sqlDefinition, String table, List<String> columns) {
         if (columns == null || columns.isEmpty()) {
-            Assert.isFalse(tableIsExist(semiCache, table), () -> new ParamsException(table + "参数错误"));
+            Assert.isFalse(validTableName(semiCache, sqlDefinition.getDataSource(), table), () -> new ParamsException(table + "参数错误"));
             return;
         }
         List<Column> tableColumnsName = getColumns(semiCache, sqlDefinition, table);
@@ -62,7 +62,7 @@ public class TableUtils {
      * @return 表名对应的字段
      */
     public static List<Column> getColumns(SemiCache semiCache, SqlDefinition sqlDefinition, String table) {
-        List<Column> tableColumnsName = getColumns(semiCache, table);
+        List<Column> tableColumnsName = getColumns(semiCache, sqlDefinition.getDataSource(), table);
         if (tableColumnsName.isEmpty()) {
             //在缓存中没有表名对应的字段的情况下，考虑是不是子查询，对应的字段就是子查询的返回字段
             String tb = sqlDefinition.getTable();
@@ -107,16 +107,13 @@ public class TableUtils {
      * @param table     表名
      * @return true表示存在，false表示不存在
      */
-    public static boolean tableIsExist(SemiCache semiCache, String table) {
+    public static boolean validTableName(SemiCache semiCache, String dataSource, String table) {
         if (!StringUtils.hasText(table)) {
             return false;
         }
 
-        List<Column> columns = semiCache.getValue(CoreCacheKey.COLUMNS.getKey());
-
-        if (columns == null || columns.isEmpty()) {
-            return false;
-        }
+        List<Column> columns = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + dataSource);
+        Assert.isEmpty(columns, () -> new ParamsException("数据源" + dataSource + "不存在"));
 
         return columns.stream().anyMatch(column -> table.equals(column.getTable()));
     }
@@ -128,8 +125,8 @@ public class TableUtils {
      * @param table     表名
      * @return 字段名列表
      */
-    public static List<String> getColumnNames(SemiCache semiCache, String table) {
-        return getColumns(semiCache, table).stream()
+    public static List<String> getColumnNames(SemiCache semiCache, String dataSource, String table) {
+        return getColumns(semiCache, dataSource, table).stream()
                 .map(Column::getColumn)
                 .collect(Collectors.toList());
     }
@@ -141,8 +138,8 @@ public class TableUtils {
      * @param table     表名
      * @return 字段信息
      */
-    public static List<Column> getColumns(SemiCache semiCache, String table) {
-        List<Column> columns = semiCache.getValue(CoreCacheKey.COLUMNS.getKey());
+    public static List<Column> getColumns(SemiCache semiCache, String dataSource, String table) {
+        List<Column> columns = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + dataSource);
 
         if (columns == null || columns.isEmpty()) {
             return Collections.emptyList();

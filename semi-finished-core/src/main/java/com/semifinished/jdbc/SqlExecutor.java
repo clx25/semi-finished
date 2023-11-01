@@ -187,13 +187,13 @@ public class SqlExecutor {
     }
 
 
-    public void batchValidInsert(String table, SemiCache semiCache, List<Map<String, String>> params) {
+    public void batchValidInsert(SemiCache semiCache, String dbKey, String table, List<Map<String, String>> params) {
         if (params == null || params.isEmpty()) {
             return;
         }
 
 
-        List<String> columnsName = TableUtils.getColumnNames(semiCache, table);
+        List<String> columnsName = TableUtils.getColumnNames(semiCache, dbKey, table);
         Assert.isEmpty(columnsName, () -> new ParamsException(table + "参数错误"));
 
         List<ObjectNode> objectNodes = new ArrayList<>();

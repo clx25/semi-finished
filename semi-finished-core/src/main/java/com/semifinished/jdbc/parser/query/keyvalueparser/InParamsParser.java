@@ -63,7 +63,7 @@ public class InParamsParser implements SelectParamsParser, DataAccessParser {
 
         String column = new String(chars, 1, end - 1);
 
-        column = commonParser.getActualColumn(table, column);
+        column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
 
         TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
         valueCondition.setColumn(column);

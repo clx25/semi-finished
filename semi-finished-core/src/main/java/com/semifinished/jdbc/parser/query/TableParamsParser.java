@@ -12,6 +12,7 @@ import com.semifinished.util.TableUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * 解析查询的表名
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-@Order(-1000)
+@Order(-900)
 public class TableParamsParser implements ParamsParser {
     private final SemiCache semiCache;
     private final ParserExecutor parserExecutor;
@@ -33,10 +34,11 @@ public class TableParamsParser implements ParamsParser {
     @Override
     public void parser(ObjectNode params, SqlDefinition sqlDefinition) {
         JsonNode tbNode = params.remove("@tb");
-        Assert.isNull(tbNode, () -> new ParamsException("没有指定表名"));
+        Assert.isTrue(tbNode == null || !StringUtils.hasText(tbNode.asText()), () -> new ParamsException("没有指定表名"));
+
         if (tbNode instanceof ValueNode) {
             String tb = tbNode.asText();
-            tb = commonParser.getActualTable(tb);
+            tb = commonParser.getActualTable(sqlDefinition.getDataSource(), tb);
             TableUtils.validColumnsName(semiCache, sqlDefinition, tb);
             sqlDefinition.setTable(tb);
             return;

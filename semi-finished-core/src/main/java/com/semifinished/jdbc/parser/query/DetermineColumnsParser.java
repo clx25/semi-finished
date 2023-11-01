@@ -78,7 +78,7 @@ public class DetermineColumnsParser implements ParamsParser {
             String[] alias = col.split(":");
             Assert.isFalse(StringUtils.hasText(alias[0]) && alias.length < 3, () -> new ParamsException(column + "参数错误"));
 
-            String actualColumn = commonParser.getActualColumn(table, alias[0]);
+            String actualColumn = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0]);
 
             boolean hasAlias = alias.length == 2;
 
@@ -121,7 +121,7 @@ public class DetermineColumnsParser implements ParamsParser {
                 continue;
             }
             col = col.substring(pattern.length(), col.length() - 1);
-            col = commonParser.getActualColumn(table, col);
+            col = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, col);
 
             boolean asterisk = "*".equals(col);
 
@@ -146,7 +146,7 @@ public class DetermineColumnsParser implements ParamsParser {
 
         columns.stream()
                 .map(column -> ParamsUtils.hasText(column.getAlias(), column.getColumn()))
-                .forEach(column -> sqlDefinition.addColumn(table, column, commonParser.getActualAlias(table, column)));
+                .forEach(column -> sqlDefinition.addColumn(table, column, commonParser.getActualAlias(sqlDefinition.getDataSource(), table, column)));
     }
 
 

@@ -2,6 +2,7 @@ package com.semifinished.service.enhance.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.CodeException;
 import com.semifinished.exception.ParamsException;
@@ -120,6 +121,11 @@ public class DictEnhance implements SelectEnhance {
                     .build();
 
             definition.addColumnValue(valueCondition);
+            definition.setMaxPageSize(0);
+            int rowStart = definition.getRowStart();
+            int rowEnd = definition.getRowEnd();
+            definition.setRowStart(0);
+            definition.setRowEnd(0);
 
             Object data = enhanceService.selectNoParse(definition);
             List<ObjectNode> records;
@@ -130,36 +136,63 @@ public class DictEnhance implements SelectEnhance {
                 records = (List<ObjectNode>) data;
             }
 
-            combine(definition, page.getRecords(), records);
+            combine(definition, page.getRecords(), records, rowStart, rowEnd);
         }
 
     }
 
-    private void combine(SqlDefinition definition, List<ObjectNode> records, List<ObjectNode> replaces) {
+    private void combine(SqlDefinition definition, List<ObjectNode> records, List<ObjectNode> replaces, int rowStart, int rowEnd) {
         Pair<String, String> joinOn = definition.getJoinOn();
-        String key = joinOn.getFirst();
-        String value = joinOn.getSecond();
+        String left = joinOn.getFirst();
+        String right = joinOn.getSecond();
 
-        List<Column> excludeColumns = definition.getExcludeColumns();
+
         Map<String, ObjectNode> map = new HashMap<>();
         for (ObjectNode record : records) {
-            map.put(record.path(key).asText(), record);
+            map.put(record.path(left).asText(), record);
         }
         for (ObjectNode replace : replaces) {
-            ObjectNode record = map.get(replace.path(value).asText());
+            ObjectNode record = map.get(replace.path(right).asText());
             if (record == null) {
                 continue;
             }
 
             replace.fields().forEachRemaining(entry -> {
                 JsonNode node = entry.getValue();
-                ArrayNode jsonNodes = record.withArray(entry.getKey());
+                String key = entry.getKey();
+                ArrayNode jsonNodes = record.withArray(key);
                 if (node instanceof ArrayNode) {
                     jsonNodes.addAll((ArrayNode) node);
                     return;
                 }
                 jsonNodes.add(node);
             });
+
+
+        }
+        List<Column> columns = definition.getColumns();
+        List<String> columnsField = columns.stream().map(col -> ParamsUtils.hasText(col.getAlias(), col.getColumn())).collect(Collectors.toList());
+        List<Column> excludeColumns = definition.getExcludeColumns();
+        for (ObjectNode record : records) {
+            for (String field : columnsField) {
+                if (rowStart <= 0) {
+                    break;
+                }
+                if (rowEnd == 0) {
+                    JsonNode jsonNode = record.remove(field);
+                    record.set(field, jsonNode.get(rowStart - 1));
+                    continue;
+                }
+                ArrayNode jsonNodes = record.withArray(field);
+                ArrayNode rows = JsonNodeFactory.instance.arrayNode();
+                for (int i = 1; i < jsonNodes.size() + 1; i++) {
+                    if (i <= rowEnd && i >= rowStart) {
+                        rows.add(jsonNodes.get(i - 1));
+                    }
+                }
+                record.set(field, rows);
+            }
+
             if (CollectionUtils.isEmpty(excludeColumns)) {
                 continue;
             }

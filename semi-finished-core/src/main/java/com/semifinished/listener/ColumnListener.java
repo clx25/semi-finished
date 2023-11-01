@@ -3,13 +3,14 @@ package com.semifinished.listener;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.cache.SemiCache;
 import com.semifinished.constant.CoreCacheKey;
-import com.semifinished.jdbc.SqlExecutor;
+import com.semifinished.jdbc.SqlExecutorHolder;
 import com.semifinished.pojo.Column;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,8 +21,8 @@ import java.util.List;
 @Component
 @AllArgsConstructor
 public class ColumnListener implements ApplicationListener<RefreshCacheApplication> {
-    private final SqlExecutor sqlExecutor;
     private final SemiCache semiCache;
+    private final SqlExecutorHolder sqlExecutorHolder;
 
     /**
      * 对semi_column表中的数据进行梳理
@@ -31,13 +32,19 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
      */
     @Override
     public void onApplicationEvent(RefreshCacheApplication event) {
+        sqlExecutorHolder.getSqlExecutorMap().forEach((key, executor) -> {
+            String dataSource = key.replace("sqlExecutor", "");
+            ObjectNode objectNode = executor.get("select database() db");
+            String db = objectNode.get("db").asText();
 
-        ObjectNode objectNode = sqlExecutor.get("select database() db");
-        String db = objectNode.get("db").asText();
-        semiCache.setValue(CoreCacheKey.DEFAULT_DATASOURCE.getKey(), db);
-
-        List<Column> tables = sqlExecutor.list("SELECT '" + db + "', col.TABLE_NAME `table`,col.COLUMN_NAME `column`,col.COLUMN_TYPE type,if(IS_NULLABLE='YES',true,false) null_able FROM information_schema.`COLUMNS` col  WHERE TABLE_SCHEMA='" + db + "'", Column.class);
-        semiCache.setValue(CoreCacheKey.COLUMNS.getKey(), tables);
+            List<Column> tableList = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + dataSource);
+            if (tableList == null) {
+                tableList = new ArrayList<>();
+            }
+            List<Column> tables = executor.list("SELECT '" + db + "', col.TABLE_NAME `table`,col.COLUMN_NAME `column`,col.COLUMN_TYPE type,if(IS_NULLABLE='YES',true,false) null_able FROM information_schema.`COLUMNS` col  WHERE TABLE_SCHEMA='" + db + "'", Column.class);
+            tableList.addAll(tables);
+            semiCache.setValue(CoreCacheKey.COLUMNS.getKey() + dataSource, tableList);
+        });
     }
 
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
-import com.semifinished.jdbc.SqlExecutor;
+import com.semifinished.jdbc.SqlExecutorHolder;
 import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Component
 @AllArgsConstructor
 public class GroupByEnhance implements SelectEnhance {
-    private final SqlExecutor sqlExecutor;
+    private final SqlExecutorHolder sqlExecutorHolder;
     private final IdGenerator idGenerator;
 
     /**
@@ -118,7 +118,7 @@ public class GroupByEnhance implements SelectEnhance {
 
     @Override
     public boolean support(SqlDefinition sqlDefinition) {
-        JsonNode jsonNode = sqlDefinition.getParams().path("#group");
+        JsonNode jsonNode = sqlDefinition.getParams().path("@group");
         return !jsonNode.isMissingNode();
     }
 
@@ -192,7 +192,7 @@ public class GroupByEnhance implements SelectEnhance {
         String sql = SqlCombiner.creatorSqlWithoutLimit(sqlDef);
 
         //执行查询
-        List<ObjectNode> noGroupRecords = sqlExecutor.list(sql, SqlCombiner.getArgs(sqlDef));
+        List<ObjectNode> noGroupRecords = sqlExecutorHolder.dataSource(sqlDef.getDataSource()).list(sql, SqlCombiner.getArgs(sqlDef));
 
         //合并数据
         merge(records, groupBy, mergeColumns, matchColumns, noGroupRecords);

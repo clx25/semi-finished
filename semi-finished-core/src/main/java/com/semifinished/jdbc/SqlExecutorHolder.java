@@ -1,8 +1,8 @@
 package com.semifinished.jdbc;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
@@ -10,6 +10,7 @@ import java.util.Map;
  * 保存SQL的连接
  */
 @Service
+@Getter
 @AllArgsConstructor
 public class SqlExecutorHolder {
 
@@ -17,7 +18,7 @@ public class SqlExecutorHolder {
 
 
     public SqlExecutor dataSource(String name) {
-        return sqlExecutorMap.get("sqlExecutor" + (name == null ? "" : StringUtils.capitalize(name)));
+        return sqlExecutorMap.get("sqlExecutor" + (name == null ? "" : name));
     }
 
 

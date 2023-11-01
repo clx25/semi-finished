@@ -65,7 +65,7 @@ public class LikeParamsParser implements SelectParamsParser, DataAccessParser {
 
         String column = new String(chars, offset, count);
 
-        column = commonParser.getActualColumn(table, column);
+        column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
 
         TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
         valueCondition.setColumn(column);

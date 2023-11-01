@@ -98,7 +98,7 @@ public class SqlCombiner {
     public static String table(SqlDefinition sqlDefinition) {
         SqlDefinition innerTable = sqlDefinition.getSubTable();
         if (innerTable != null) {
-            return " ( " + select(sqlDefinition) + " ) " + sqlDefinition.getTable();
+            return " ( " + select(innerTable) + " ) " + sqlDefinition.getTable();
         }
         return sqlDefinition.getTable();
     }
@@ -274,7 +274,7 @@ public class SqlCombiner {
      * @param sqlDefinition SQL定义信息
      * @return 聚合函数集合
      */
-    private static List<Column> aggregationColumns(SqlDefinition sqlDefinition) {
+    public static List<Column> aggregationColumns(SqlDefinition sqlDefinition) {
         List<AggregationFun> aggregationFuns = sqlDefinition.getAggregationFuns();
         if (aggregationFuns == null) {
             return Collections.emptyList();

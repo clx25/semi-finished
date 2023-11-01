@@ -56,7 +56,7 @@ public class EqParamsParser implements SelectParamsParser, DataAccessParser {
 
         value = commonParser.brackets(valueCondition, key, value);
 
-        key = commonParser.getActualColumn(table, key);
+        key = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, key);
 
         TableUtils.validColumnsName(semiCache, sqlDefinition, table, key);
         boolean conditionBoolean = valueCondition.isConditionBoolean();

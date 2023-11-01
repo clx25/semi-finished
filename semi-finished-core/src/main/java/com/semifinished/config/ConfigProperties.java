@@ -5,21 +5,18 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-
 
 @Data
 @Component
 @ConfigurationProperties("semi-finished.core")
 public class ConfigProperties {
 
-    private String database = "master";
+    private String dataSource = "master";
 
     /**
      * 在没有指定分页参数时的最大获取行数
      */
-    private int maxPageSize = 100;
+    private int maxPageSize = 200;
 
     /**
      * 分页参数pageSize与pageNum的键名
@@ -60,37 +57,6 @@ public class ConfigProperties {
      * 以上的规则解析为 where (a=b and c=d) or (e=f and g=h)
      */
     private String bracketsKey = "value";
-
-    /**
-     * 排除字段
-     */
-    private Map<String, List<String>> excludes;
-
-
-    /**
-     * 映射关系
-     */
-    private Mapping mapping;
-
-
-    @Data
-    public static class Mapping {
-        /**
-         * 是否开启表名与字段映射
-         * 如果开启了该功能，未匹配的将会提示异常
-         */
-        private boolean enable;
-
-        /**
-         * 表名映射
-         */
-        private Map<String, String> table;
-
-        /**
-         * 字段名映射
-         */
-        private Map<String, Map<String, String>> column;
-    }
 
 
 }

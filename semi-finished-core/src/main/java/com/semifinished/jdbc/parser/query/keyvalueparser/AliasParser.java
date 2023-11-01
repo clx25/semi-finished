@@ -47,7 +47,7 @@ public class AliasParser implements SelectParamsParser {
             String[] alias = values[i].split(":");
             Assert.isTrue(alias.length != 2, () -> new ParamsException("别名参数错误"));
 
-            values[i] = commonParser.getActualColumn(table, alias[0]);
+            values[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0]);
 
             if (!ParamsUtils.isLegalName(alias[1])) {
                 String legalAlias = TableUtils.uniqueAlias(idGenerator, "legal_" + table + "_" + alias[0]);

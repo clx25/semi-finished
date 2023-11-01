@@ -45,7 +45,7 @@ public class SortParserSelect implements SelectParamsParser {
         String[] columns = value.asText().split(",");
         String[] orders = new String[columns.length];
         for (int i = 0; i < columns.length; i++) {
-            columns[i] = commonParser.getActualColumn(table, columns[i]);
+            columns[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, columns[i]);
             orders[i] = columns[i] + " " + order;
         }
 

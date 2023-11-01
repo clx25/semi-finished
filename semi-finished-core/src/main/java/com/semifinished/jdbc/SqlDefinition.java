@@ -46,7 +46,7 @@ public class SqlDefinition {
     private int type;
 
     /**
-     * 数据源
+     * 数据源名称，是在配置中的名称，不是数据库的名称
      */
     private String dataSource;
 

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -91,11 +92,44 @@ public class EnhanceService {
         enhances.forEach(enhance -> enhance.afterQuery(page, sqlDefinition));
 
         //如果没有分页规则，则只返回数据列表
-        Object result = sqlDefinition.isPage() ? page : page.getRecords();
+        Object result = resultRow(page, sqlDefinition);
+
 
         //执行最终增强
         return selectFinallyEnhance != null ?
                 selectFinallyEnhance.beforeReturn(result, sqlDefinition) : result;
+    }
+
+    private Object resultRow(Page page, SqlDefinition sqlDefinition) {
+        List<ObjectNode> records = page.getRecords();
+        int rowStart = sqlDefinition.getRowStart();
+        Object result = records;
+        if (sqlDefinition.isPage()) {
+            result = page;
+        }
+        if (rowStart < 1) {
+            return result;
+        }
+        int rowEnd = sqlDefinition.getRowEnd();
+
+        if (rowEnd == 0) {
+            return records.get(rowStart - 1);
+        }
+
+        List<ObjectNode> rows = new ArrayList<>();
+        for (int i = 1; i < records.size() + 1; i++) {
+            if (rowEnd == rowStart && i == rowStart) {
+                rows.add(records.get(i - 1));
+                break;
+            }
+            if (i >= rowStart && i <= rowEnd) {
+                rows.add(records.get(i - 1));
+            }
+        }
+        records.clear();
+        records.addAll(rows);
+
+        return result;
     }
 
 

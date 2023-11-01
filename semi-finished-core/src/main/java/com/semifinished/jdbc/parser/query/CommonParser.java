@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.annontation.Where;
 import com.semifinished.config.ConfigProperties;
+import com.semifinished.config.DataSourceConfig;
+import com.semifinished.config.DataSourceProperties;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.query.keyvalueparser.KeyValueParamsParser;
@@ -22,6 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CommonParser {
     private final ConfigProperties configProperties;
+    private final DataSourceProperties dataSourceProperties;
     @Resource
     private KeyValueParamsParserExecutor keyValueParamsParserExecutor;
 
@@ -91,24 +94,27 @@ public class CommonParser {
      * @param tableKey 表名key
      * @return 实际表名
      */
-    public String getActualTable(String tableKey) {
-        return configProperties.getMapping().isEnable() ? actual(configProperties.getMapping().getTable(), tableKey) : tableKey;
+    public String getActualTable(String dataSource, String tableKey) {
+        DataSourceConfig.Mapping mapping = mapping(dataSource);
+        return mapping.isEnable() ? actual(mapping.getTable(), tableKey) : tableKey;
     }
 
     /**
      * 通过配置的字段名映射获取实际字段名
      * 通过匹配value返回key，如果没在value中找到，但是在key中找到了，会抛出异常
      *
-     * @param table  表名
-     * @param column 字段名
+     * @param dataSource 数据源
+     * @param table      表名
+     * @param column     字段名
      * @return 实际字段名
      */
-    public String getActualColumn(String table, String column) {
-        if (!configProperties.getMapping().isEnable()) {
+    public String getActualColumn(String dataSource, String table, String column) {
+        DataSourceConfig.Mapping mapping = mapping(dataSource);
+        if (!mapping.isEnable()) {
             return column;
         }
 
-        Map<String, Map<String, String>> columnMapping = configProperties.getMapping().getColumn();
+        Map<String, Map<String, String>> columnMapping = mapping.getColumn();
         if (MapUtils.isEmpty(columnMapping)) {
             return column;
         }
@@ -119,16 +125,18 @@ public class CommonParser {
     /**
      * 通过配置的字段名映射获取实际的名称作为别名
      *
-     * @param table  表名
-     * @param column 字段名
+     * @param dataSource 数据源
+     * @param table      表名
+     * @param column     字段名
      * @return 实际字段名
      */
-    public String getActualAlias(String table, String column) {
-        if (!configProperties.getMapping().isEnable()) {
+    public String getActualAlias(String dataSource, String table, String column) {
+        DataSourceConfig.Mapping mapping = mapping(dataSource);
+        if (!mapping.isEnable()) {
             return column;
         }
 
-        Map<String, Map<String, String>> columnMapping = configProperties.getMapping().getColumn();
+        Map<String, Map<String, String>> columnMapping = mapping.getColumn();
         if (MapUtils.isEmpty(columnMapping)) {
             return column;
         }
@@ -142,4 +150,8 @@ public class CommonParser {
         return ParamsUtils.hasText(actual, column);
     }
 
+
+    public DataSourceConfig.Mapping mapping(String dataSource) {
+        return dataSourceProperties.getDataSource().get(dataSource).getMapping();
+    }
 }

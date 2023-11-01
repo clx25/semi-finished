@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 指定返回第几行数据，或范围
+ * 与分页规则冲突
  * 序号从1开始
  * e.g.
  * <pre>
@@ -30,6 +31,7 @@ public class RowNumParser implements SelectParamsParser {
         if (!"@row".equals(key)) {
             return false;
         }
+        Assert.isTrue(sqlDefinition.isPage(), () -> new ParamsException("@row规则与分页规则冲突"));
         String text = value.asText();
         String[] values = text.split(",");
         Assert.isTrue(values.length > 2, () -> new ParamsException("@row参数错误，最多只能有两个值"));

@@ -15,6 +15,7 @@ import com.semifinished.util.SpringBeanUtils;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +25,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
@@ -82,8 +82,11 @@ public class SemiFinishedAutoConfiguration implements InitializingBean {
 
     @Bean
     public DataSource dataSource(DataSourceProperties dataSourceProperties, ConfigProperties configProperties) {
-        HikariDataSource dataSource = dataSourceProperties.getDatasource().get(configProperties.getDatabase());
-        Assert.isNull(dataSource, () -> new ConfigException(configProperties.getDatabase() + "数据源不存在"));
+        Map<String, ? extends HikariDataSource> dataSourceMap = dataSourceProperties.getDataSource();
+        Assert.isNull(dataSourceMap, () -> new ConfigException("未配置数据源"));
+        Assert.hasNotText(configProperties.getDataSource(), () -> new ConfigException("未指定默认数据源"));
+        HikariDataSource dataSource = dataSourceMap.get(configProperties.getDataSource());
+        Assert.isNull(dataSource, () -> new ConfigException("默认数据源" + configProperties.getDataSource() + "不存在"));
         return dataSource;
     }
 
@@ -96,10 +99,11 @@ public class SemiFinishedAutoConfiguration implements InitializingBean {
                 new LinkedBlockingQueue<>());
     }
 
-    @Bean
-    public SqlExecutor sqlExecutor(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-                                   TransactionTemplate transactionTemplate) {
-        return new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate);
+    @Autowired
+    public void sqlExecutor(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+                            TransactionTemplate transactionTemplate, ConfigProperties configProperties) {
+        //注册SQLExecutor
+        registerBean(SqlExecutor.class, () -> new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate), "sqlExecutor" + configProperties.getDataSource());
     }
 
 
@@ -107,16 +111,15 @@ public class SemiFinishedAutoConfiguration implements InitializingBean {
     public void afterPropertiesSet() {
         DataSourceProperties dataSourceProperties = SpringBeanUtils.getBean(defaultListableBeanFactory, DataSourceProperties.class);
         ConfigProperties configProperties = SpringBeanUtils.getBean(defaultListableBeanFactory, ConfigProperties.class);
-        Map<String, HikariDataSource> dataSources = dataSourceProperties.getDatasource();
+        Map<String, ? extends HikariDataSource> dataSourceMap = dataSourceProperties.getDataSource();
 
-        Assert.isTrue(dataSources == null || dataSources.isEmpty(), () -> new ConfigException("未添加数据库配置"));
-        for (Map.Entry<String, HikariDataSource> entry : dataSources.entrySet()) {
-            String key = entry.getKey();
-            if (key.equals(configProperties.getDatabase())) {
+        Assert.isTrue(dataSourceMap == null || dataSourceMap.isEmpty(), () -> new ConfigException("未添加数据库配置"));
+        for (Map.Entry<String, ? extends HikariDataSource> entry : dataSourceMap.entrySet()) {
+            String name = entry.getKey();
+            if (name.equals(configProperties.getDataSource())) {
                 continue;
             }
 
-            String name = StringUtils.capitalize(key);
             HikariDataSource dataSource = entry.getValue();
 
             //注册dataSource

@@ -50,9 +50,7 @@ public class FormatEnhance implements SelectEnhance {
             return;
         }
         JsonNode params = sqlDefinition.getRawParams();
-        List<Column> columns = sqlDefinition.getColumns();
         Iterator<String> names = params.fieldNames();
-        String table = sqlDefinition.getTable();
         while (names.hasNext()) {
             String name = names.next();
             if (name == null || name.length() < 2 || !name.startsWith("#")) {
@@ -66,30 +64,40 @@ public class FormatEnhance implements SelectEnhance {
 
             //#n表示格式化数字类型
             if (format.startsWith("num")) {
-                doFormat(table, fields, columns, records, (node) -> {
+                doFormat(sqlDefinition, fields, records, (node) -> {
                     String pattern = format.substring(3);
+                    Assert.hasNotText(pattern, () -> new ParamsException(name + "错误，缺少数字格式化规则"));
                     double d = node.asDouble();
                     decimalFormat.applyPattern(pattern);
-                    return TextNode.valueOf(decimalFormat.format(d));
+                    try {
+                        return TextNode.valueOf(decimalFormat.format(d));
+                    } catch (Exception e) {
+                        throw new ParamsException(name + "格式化数字规则错误", e);
+                    }
                 });
             }
             //#t表示格式化时间类型
             else if (format.startsWith("time")) {
-                doFormat(table, fields, columns, records, (node) -> {
+                doFormat(sqlDefinition, fields, records, (node) -> {
                     String pattern = format.substring(4);
+                    Assert.hasNotText(pattern, () -> new ParamsException(name + "错误，缺少时间格式化规则"));
                     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                    String date = LocalDate.parse(node.asText(), dateTimeFormatter)
-                            .format(DateTimeFormatter.ofPattern(pattern));
-                    return TextNode.valueOf(date);
+                    try {
+                        String date = LocalDate.parse(node.asText(), dateTimeFormatter)
+                                .format(DateTimeFormatter.ofPattern(pattern));
+                        return TextNode.valueOf(date);
+                    } catch (Exception e) {
+                        throw new ParamsException(name + "格式化时间规则错误", e);
+                    }
                 });
             }
             //#d表示默认
             else if (format.startsWith("def")) {
-                doFormat(table, fields, columns, records, (node) -> TextNode.valueOf((node == null || node.isNull()) ? format.substring(3) : node.asText()));
+                doFormat(sqlDefinition, fields, records, (node) -> TextNode.valueOf((node == null || node.isNull()) ? format.substring(3) : node.asText()));
             }
             //#j表示json
             else if (format.startsWith("json")) {
-                doFormat(table, fields, columns, records, (node) -> {
+                doFormat(sqlDefinition, fields, records, (node) -> {
                     try {
                         return objectMapper.readTree(node.asText(""));
                     } catch (JsonProcessingException e) {
@@ -99,7 +107,7 @@ public class FormatEnhance implements SelectEnhance {
             }
             //#b表示转为boolean类型，空数组，空对象，空字符串，null,false,不区分大小的"false"字符串，都返回false，其他返回true
             else if (format.startsWith("boolean")) {
-                doFormat(table, fields, columns, records, (node) -> {
+                doFormat(sqlDefinition, fields, records, (node) -> {
                     if (node.isBoolean()) {
                         return node;
                     }
@@ -118,11 +126,12 @@ public class FormatEnhance implements SelectEnhance {
         }
     }
 
-    private void doFormat(String table, String[] fields, List<Column> columns, List<ObjectNode> objectNodes, Function<JsonNode, JsonNode> function) {
-
+    private void doFormat(SqlDefinition sqlDefinition, String[] fields, List<ObjectNode> objectNodes, Function<JsonNode, JsonNode> function) {
+        String table = sqlDefinition.getTable();
+        List<Column> columns = sqlDefinition.getColumns();
         for (ObjectNode objectNode : objectNodes) {
             for (String field : fields) {
-                String column = commonParser.getActualColumn(table, field);
+                String column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, field);
                 String key = columns.stream()
                         .filter(col -> col.getTable().equals(table) && col.getColumn().equals(column))
                         .map(col -> ParamsUtils.hasText(col.getAlias(), col.getColumn()))
@@ -140,7 +149,7 @@ public class FormatEnhance implements SelectEnhance {
                 List<ObjectNode> items = objectMapper.convertValue(arrayNode, new TypeReference<List<ObjectNode>>() {
                 });
                 arrayNode.removeAll().addAll(items);
-                doFormat(table, fields, columns, items, function);
+                doFormat(sqlDefinition, fields, items, function);
             }
         }
     }

@@ -19,13 +19,13 @@ public class GroupByParser implements SelectParamsParser {
 
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
-        if (!"#group".equals(key)) {
+        if (!"@group".equals(key)) {
             return false;
         }
         String columns = value.asText();
         String[] columnArray = columns.split(",");
         for (int i = 0; i < columnArray.length; i++) {
-            columnArray[i] = commonParser.getActualColumn(table, columnArray[i]);
+            columnArray[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, columnArray[i]);
         }
         TableUtils.validColumnsName(semiCache, sqlDefinition, table, columnArray);
 

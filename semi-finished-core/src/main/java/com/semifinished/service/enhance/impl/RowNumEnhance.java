@@ -5,7 +5,6 @@ import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Page;
 import com.semifinished.service.enhance.SelectEnhance;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.List;
  * 根据请求参数截取返回的行
  */
 @Order(-1000)
-@Component
+//@Component
 public class RowNumEnhance implements SelectEnhance {
 
     @Override

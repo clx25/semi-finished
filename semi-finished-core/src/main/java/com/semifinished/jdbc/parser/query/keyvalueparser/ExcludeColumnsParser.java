@@ -36,7 +36,7 @@ public class ExcludeColumnsParser implements SelectParamsParser {
         String[] fields = value.asText().split(",");
 
         for (int i = 0; i < fields.length; i++) {
-            fields[i] = commonParser.getActualColumn(table, fields[i]);
+            fields[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, fields[i]);
         }
 
         TableUtils.validColumnsName(semiCache, sqlDefinition, table, fields);

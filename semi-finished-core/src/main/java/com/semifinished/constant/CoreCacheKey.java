@@ -10,7 +10,7 @@ public enum CoreCacheKey {
     /**
      * 数据库表字段名
      */
-    COLUMNS("semi:core:columns"),
+    COLUMNS("semi:core:columns:"),
     /**
      * 排除字段
      */
