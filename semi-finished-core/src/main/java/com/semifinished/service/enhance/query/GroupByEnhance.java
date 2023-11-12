@@ -1,4 +1,4 @@
-package com.semifinished.service.enhance.impl;
+package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -9,7 +9,6 @@ import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
 import com.semifinished.pojo.ValueCondition;
-import com.semifinished.service.enhance.SelectEnhance;
 import com.semifinished.util.ParamsUtils;
 import com.semifinished.util.TableUtils;
 import lombok.AllArgsConstructor;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
 @Order(100)
 @Component
 @AllArgsConstructor
-public class GroupByEnhance implements SelectEnhance {
+public class GroupByEnhance implements AfterQueryEnhance {
     private final SqlExecutorHolder sqlExecutorHolder;
     private final IdGenerator idGenerator;
 

@@ -12,20 +12,22 @@ import com.semifinished.jdbc.SqlDefinition;
  */
 public interface Interpolation {
     /**
-     * 匹配变量名称
+     * 匹配请求参数，判断是否执行该插值规则
      *
-     * @param key 变量名称
+     * @param key             请求参数的key，已经去除末尾的$符号
+     * @param interpolatedKey 插值key
      * @return true表示使用该类获取实际值，false表示不使用
      */
-    boolean match(String key);
+    boolean match(String key, String interpolatedKey);
 
     /**
      * 获取变量对应的实际值
      *
-     * @param table         表名
-     * @param key           变量名称
-     * @param sqlDefinition sql的定义文件，所有sql相关的数据保存到里面，根据这些数据生成sql
+     * @param table           表名
+     * @param interpolatedKey 插值key
+     * @param key             请求参数的key，已经去除末尾的$符号
+     * @param sqlDefinition   SQL定义信息
      * @return 变量对应的实际值
      */
-    JsonNode value(String table, String key, SqlDefinition sqlDefinition);
+    JsonNode value(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition);
 }

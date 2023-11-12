@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  *     "@db":"database"
  * </pre>
  */
-@Order(-1000)
+
 @Component
 @AllArgsConstructor
 public class DataSourceParser implements ParamsParser {
@@ -39,5 +39,10 @@ public class DataSourceParser implements ParamsParser {
         String finalDataSource = dataSource;
         Assert.isFalse(dataSourceProperties.getDataSource().containsKey(dataSource), () -> new ParamsException("数据源" + finalDataSource + "不存在"));
         sqlDefinition.setDataSource(dataSource);
+    }
+
+    @Override
+    public int getOrder() {
+        return -1000;
     }
 }

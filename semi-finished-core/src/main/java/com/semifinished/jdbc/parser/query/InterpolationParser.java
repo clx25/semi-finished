@@ -24,7 +24,6 @@ import java.util.List;
  */
 @Component
 @AllArgsConstructor
-@Order(-2000)
 public class InterpolationParser implements ParamsParser {
     private final List<Interpolation> interpolations;
 
@@ -39,7 +38,7 @@ public class InterpolationParser implements ParamsParser {
                     //如果是$结尾，表示使用插值规则，需要获取实际值
                     if (k.endsWith("$")) {
                         k = k.substring(0, k.length() - 1);
-                        v = interpolation(table, v.asText(), sqlDefinition);
+                        v = interpolation(table, k, v.asText(), sqlDefinition);
                     }
                     params.remove(e.getKey());
                     params.set(k, v);
@@ -48,13 +47,18 @@ public class InterpolationParser implements ParamsParser {
     }
 
 
-    private JsonNode interpolation(String table, String key, SqlDefinition sqlDefinition) {
+    private JsonNode interpolation(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition) {
         for (Interpolation interpolation : interpolations) {
-            if (interpolation.match(key)) {
-                return interpolation.value(table, key, sqlDefinition);
+            if (interpolation.match(key,interpolatedKey)) {
+                return interpolation.value(table,key, interpolatedKey, sqlDefinition);
             }
         }
-        throw new ParamsException("未找到" + key + "对应的值");
+        throw new ParamsException("未找到" + interpolatedKey + "对应的值");
+    }
+
+    @Override
+    public int getOrder() {
+        return -2000;
     }
 }
 

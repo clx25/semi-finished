@@ -1,4 +1,4 @@
-package com.semifinished.service.enhance.impl;
+package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Page;
-import com.semifinished.service.enhance.SelectEnhance;
 import com.semifinished.util.Assert;
 import lombok.AllArgsConstructor;
 import org.springframework.core.annotation.Order;
@@ -26,7 +25,7 @@ import java.util.List;
 @Order(100)
 @Component
 @AllArgsConstructor
-public class SumEnhance implements SelectEnhance {
+public class SumEnhance implements AfterQueryEnhance {
 
     private final ObjectMapper objectMapper;
 

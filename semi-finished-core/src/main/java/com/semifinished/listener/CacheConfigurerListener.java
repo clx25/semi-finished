@@ -3,7 +3,7 @@ package com.semifinished.listener;
 
 import com.semifinished.config.ConfigProperties;
 import com.semifinished.config.CoreConfigurer;
-import com.semifinished.service.enhance.impl.DesensitizeEnhance;
+import com.semifinished.service.enhance.query.DesensitizeEnhance;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;

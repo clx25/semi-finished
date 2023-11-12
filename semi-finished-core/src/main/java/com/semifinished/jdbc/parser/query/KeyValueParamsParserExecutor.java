@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.query.keyvalueparser.KeyValueParamsParser;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -15,7 +14,7 @@ import java.util.Map;
 /**
  * 单个键值的解析
  */
-@Order(500)
+
 @Component
 public class KeyValueParamsParserExecutor implements ParamsParser {
 
@@ -44,5 +43,10 @@ public class KeyValueParamsParserExecutor implements ParamsParser {
                 }
             }
         }
+    }
+
+    @Override
+    public int getOrder() {
+        return 500;
     }
 }

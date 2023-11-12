@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.annontation.Where;
 import com.semifinished.cache.SemiCache;
 import com.semifinished.jdbc.SqlDefinition;
-import com.semifinished.jdbc.parser.DataAccessParser;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.jdbc.util.IdGenerator;
@@ -26,12 +25,12 @@ import org.springframework.stereotype.Component;
  * </pre>
  * 以上解析为 where col=value
  */
-@Order
+
 @Slf4j
 @Where
 @Component
 @RequiredArgsConstructor
-public class EqParamsParser implements SelectParamsParser, DataAccessParser {
+public class EqParamsParser implements SelectParamsParser{
 
     private final SemiCache semiCache;
     private final CommonParser commonParser;
@@ -86,4 +85,8 @@ public class EqParamsParser implements SelectParamsParser, DataAccessParser {
         return true;
     }
 
+    @Override
+    public int getOrder() {
+        return 2000;
+    }
 }

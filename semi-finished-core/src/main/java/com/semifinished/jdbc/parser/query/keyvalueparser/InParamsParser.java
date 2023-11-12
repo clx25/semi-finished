@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.semifinished.annontation.Where;
 import com.semifinished.cache.SemiCache;
 import com.semifinished.jdbc.SqlDefinition;
-import com.semifinished.jdbc.parser.DataAccessParser;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.pojo.ValueCondition;
@@ -30,12 +29,12 @@ import java.util.List;
  * </pre>
  * 以上为规则的两个写法，都解析为 where col in ('v1','v2')
  */
-@Order(-100)
+
 @Slf4j
 @Where
 @Component
 @AllArgsConstructor
-public class InParamsParser implements SelectParamsParser, DataAccessParser {
+public class InParamsParser implements SelectParamsParser{
     private final SemiCache semiCache;
     private final CommonParser commonParser;
 
@@ -79,4 +78,8 @@ public class InParamsParser implements SelectParamsParser, DataAccessParser {
         return true;
     }
 
+    @Override
+    public int getOrder() {
+        return -100;
+    }
 }

@@ -1,9 +1,8 @@
-package com.semifinished.service.enhance.impl;
+package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Page;
-import com.semifinished.service.enhance.SelectEnhance;
 import org.springframework.core.annotation.Order;
 
 import java.util.ArrayList;
@@ -14,7 +13,7 @@ import java.util.List;
  */
 @Order(-1000)
 //@Component
-public class RowNumEnhance implements SelectEnhance {
+public class RowNumEnhance implements AfterQueryEnhance {
 
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {

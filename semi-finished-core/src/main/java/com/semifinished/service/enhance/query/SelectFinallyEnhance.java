@@ -1,4 +1,4 @@
-package com.semifinished.service.enhance;
+package com.semifinished.service.enhance.query;
 
 
 import com.semifinished.jdbc.SqlDefinition;
@@ -13,7 +13,7 @@ public interface SelectFinallyEnhance {
      * 该接口返回的数据不会经过任何处理，直接返回到页面
      *
      * @param data          查询出来的数据，可能是集合也可能是分页数据
-     * @param sqlDefinition 请求参数解析后的数据
+     * @param sqlDefinition SQL定义信息
      * @return 返回到页面的数据
      */
     Object beforeReturn(Object data, SqlDefinition sqlDefinition);

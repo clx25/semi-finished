@@ -1,13 +1,10 @@
 package com.semifinished.service.enhance;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.query.ParamsParser;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-
-import java.util.Objects;
 
 /**
  * 对查询结果进行增强
@@ -18,57 +15,22 @@ import java.util.Objects;
  */
 public interface ServiceEnhance {
 
-    /**
-     * 默认增强类的名称，
-     * 按优先级从大到小
-     * 1. 重写该方法后返回的值
-     * 2. @Component注解的value值
-     * 3. 首字母小写的类名
-     */
-    default String name() {
-        Component component = this.getClass().getAnnotation(Component.class);
-        if (component != null) {
-            String value = component.value();
-            if (StringUtils.hasText(value)) {
-                return value;
-            }
-        }
-        return StringUtils.uncapitalize(this.getClass().getSimpleName());
-    }
-
 
     /**
-     * 判断请求是否使用该增强
-     * 如果没有@bean参数，默认返回true
-     * 请求中的@bean参数为使用的增强名称字符串，多个用逗号分隔
-     * 在默认规则中，如果参数中的增强名称字符串与{@link #name()}返回的名称相匹配，表示要使用该增强
+     * 判断请求是否使用该增强,默认使用
      *
-     * @param sqlDefinition sql相关的数据
+     * @param sqlDefinition SQL定义信息
      * @return true使用增强 ，false不使用增强
      */
     default boolean support(SqlDefinition sqlDefinition) {
-        JsonNode path = sqlDefinition.getParams().path("@bean");
-        if (path.isMissingNode()) {
-            return true;
-        }
-        String beans = path.asText(null);
-        if (!StringUtils.hasText(beans)) {
-            return false;
-        }
-        String name = name();
-        for (String bean : beans.split(",")) {
-            if (name != null && Objects.equals(name, bean)) {
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
 
 
     /**
-     * 在解析参数之前执行
+     * 在参数解析参数之前执行
      *
-     * @param sqlDefinition sql相关的数据x
+     * @param sqlDefinition SQL定义信息
      */
     default void beforeParse(SqlDefinition sqlDefinition) {
 
@@ -78,7 +40,7 @@ public interface ServiceEnhance {
     /**
      * 参数解析完成后执行，可以直接对解析完成后的内容进行修改，并直接影响最终的sql
      *
-     * @param sqlDefinition 解析完成后的sqlDefinition
+     * @param sqlDefinition SQL定义信息
      */
     default void afterParse(SqlDefinition sqlDefinition) {
 

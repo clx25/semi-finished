@@ -25,7 +25,6 @@ import org.springframework.util.StringUtils;
  */
 @Component
 @AllArgsConstructor
-@Order(-900)
 public class TableParamsParser implements ParamsParser {
     private final SemiCache semiCache;
     private final ParserExecutor parserExecutor;
@@ -49,5 +48,10 @@ public class TableParamsParser implements ParamsParser {
         SqlDefinition innerSqlDefinition = parserExecutor.parse(params);
         sqlDefinition.setTable("__semi_inner_table__" + innerSqlDefinition.getTable());
         sqlDefinition.setSubTable(innerSqlDefinition);
+    }
+
+    @Override
+    public int getOrder() {
+        return -900;
     }
 }

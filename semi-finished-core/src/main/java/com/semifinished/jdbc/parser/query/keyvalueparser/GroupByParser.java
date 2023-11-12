@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-@Order(-700)
+
 @Component
 @AllArgsConstructor
 public class GroupByParser implements SelectParamsParser {
@@ -32,5 +32,10 @@ public class GroupByParser implements SelectParamsParser {
         sqlDefinition.addGroupBy(table, columnArray);
 
         return true;
+    }
+
+    @Override
+    public int getOrder() {
+        return -700;
     }
 }

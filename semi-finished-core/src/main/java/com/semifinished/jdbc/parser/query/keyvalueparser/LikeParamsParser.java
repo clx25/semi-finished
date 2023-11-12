@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.annontation.Where;
 import com.semifinished.cache.SemiCache;
 import com.semifinished.jdbc.SqlDefinition;
-import com.semifinished.jdbc.parser.DataAccessParser;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.jdbc.util.IdGenerator;
@@ -28,11 +27,10 @@ import org.springframework.stereotype.Component;
  * "col%":"value" -> where col like 'value%'
  * "%col%":"value" -> where col like '%value%'
  */
-@Order(-200)
 @Where
 @Component
 @AllArgsConstructor
-public class LikeParamsParser implements SelectParamsParser, DataAccessParser {
+public class LikeParamsParser implements SelectParamsParser{
     private final SemiCache semiCache;
     private final IdGenerator idGenerator;
     private final CommonParser commonParser;
@@ -78,4 +76,8 @@ public class LikeParamsParser implements SelectParamsParser, DataAccessParser {
         return true;
     }
 
+    @Override
+    public int getOrder() {
+        return -200;
+    }
 }

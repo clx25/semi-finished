@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- *
+ * on规则不能单独存在
  */
 @Component
 @AllArgsConstructor
@@ -19,5 +19,10 @@ public class JoinOnKeyValueParser implements SelectParamsParser {
 
         Assert.isTrue("@on".equals(key), () -> new ParamsException("@on规则需要配合join规则使用：" + value));
         return false;
+    }
+
+    @Override
+    public int getOrder() {
+        return 0;
     }
 }

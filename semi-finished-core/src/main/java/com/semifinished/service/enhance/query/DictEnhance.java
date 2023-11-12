@@ -1,4 +1,4 @@
-package com.semifinished.service.enhance.impl;
+package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -13,7 +13,6 @@ import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
 import com.semifinished.pojo.ValueCondition;
 import com.semifinished.service.EnhanceService;
-import com.semifinished.service.enhance.SelectEnhance;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
 import com.semifinished.util.TableUtils;
@@ -42,7 +41,7 @@ import java.util.stream.Stream;
 @Component
 @Order(-500)
 @AllArgsConstructor
-public class DictEnhance implements SelectEnhance {
+public class DictEnhance implements AfterQueryEnhance {
 
     private final IdGenerator idGenerator;
     @Resource

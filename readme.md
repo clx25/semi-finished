@@ -4,11 +4,36 @@
 
 # API文档
 
-## 查询规则
+## 一些符号的灵感来源与释义
+
+> `@`:论坛或聊天工具中代表指定
+> 
+> `~`:位运算中的“取反”操作
+> 
+> `:`:表示key-value的对应关系，映射
+> 
+> `%`:sql中的模糊查询匹配符
+> 
+> `!`:在判断式中代表“非”
+> 
+> `&`:位运算中的“与”操作
+> 
+> `#`:代表规则
+> 
+> `/`:排序二叉树中左边为从大到小
+> 
+> `\\`:排序二叉树中从小到大
+> 
+> `^`:树结构
+> 
+> `$`:在一些语言中使用`${字段}`的方式表示引用字段的值
+
+## 查询规则（在SQL中生效的规则）
 
 **接口地址**:`/enhance`
 
 **请求方式**:`POST`
+
 **完整的查询示例**:
 
 ```json
@@ -44,31 +69,9 @@
 }
 ```
 
-### 一些符号的灵感来源与释义
+### 指定表名
 
-> `@`:论坛或聊天工具中代表指定
-> 
-> `~`:位运算中的“取反”操作
-> 
-> `:`:表示key-value的对应关系，映射
-> 
-> `%`:sql中的模糊查询匹配符
-> 
-> `!`:在判断式中代表“非”
-> 
-> `&`:位运算中的“与”操作
-> 
-> `#`:代表规则
-> 
-> `/`:排序二叉树中左边为从大到小
-> 
-> `\\`:排序二叉树中从小到大
-> 
-> `^`:树结构
-> 
-> `$`:在一些语言中使用`${字段}`的方式表示引用字段的值
-
-### 查询全部
+**所有请求都需要指定表名**
 
 查询该表的所有未排除字段，如果没有指定分页参数，默认查询前200条，该限制和未排除字段可配置
 
@@ -79,6 +82,8 @@
 ```
 
 ### 指定查询字段
+
+当没有`@`参数时，默认查询指定表的所有未排除字段
 
 ```json
 {
@@ -128,6 +133,8 @@
 
 ### 模糊查询
 
+在字段的前后加上`%`符号表示查询内容的对应位置添加`%`符号
+
 ```json
 {
     "%字段":"内容",//生成 【%内容】 查询
@@ -138,7 +145,7 @@
 
 ### IN
 
-生成 `字段 in (1,2,3)`查询
+使用`[]`包裹字段，生成 `字段 in (1,2,3)`查询
 
 ```json
 {
@@ -148,7 +155,7 @@
 
 ### 不等于
 
-生成 `字段!=内容`查询
+在字段前添加`!`符号，生成 `字段!=内容`查询
 
 ```json
 {
@@ -157,6 +164,8 @@
 ```
 
 ### 范围
+
+在字段前后添加`<`或`>`符号，表示在查询中在对应位置添加对应符号，当冲突时抛出异常。
 
 ```json
 {
@@ -171,6 +180,8 @@
 
 ### 排序
 
+由于json中的`\`表示转义符，所以使用`\\`表示从小到大排序
+
 ```json
 {
     "/":"字段名",//根据字段名内容从大到小排序
@@ -178,7 +189,7 @@
 }
 ```
 
-### 括号、或查询
+### 括号、或
 
 使用`|`作为前缀就表示或查询，可以在任何查询条件中添加，一般与括号查询一起使用。字段后使用`{}`表示与该字段括号在一起查询，`{}`内的`value`参数表示外层字段的查询内容，`value`字段可以配置
 
@@ -210,21 +221,6 @@
 }
 ```
 
-### 表字典查询
-
-`:`表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`就是两个表的关联关系`user.id=order.user_id`。该查询会先查询`user`表，获取`id`后用`in`查询去查`order`表，最后合并。由于id名称重复，所以使用别名规则修改`order.id`的返回字段名。暂不支持深度映射和一个字段对应多个表映射。
-
-```json
-{
-    "@tb":"user",
-    "id:":{
-        "@tb":"order",
-        "@on":"user_id",
-        ":":"id:orderId"
-    }
-}
-```
-
 ### JOIN查询
 
 与表字典查询类似，只是把`:`改为了`&`，`&`在字段右方时表示`left join`，在右方时表示`inner join`。该查询解析结果为`user inner join order on user.id=order.user_id`。支持深度`join`，就是`oder`表的查询也可以使用`join`规则
@@ -246,7 +242,9 @@
 
 `@group`就是指定` group by`字段
 
-如果`@group`的字段没有覆盖指定的查询字段，那么会先把没有覆盖的字段排除进行第一次查询，再查询未覆盖的字段，最后进行合并。
+如果`@group`的字段覆盖了所有查询字段，那么会直接在SQL中查询
+
+如果没有完全覆盖，那么主要逻辑会在增强中执行，默认只会查询已覆盖的字段，然后在增强中根据返回字段的值通过`in`查询未覆盖的字段，再合并结果。
 
 ```json
 {
@@ -267,6 +265,79 @@
 }
 ```
 
+### 插值规则
+
+插值规则是查询规则中第一个执行的规则，用于对参数值进行替换。在key的末尾添加`$`符号表示这是一个插值规则
+
+如现在想创建一个规则，某个值等于一个随机数，那么可以这样设计
+
+```json
+{
+    "id$":"random"
+}
+```
+
+此处的`random`不是实际的值，而是一个需要去替换的`key`
+
+然后去实现`Interpolation`接口
+
+```java
+@Component
+public class RandomInterpolation implements Interpolation {
+
+    /**
+     * 匹配请求参数，判断是否执行该插值规则
+     *
+     * @param key             请求参数的key，已经去除末尾的$符号
+     * @param interpolatedKey 插值key
+     * @return true表示使用该类获取实际值，false表示不使用
+     */
+    @Override
+    public boolean match(String key, String interpolatedKey) {
+        return "random".equals(interpolatedKey);
+    }
+
+    /**
+     * 获取变量对应的实际值
+     *
+     * @param table           表名
+     * @param interpolatedKey 插值key
+     * @param key             请求参数的key，已经去除末尾的$符号
+     * @param sqlDefinition   SQL定义信息
+     * @return 变量对应的实际值
+     */
+    @Override
+    public JsonNode value(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition) {
+        return JsonNodeFactory.instance.numberNode(new Random().nextInt());
+    }
+}
+```
+
+如果`value`方法返回的随机数是5，那么在该规则执行后请求的参数会被替换为
+
+```json
+{
+    "id":"5"
+}
+```
+
+## 增强规则（查询后对结果进行处理的规则）
+
+### 表字典查询
+
+`:`表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`就是两个表的关联关系`user.id=order.user_id`。该查询会先查询`user`表，获取`id`后用`in`查询去查`order`表，最后合并。由于id名称重复，所以使用别名规则修改`order.id`的返回字段名。暂不支持深度映射和一个字段对应多个表映射。
+
+```json
+{
+    "@tb":"user",
+    "id:":{
+        "@tb":"order",
+        "@on":"user_id",
+        ":":"id:orderId"
+    }
+}
+```
+
 ### 指定返回的行
 
 **不能与分页参数同时使用**
@@ -279,11 +350,9 @@
 }
 ```
 
-## 增强规则
-
 ### 总和
 
-用以计算一些字段的和
+用以计算一些字段的和，并添加到最后一行
 
 ```json
 {
@@ -291,256 +360,201 @@
 }
 ```
 
-### 格式化
+## 结果替换规则
 
-转换数字或日期格式，如保留两位小数，转百分数，转换日期显示格式
+对查询结果指定字段的值进行替换或者格式化，前缀`#`表示是替换规则，后面的字符是规则内容，由具体实现类自定义。
 
-```json
-{
-    "#n0.00":"字段1,字段2,...",//#n表示格式化数字类型
-    "#dyyyy-MM-dd":"字段1,字段2,..."//#d表示格式化日期类型
-}
-```
+### 数字格式化
 
-### 表字典
-
-需要配置表的关联关系，具体配置方式查看`扩展配置`目录
-
-该规则会根据关联关系去指定的表中查询指定的字段，并根据关联关系进行数据合并。
+`num0.00`是规则内容，由不同的实现类自定义。`num`表示这是一个数字的替换规则，`0.00`是格式化规则，该规则由`DecimalFormat`实现，所以可以使用`DecimalFormat`的所有规则。如果`DecimalFormat`无法解析该规则，那么会抛出异常。
 
 ```json
 {
-    ":表名":"字段1:别名1，字段2,..."
+    "#num0.00":"字段1,字段2..."//把指定字段的数字格式化为四舍五入保留两位小数
 }
 ```
 
-示例：
+### 转json
 
-请求: `enhance/test1`
-
-关联关系为 `test1.id=test2.test1_id`
+把指定字段的值转为json格式，如果无法转为json，则抛出异常
 
 ```json
 {
-    "pageSize":10,
-    ":test2":"a,b:c"
+    "#json":"字段1,字段2..."
 }
 ```
 
-程序会先查询`test1`的数据集合，获取`id`集合，通过`in`查询`test2.test1_id` 的`a`字段，`b`字段数据,并设置`b`字段的别名为`c`，返回数据并拼接。
+### 默认
+
+`def`表示默认规则，后面的字符表示当指定字段结果为`null`时，替换的字符。
+
+```json
+{
+    "#def123":"字段1,字段2..."//表示指定字段如果为null，那么返回123
+}
+```
+
+### 日期时间格式化
+
+`time`表示时间规则，后面的字符串表示指定字段的时间格式化规则。该规则使用`DateTimeFormatter`实现，所以`time`后面能使用`DateTimeFormatter`支持的所有规则。
+
+对于数据的日期格式，目前只支持`yyyy-MM-dd HH:mm:ss`与`yyyy-MM-dd`两种。
+
+```json
+{
+    "#timeyyyy-MM":"字段1,字段2..."//把指定字段的日期字符串转为yyyy-MM格式
+}
+```
+
+### Booean格式
+
+空集合，空字符串(去除空格)，字符串"false"返回`false`，其他返回`true`
+
+```json
+{
+    "#boolean":"字段1,字段2..."
+}
+```
 
 # 自定义查询规则
 
-## 实现Params2SqlParser接口
+有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`两个接口，可供不同情况下选择使用。这两个接口的本质都是在实现类中对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`中。这两个接口都继承了`Ordered`接口，所以需要指定解析类的顺序。
 
-该接口适用于确定的key，如指定字段规则的`@`符号，或需要同时获得多个参数才能确定的规则，如分页参数`pageNum`,`pageSize`。解析后的参数填入`sqlDefinition`中。
+## 实现ParamsParser接口
+
+该接口适用于需要多个参数配合的规则，如分页规则。
+
+如果在该接口中解析的规则不希望在之后`KeyValueParamsParser`中再解析的话，应该使用`remove`方法删除。
 
 ```java
-/**
- * 前端参数的解析器接口
- * 适用于匹配一个确定的key
- * 如果需要匹配一个需要解析的key,可以使用{@link Value2SqlParser}
- */
-public interface Params2SqlParser {
-
+public interface ParamsParser extends Ordered {
     /**
-     * 如果存在匹配的key调用的方法
+     * 解析参数接口方法
+     * 为了避免该方法解析过的参数在{@link KeyValueParamsParser}中再解析一次，
+     * 所以需要把解析过的参数删掉
      *
-     * @param table         表名
-     * @param params        前端参数
-     * @param sqlDefinition sql的定义类，所有解析出来的数据保存到里面，根据这些数据生成sql
+     * @param params        请求参数
+     * @param sqlDefinition SQL定义信息
      */
-    void parse(String table, ObjectNode params, SqlDefinition sqlDefinition);
+    void parser(ObjectNode params, SqlDefinition sqlDefinition);
 }
 ```
 
-## 实现Value2SqlParser接口
+## 实现KeyValueParamsParser接口
 
-`Value2SqlParser`接口由`Params2SqlParser`的实现类`Value2SqlParserExecutor`调用，传入的参数为遍历后拆分出的key，value。
+`KeyValueParamsParser`接口适用于需要对key进行解析的规则，如模糊查询规则，范围查询规则等。该方法把请求参数进行了遍历，将每一项的key和value传入进行解析。
 
-`Value2SqlParser`接口适用于需要对key进行解析的规则，如模糊查询的`%字段%`规则。
+`KeyValueParamsParser`接口的执行类也是`ParamsParser`接口的实现类，所以如果想相对于`ParamsParser`接口的某个实现类排序，那么只能实现`ParamsParser`接口。
 
 ```java
-public interface Value2SqlParser {
+public interface KeyValueParamsParser extends Ordered {
     /**
      * 对前端传过来的json参数进行解析
-     * 具体示例可查看实现类，如{@link LikeParser}
+     * 具体示例可查看实现类，如{@link LikeParamsParser}
      *
      * @param table         表名，在调用之前对table进行过校验，可以保证能从semicache中获取字段列表
      * @param key           前端json参数key
      * @param value         前端json参数value
-     * @param sqlDefinition sql的定义类，所有解析出来的数据保存到里面，根据这些数据生成sql
+     * @param sqlDefinition SQL定义信息
      * @return 是否使用了该解析器，如果为true,则该查询条件不再进行下一次解析
      */
     boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition);
-
 }
 ```
 
 # 自定义增强规则
 
-实现对应的接口并添加到spring容器，程序会调用对应的实现类进行增强。
-
-请求中的`semiId`参数会传入`match`方法，用于判断是否执行该增强
-
-## 新增数据增强接口
-
-```java
-public interface InsertEnhance {
-    /**
-     * 判断是否执行该增强
-     *
-     * @param table  表名
-     * @param semiId 请求标识
-     * @param params 请求参数
-     * @return true执行，false不执行
-     */
-    boolean match(String table, String semiId, Map<String, String> params);
-
-    /**
-     * 新增之前执行
-     *
-     * @param table  表名
-     * @param params 请求参数
-     */
-    void beforeInsert(String table, Map<String, String> params);
-
-    /**
-     * 新增之后执行
-     *
-     * @param table  表名
-     * @param id     新增数据的id
-     * @param params 请求参数
-     */
-    void afterInsert(String table, int id, Map<String, String> params);
-}
-```
-
-## 更新数据增强接口
-
-```java
-public interface UpdateEnhance {
-    /**
-     * 判断是否执行该增强
-     *
-     * @param table  表名
-     * @param semiId 请求标识
-     * @param params 请求参数
-     * @return true执行，false不执行
-     */
-    boolean match(String table, String semiId, Map<String, String> params);
-
-    /**
-     * 修改之前执行
-     *
-     * @param table  表名
-     * @param params 请求参数
-     */
-    void beforeUpdate(String table, Map<String, String> params);
-
-    /**
-     * 修改之后执行
-     *
-     * @param table  表名
-     * @param params 请求参数
-     */
-    void afterUpdate(String table, Map<String, String> params);
-}
-```
-
-## 登录增强接口
-
-```java
-public interface LoginEnhance {
-
-
-    /**
-     * 登录之前执行
-     *
-     * @param principal 包含登录信息
-     */
-    void beforeLogin(Principal principal);
-
-    /**
-     * 登录成功之后执行
-     *
-     * @param principal 包含登录信息
-     */
-    void afterLogin(Principal principal);
-}
-```
-
-## 注册增强接口
-
-```java
-public interface SignupEnhance {
-
-    /**
-     * 注册之前执行
-     *
-     * @param principal 包含注册信息
-     */
-    void beforeSignup(Principal principal);
-
-    /**
-     * 注册成功之后执行
-     *
-     * @param principal 包含注册信息
-     */
-    void afterSignup(Principal principal);
-}
-```
-
 ## 查询增强接口
 
+对结果进行处理，一对多的group查询，表字典查询，格式化数据，脱敏数据等功能就是使用增强接口实现。
+
 ```java
-public interface SelectEnhance {
-
-    /**
-     * 判断是否执行该增强
-     *
-     * @param table  表名
-     * @param semiId 请求的id,可以用来标识一个请求
-     * @param params 请求参数
-     * @return true要执行，false不执行
-     */
-    boolean match(String table, String semiId, ObjectNode params);
-
-    /**
-     * 在解析参数之前执行
-     *
-     * @param table  表名
-     * @param params 前端参数，该对象会传入解析器
-     */
-    void before(String table, ObjectNode params);
+public interface ServiceEnhance {
 
 
     /**
-     * 参数解析完成后执行，可以直接对解析完成后的内容进行修改，并直接影响最终的sql
+     * 判断请求是否使用该增强,默认使用
      *
-     * @param table         表名
-     * @param params        前端参数
-     * @param sqlDefinition 解析完成后的sqlDefinition
+     * @param sqlDefinition SQL定义信息
+     * @return true使用增强 ，false不使用增强
      */
-    void afterParse(String table, ObjectNode params, SqlDefinition sqlDefinition);
+    default boolean support(SqlDefinition sqlDefinition) {
+        return true;
+    }
+
 
     /**
-     * 非分页查询，在获取到数据之后执行
+     * 在参数解析参数之前执行
      *
-     * @param table  表名
-     * @param params 前端参数，这个参数是before方法执行之前深拷贝的参数
-     * @param list   查询返回的数据列表
+     * @param sqlDefinition SQL定义信息
      */
-    void afterQuery(String table, ObjectNode params, List<ObjectNode> list);
+    default void beforeParse(SqlDefinition sqlDefinition) {
+
+    }
+
 
     /**
-     * 分页查询之后执行
+     * 参数解析完成后执行，可以直接对解析完成后的内容进行修改，并直接影响最终的SQL
      *
-     * @param table  表名
-     * @param params 前端参数，这个参数是before方法执行之前深拷贝的参数
-     * @param page   分页信息，包含查询返回的数据列表
+     * @param sqlDefinition SQL定义信息
      */
-    void pageAfter(String table, ObjectNode params, Page page);
+    default void afterParse(SqlDefinition sqlDefinition) {
+
+    }
+
+
+}
+```
+
+```java
+public interface AfterQueryEnhance extends ServiceEnhance {
+
+
+    /**
+     * 查询之后执行，无论是否有分页规则，都会包装到page中
+     * 可以在此处获取查询后的数据，进行处理
+     *
+     * @param page          分页信息，包含查询返回的数据列表
+     * @param sqlDefinition SQL定义信息
+     */
+    default void afterQuery(Page page, SqlDefinition sqlDefinition) {
+
+    }
+}
+```
+
+# 自定义结果替换规则
+
+结果替换规则由增强类`ValueReplaceEnhance`实现，这也是一个增强规则，在这个增强类中定义了`#`规则和使用`ValueReplace`接口作为替换规则的实现方式。
+
+#### 实现ValueReplace接口
+
+replace方法第一个参数是前端参数解析后的SQL定义信息
+
+第二个参数是规则去掉#后的字符串，如前端参数传递了一个数字格式化规则
+
+```json
+{
+    "#num0.00":"score"
+}
+```
+
+那么`pattern`的值就是`num0.00`。
+第三个参数是返回结果中`score`对应的值
+
+```java
+public interface ValueReplace {
+
+    /**
+     * 替换原始的值
+     *
+     * @param sqlDefinition SQL定义信息
+     * @param pattern       替换规则
+     * @param value         返回数据的值
+     * @return 用这个返回的值替换原始的值
+     */
+    JsonNode replace(SqlDefinition sqlDefinition, String pattern, JsonNode value);
+
 }
 ```
 

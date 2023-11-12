@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  * </pre>
  * 上方的请求参数表示返回第二页的第二条数据
  */
-@Order(100)
+
 @Component
 public class RowNumParser implements SelectParamsParser {
     @Override
@@ -48,5 +48,10 @@ public class RowNumParser implements SelectParamsParser {
         sqlDefinition.setRowEnd(rowEnd);
 
         return true;
+    }
+
+    @Override
+    public int getOrder() {
+        return 100;
     }
 }

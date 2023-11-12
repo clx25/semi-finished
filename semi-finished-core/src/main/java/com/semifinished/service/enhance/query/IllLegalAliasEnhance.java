@@ -1,10 +1,9 @@
-package com.semifinished.service.enhance.impl;
+package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
-import com.semifinished.service.enhance.SelectEnhance;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -19,7 +18,7 @@ import java.util.List;
  */
 @Component
 @Order(-1000)
-public class IllLegalAliasEnhance implements SelectEnhance {
+public class IllLegalAliasEnhance implements AfterQueryEnhance {
 
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {

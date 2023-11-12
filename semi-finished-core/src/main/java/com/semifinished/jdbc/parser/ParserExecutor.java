@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * sql解析的执行器
- * 并执行同一的前期处理
+ * 并执行统一的前期处理
  */
 @Component
 public class ParserExecutor {

@@ -1,4 +1,4 @@
-package com.semifinished.service.enhance.impl;
+package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Page;
-import com.semifinished.service.enhance.SelectEnhance;
 import com.semifinished.util.Assert;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  */
 @Order(0)
 @Component
-public class TreeEnhance implements SelectEnhance {
+public class TreeEnhance implements AfterQueryEnhance {
 
 
     @Override

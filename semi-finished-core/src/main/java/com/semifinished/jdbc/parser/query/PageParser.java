@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 分页参数解析
  */
-@Order(-700)
+
 @Component
 @AllArgsConstructor
 public class PageParser implements ParamsParser {
@@ -48,5 +48,10 @@ public class PageParser implements ParamsParser {
         } else {
             sqlDefinition.setPageSize(10);
         }
+    }
+
+    @Override
+    public int getOrder() {
+        return -700;
     }
 }

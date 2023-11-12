@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  * "\\":"col" -> order by col
  * \反斜杠在json中是转义符，所以需要\\
  */
-@Order(200)
+
 @Component
 @AllArgsConstructor
 public class SortParserSelect implements SelectParamsParser {
@@ -54,5 +54,10 @@ public class SortParserSelect implements SelectParamsParser {
         sqlDefinition.setOrderFragment(String.join(",", orders));
 
         return true;
+    }
+
+    @Override
+    public int getOrder() {
+        return 200;
     }
 }

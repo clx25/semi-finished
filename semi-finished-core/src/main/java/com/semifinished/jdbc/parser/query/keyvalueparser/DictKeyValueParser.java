@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-@Order
 public class DictKeyValueParser implements SelectParamsParser {
 
     private final SemiCache semiCache;
@@ -76,7 +75,7 @@ public class DictKeyValueParser implements SelectParamsParser {
      * 判断查询字段包不包含关联字段，如果不包含，那么添加该字段，并添加到排除列表，在匹配后删除并返回创建的别名
      * 如果包含，那么有别名就返回别名，没有别名就返回字段名
      *
-     * @param sqlDefinition 主查询SQL定义信息
+     * @param sqlDefinition SQL定义信息
      * @param dict          字典表查询定义信息
      * @param column
      * @param alias
@@ -93,5 +92,10 @@ public class DictKeyValueParser implements SelectParamsParser {
                     sqlDefinition.addColumn(table, column, alias);
                     return alias;
                 });
+    }
+
+    @Override
+    public int getOrder() {
+        return 1000;
     }
 }

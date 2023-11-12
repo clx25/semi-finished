@@ -1,4 +1,4 @@
-package com.semifinished.service.enhance.impl;
+package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.cache.SemiCache;
@@ -7,7 +7,6 @@ import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Desensitization;
 import com.semifinished.pojo.Page;
-import com.semifinished.service.enhance.SelectEnhance;
 import com.semifinished.util.ParamsUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,7 +25,7 @@ import java.util.function.Function;
 @Component
 @AllArgsConstructor
 @Getter
-public class DesensitizeEnhance implements SelectEnhance {
+public class DesensitizeEnhance implements AfterQueryEnhance {
     private final SemiCache semiCache;
 
     private final List<Desensitization> desensitizes = new ArrayList<>();

@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * ">key>":"value1,value2" -> value1>key>value2
  * "<key<":"value1,value2" -> value1<key<value2
  */
-@Order(-300)
+
 @Where
 @Component
 @AllArgsConstructor
@@ -44,7 +44,7 @@ public class RangeParamsParser implements SelectParamsParser {
      *
      * @param key           前端的key
      * @param value         前端的value
-     * @param sqlDefinition sql的定义文件，所有sql相关的数据保存到里面，根据这些数据生成sql
+     * @param sqlDefinition SQL定义信息
      * @return 是否匹配到范围查询
      */
     @Override
@@ -148,4 +148,8 @@ public class RangeParamsParser implements SelectParamsParser {
     }
 
 
+    @Override
+    public int getOrder() {
+        return -300;
+    }
 }

@@ -8,8 +8,8 @@ import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.SqlExecutorHolder;
 import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.pojo.Page;
-import com.semifinished.service.enhance.SelectEnhance;
-import com.semifinished.service.enhance.SelectFinallyEnhance;
+import com.semifinished.service.enhance.query.AfterQueryEnhance;
+import com.semifinished.service.enhance.query.SelectFinallyEnhance;
 import com.semifinished.util.ParamsUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class EnhanceService {
     private final ConfigProperties configProperties;
 
     @Resource
-    private List<SelectEnhance> selectEnhances;
+    private List<AfterQueryEnhance> afterQueryEnhances;
 
     @Autowired(required = false)
     private SelectFinallyEnhance selectFinallyEnhance;
@@ -37,7 +37,7 @@ public class EnhanceService {
     /**
      * 不解析参数的查询
      *
-     * @param sqlDefinition 已经解析完成的SQL定义信息
+     * @param sqlDefinition SQL定义信息
      * @return 查询结果
      */
     public Object selectNoParse(SqlDefinition sqlDefinition) {
@@ -60,7 +60,7 @@ public class EnhanceService {
     }
 
     /**
-     * 执行查询规则，该方法会执行{@link SelectEnhance}中的
+     * 执行查询规则，该方法会执行{@link AfterQueryEnhance}中的
      * support，beforeParse，afterParse，afterPage，afterQuery方法。
      *
      * @param sqlDefinition SQL定义信息
@@ -70,7 +70,7 @@ public class EnhanceService {
     public Object select(SqlDefinition sqlDefinition, boolean parse) {
 
         //判断此次请求使用的增强
-        List<SelectEnhance> enhances = supportEnhances(sqlDefinition);
+        List<AfterQueryEnhance> enhances = supportEnhances(sqlDefinition);
 
 
         //执行增强中的beforeParse方法
@@ -136,7 +136,7 @@ public class EnhanceService {
     /**
      * 执行sql，并返回包含结果数据的Page
      *
-     * @param sqlDefinition sql相关信息
+     * @param sqlDefinition SQL定义信息
      * @return 查询出的数据，可能包含分页数据
      */
     private Page executeSql(SqlDefinition sqlDefinition) {
@@ -158,7 +158,7 @@ public class EnhanceService {
     /**
      * 设置分页信息
      *
-     * @param sqlDefinition sql相关数据
+     * @param sqlDefinition SQL定义信息
      */
     private Page createPage(SqlDefinition sqlDefinition) {
         Page page = new Page();
@@ -190,11 +190,11 @@ public class EnhanceService {
     /**
      * 执行增强中的support方法，筛选支持此次请求的增强
      *
-     * @param sqlDefinition sql相关的数据
+     * @param sqlDefinition SQL定义信息
      * @return 支持此次请求的增强方法
      */
-    private List<SelectEnhance> supportEnhances(SqlDefinition sqlDefinition) {
-        return this.selectEnhances.stream()
+    private List<AfterQueryEnhance> supportEnhances(SqlDefinition sqlDefinition) {
+        return this.afterQueryEnhances.stream()
                 .filter(enhance -> enhance.support(sqlDefinition))
                 .collect(Collectors.toList());
     }

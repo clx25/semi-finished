@@ -75,4 +75,8 @@ public class JoinParser implements SelectParamsParser {
     }
 
 
+    @Override
+    public int getOrder() {
+        return 0;
+    }
 }

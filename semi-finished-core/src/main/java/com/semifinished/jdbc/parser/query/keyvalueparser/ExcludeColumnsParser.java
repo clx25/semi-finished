@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
  * </pre>
  * 以上规则的意思是排除col1和col2字段，只查询其他字段
  */
-@Order(-1000)
 @Component
 @AllArgsConstructor
 public class ExcludeColumnsParser implements SelectParamsParser {
@@ -43,5 +42,10 @@ public class ExcludeColumnsParser implements SelectParamsParser {
 
         sqlDefinition.addExcludeColumns(table, fields);
         return true;
+    }
+
+    @Override
+    public int getOrder() {
+        return -1000;
     }
 }

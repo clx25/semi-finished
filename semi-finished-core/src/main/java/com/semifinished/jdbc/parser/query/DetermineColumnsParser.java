@@ -30,7 +30,7 @@ import java.util.List;
  *     }
  * </pre>
  */
-@Order(-100)
+
 @Component
 @AllArgsConstructor
 public class DetermineColumnsParser implements ParamsParser {
@@ -48,23 +48,17 @@ public class DetermineColumnsParser implements ParamsParser {
     @Override
     public void parser(ObjectNode params, SqlDefinition sqlDefinition) {
         JsonNode columnsNode = params.remove("@");
-        JsonNode distinct = params.remove("@1");
         String table = sqlDefinition.getTable();
-
-        Assert.isTrue(columnsNode != null && distinct != null, () -> new ParamsException("@规则与@1规则重复"));
 
         //如果没有指定字段，默认所有字段
         if (columnsNode == null) {
-            if (distinct == null) {
-                allColumns(table, sqlDefinition);
-                return;
-            }
-            sqlDefinition.setDistinct(true);
-            columnsNode = distinct;
+            allColumns(table, sqlDefinition);
+            return;
         }
 
         String column = columnsNode.asText();
         if (!StringUtils.hasText(column)) {
+            allColumns(table, sqlDefinition);
             return;
         }
         String[] columns = column.split(",");
@@ -150,4 +144,8 @@ public class DetermineColumnsParser implements ParamsParser {
     }
 
 
+    @Override
+    public int getOrder() {
+        return -100;
+    }
 }

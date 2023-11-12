@@ -24,7 +24,6 @@ import javax.annotation.Resource;
  *     }
  * </pre>
  */
-@Order(-800)
 @Component
 @RequiredArgsConstructor
 public class AliasParser implements SelectParamsParser {
@@ -59,5 +58,10 @@ public class AliasParser implements SelectParamsParser {
 
         TableUtils.validColumnsName(semiCache, sqlDefinition, table, values);
         return true;
+    }
+
+    @Override
+    public int getOrder() {
+        return -800;
     }
 }
