@@ -1,4 +1,4 @@
-package com.semifinished.constant;
+package com.semifinished.cache;
 
 import lombok.Getter;
 
@@ -26,11 +26,8 @@ public enum CoreCacheKey {
     /**
      * 默认数据源
      */
-    DEFAULT_DATASOURCE("semi:core:default_datasource"),
-    /**
-     * 表关联关系
-     */
-    TABLE_JOIN("semi:core:table_join");
+    DEFAULT_DATASOURCE("semi:core:default_datasource");
+
 
 
     private final String key;

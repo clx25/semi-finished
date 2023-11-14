@@ -26,7 +26,7 @@ public class PageParser implements ParamsParser {
      * @param sqlDefinition SQL定义信息
      */
     @Override
-    public void parser(ObjectNode params, SqlDefinition sqlDefinition) {
+    public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
 
         JsonNode pageNumNode = params.remove(configProperties.getPageNumKey());
 

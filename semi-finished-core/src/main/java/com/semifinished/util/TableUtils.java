@@ -2,7 +2,7 @@ package com.semifinished.util;
 
 
 import com.semifinished.cache.SemiCache;
-import com.semifinished.constant.CoreCacheKey;
+import com.semifinished.cache.CoreCacheKey;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.util.IdGenerator;

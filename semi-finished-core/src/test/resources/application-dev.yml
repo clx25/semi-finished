@@ -30,10 +30,14 @@ server:
 
 semi-finished:
   core:
-    page-size-key: psize
-    page-num-key: pnum
-
-
+    page-size-key: pageSize
+    page-num-key: pageNUm
+    data-source: master
+    max-page-size: 200
+    page-normalized: true
+    brackets-key: value
+    datacenter-id: 1
+    machine-id: 1
 
 logging:
   level:

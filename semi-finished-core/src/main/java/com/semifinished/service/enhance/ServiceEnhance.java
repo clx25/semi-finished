@@ -3,14 +3,12 @@ package com.semifinished.service.enhance;
 
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.query.ParamsParser;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * 对查询结果进行增强
  * <p>
- * {@link ParamsParser#parser}可以通过order的大小实现{@link #beforeParse}与{@link #afterParse}的功能替代。
- * 但这两个类的使用方向不同，{@link ParamsParser#parser}用于对请求参数的解析，而{@link ServiceEnhance}中的方法用于对结果进行处理。
+ * {@link ParamsParser#parse}可以通过order的大小实现{@link #beforeParse}与{@link #afterParse}的功能替代。
+ * 但这两个类的使用方向不同，{@link ParamsParser#parse}用于对请求参数的解析，而{@link ServiceEnhance}中的方法用于对结果进行处理。
  * 当增强需要请求参数具有某些条件才能实现时，那么{@link #beforeParse}与{@link #afterParse}可以提前对请求参数进行处理，以满足要求，而不需要把增强类中的功能拆分到解析类中
  */
 public interface ServiceEnhance {

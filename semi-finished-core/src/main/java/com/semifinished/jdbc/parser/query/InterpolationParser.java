@@ -28,7 +28,7 @@ public class InterpolationParser implements ParamsParser {
     private final List<Interpolation> interpolations;
 
     @Override
-    public void parser(ObjectNode params, SqlDefinition sqlDefinition) {
+    public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
         ObjectNode copyNode = params.deepCopy();
         String table = sqlDefinition.getTable();
         copyNode.fields().forEachRemaining(e -> {

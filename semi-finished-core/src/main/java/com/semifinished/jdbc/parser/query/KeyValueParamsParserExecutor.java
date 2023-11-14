@@ -28,11 +28,11 @@ public class KeyValueParamsParserExecutor implements ParamsParser {
      * @param sqlDefinition SQL定义信息
      */
     @Override
-    public void parser(ObjectNode params, SqlDefinition sqlDefinition) {
-        parser(params, sqlDefinition, keyValueParamsParsers);
+    public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
+        parse(params, sqlDefinition, keyValueParamsParsers);
     }
 
-    public void parser(ObjectNode params, SqlDefinition sqlDefinition, List<KeyValueParamsParser> keyValueParamsParsers) {
+    public void parse(ObjectNode params, SqlDefinition sqlDefinition, List<KeyValueParamsParser> keyValueParamsParsers) {
         // 解析器作为外循环用于控制解析器的生效顺序
         for (KeyValueParamsParser paramsParser : keyValueParamsParsers) {
             Iterator<Map.Entry<String, JsonNode>> iterator = params.fields();

@@ -18,5 +18,5 @@ public interface ParamsParser extends Ordered {
      * @param params        请求参数
      * @param sqlDefinition SQL定义信息
      */
-    void parser(ObjectNode params, SqlDefinition sqlDefinition);
+    void parse(ObjectNode params, SqlDefinition sqlDefinition);
 }

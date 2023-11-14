@@ -2,6 +2,25 @@
 
 是一个封装了常用操作的项目，也可以作为一个依赖包引入项目
 
+# 数据源配置
+
+semi-finished支持多数据源，如下配置中，`master`与`test`是数据源的名称，配置数据源的同时可配置[表名字段名映射](#表名，字段名映射配置)
+
+```yml
+spring:
+  datasource:
+    master:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: xxxx
+      username: root
+      password: 123456
+    test:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: xxxxx
+      username: root
+      password: 123456
+```
+
 # API文档
 
 ## 一些符号的灵感来源与释义
@@ -69,11 +88,23 @@
 }
 ```
 
+### 指定数据源
+
+默认数据源为`master`，该名称可在yml配置文件中修改。如未指定数据源，则使用默认数据源。暂不支持多数据源混合查询。
+
+`@ds`为固定写法，后面的`master`是数据源名称，关于数据源名称可查看[数据源配置](#数据源配置)
+
+```json
+{
+    "@ds":"master"
+}
+```
+
 ### 指定表名
 
 **所有请求都需要指定表名**
 
-查询该表的所有未排除字段，如果没有指定分页参数，默认查询前200条，该限制和未排除字段可配置
+`@tb`为固定写法，表示指定表名。查询该表的所有未排除字段，如果没有指定分页参数，默认查询前200条，该限制和未排除字段可配置
 
 ```json
 {
@@ -91,7 +122,7 @@
 }
 ```
 
-可在指定字段的同时设置别名
+可在指定字段的同时设置别名，格式为 `字段:别名`
 
 ```json
 {
@@ -101,7 +132,7 @@
 
 ### 排除字段
 
-这种排除方式会在SQL层面排除这个查询字段
+在SQL层面排除这个查询字段
 
 ```json
 {
@@ -588,49 +619,56 @@ public class Demo implements ExtendConfigurer {
 }
 ```
 
-# properties配置
+# ymal配置
 
-```java
-@ConfigurationProperties("semi-finished")
-public class ConfigProperties {
-    /**
-     * 上传文件保持路径，如果没有配置，默认使用程序运行所在目录
-     */
-    private String filePath;
+```yml
+semi-finished:
+  core:
+    page-size-key: pageSize  # 分页参数每页多少行的key
+    page-num-key: pageNUm    # 分页参数第几页的key
+    data-source: master      # 默认数据源名称
+    max-page-size: 200       # 当没有分页参数时的最大获取行数
+    page-normalized: true    # 分页参数合理化
+    brackets-key: value      # 括号规则中值的key
+    datacenter-id: 1         # 数据中心id,用于雪花算法
+    machine-id: 1            # 机器标识,用于雪花算法
+```
 
-    /**
-     * 在没有指定分页参数时的最大获取行数
-     */
-    private int maxPageSize = 500;
-    /**
-     * 图片上传支持的文件类型，如果不配置，则是所有图片类型
-     */
-    private List<String> imageType;
+# 表名，字段名映射，排除字段配置
 
-    /**
-     * token的有效期，单位秒
-     */
-    private long tokenDuration = 7 * 24 * 60 * 60;
+为了避免前端直接使用真实的表名与字段名，可以在[配置数据源](#数据源配置)的同时，配置表名，字段名映射。
 
-    /**
-     * 是否开启认证
-     */
-    private boolean authEnable = true;
+当配置了映射以后，前端指定表名和字段必须使用映射后的字段。
 
-    /**
-     * 是否开启登录的验证码
-     */
-    private boolean loginCaptcha;
+配置排除之后该字段会从SQL排除，前端无法查询该字段。
 
-    /**
-     * 是否开启注册的验证码
-     */
-    private boolean signupCaptcha;
+```yaml
+spring:
+  datasource:
+    master:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: xxxx
+      username: root
+      password: 123456
+      mapping:
+        enable: true     # 启动映射
+        table:           # 表名映射
+          user: person   # 把user表映射为person 
+        column:            # 字段映射
+          user:            # 表名
+            id: uid        # 字段名，把user表id字段映射为uid
+      excludes:        # 排除字段
+        user:          # 表名
+          - tel        # 把user表的tel字段排除
+          - password   # 把user表的password字段排除 
+```
 
-    /**
-     * token在header中的key
-     */
-    private String tokenKey = "token";
-
+```json
+{
+    "@tb":"person",
+    "@":"password,age,name",
+    "uid":1
 }
 ```
+
+上方的请求参数会查询user表id=1的age,name字段

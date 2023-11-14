@@ -31,7 +31,7 @@ public class TableParamsParser implements ParamsParser {
     private final CommonParser commonParser;
 
     @Override
-    public void parser(ObjectNode params, SqlDefinition sqlDefinition) {
+    public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
         JsonNode tbNode = params.remove("@tb");
         Assert.isTrue(tbNode == null || !StringUtils.hasText(tbNode.asText()), () -> new ParamsException("没有指定表名"));
 

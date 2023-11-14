@@ -79,7 +79,7 @@ public class CommonParser {
 
             value = params.remove(configProperties.getBracketsKey());
             Assert.isTrue(value == null, () -> new ParamsException(key + "参数错误"));
-            keyValueParamsParserExecutor.parser(params, sqlDefinition, paramsParsers);
+            keyValueParamsParserExecutor.parse(params, sqlDefinition, paramsParsers);
 
             valueCondition.addBracketsAll(sqlDefinition.getValueCondition());
         }

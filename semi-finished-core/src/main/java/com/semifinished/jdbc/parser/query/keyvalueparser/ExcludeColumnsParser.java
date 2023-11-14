@@ -1,14 +1,18 @@
 package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.cache.SemiCache;
+import com.semifinished.config.DataSourceConfig;
 import com.semifinished.jdbc.SqlDefinition;
-import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
+import com.semifinished.jdbc.parser.query.ParamsParser;
 import com.semifinished.util.TableUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 在SQL层面排除字段
@@ -21,15 +25,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class ExcludeColumnsParser implements SelectParamsParser {
+public class ExcludeColumnsParser implements ParamsParser {
 
     private final SemiCache semiCache;
     private final CommonParser commonParser;
+    private final DataSourceConfig dataSourceConfig;
 
     @Override
-    public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
-        if (!"~".equals(key)) {
-            return false;
+    public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
+        String table = sqlDefinition.getTable();
+        excludesConfig(table, sqlDefinition);
+
+        JsonNode value = params.remove("~");
+        if (value == null) {
+            return;
         }
 
         String[] fields = value.asText().split(",");
@@ -41,11 +50,23 @@ public class ExcludeColumnsParser implements SelectParamsParser {
         TableUtils.validColumnsName(semiCache, sqlDefinition, table, fields);
 
         sqlDefinition.addExcludeColumns(table, fields);
-        return true;
+    }
+
+    private void excludesConfig(String table, SqlDefinition sqlDefinition) {
+        Map<String, List<String>> excludes = dataSourceConfig.getExcludes();
+        if (excludes == null || excludes.isEmpty()) {
+            return;
+        }
+        List<String> columns = excludes.get(table);
+        if (columns == null || columns.isEmpty()) {
+            return;
+        }
+        sqlDefinition.addExcludeColumns(table, columns);
     }
 
     @Override
     public int getOrder() {
         return -1000;
     }
+
 }

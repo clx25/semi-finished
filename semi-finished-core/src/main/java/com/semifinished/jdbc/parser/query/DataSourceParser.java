@@ -26,7 +26,7 @@ public class DataSourceParser implements ParamsParser {
     private final DataSourceProperties dataSourceProperties;
 
     @Override
-    public void parser(ObjectNode params, SqlDefinition sqlDefinition) {
+    public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
         JsonNode db = params.remove("@ds");
         String dataSource = "";
         if (db != null) {

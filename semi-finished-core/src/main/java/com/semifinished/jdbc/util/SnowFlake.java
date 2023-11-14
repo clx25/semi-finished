@@ -28,9 +28,9 @@ public class SnowFlake implements IdGenerator {
     /**
      * 每一部分的最大值
      */
-    private final static long MAX_DATACENTER_NUM = -1L ^ (-1L << DATACENTER_BIT);
-    private final static long MAX_MACHINE_NUM = -1L ^ (-1L << MACHINE_BIT);
-    private final static long MAX_SEQUENCE = -1L ^ (-1L << SEQUENCE_BIT);
+    private final static long MAX_DATACENTER_NUM = ~(-1L << DATACENTER_BIT);
+    private final static long MAX_MACHINE_NUM = ~(-1L << MACHINE_BIT);
+    private final static long MAX_SEQUENCE = ~(-1L << SEQUENCE_BIT);
 
     /**
      * 每一部分向左的位移
@@ -47,11 +47,11 @@ public class SnowFlake implements IdGenerator {
     public SnowFlake(ConfigProperties configProperties) {
         long dId = configProperties.getDatacenterId();
         if (dId > MAX_DATACENTER_NUM || dId < 0) {
-            throw new IllegalArgumentException("datacenterId can't be greater than MAX_DATACENTER_NUM or less than 0");
+            throw new IllegalArgumentException("数据中心id不能大于31或者小于0");
         }
         long mId = configProperties.getMachineId();
         if (mId > MAX_MACHINE_NUM || mId < 0) {
-            throw new IllegalArgumentException("machineId can't be greater than MAX_MACHINE_NUM or less than 0");
+            throw new IllegalArgumentException("机器标识id不能大于31或者小于0");
         }
         this.datacenterId = dId;
         this.machineId = mId;

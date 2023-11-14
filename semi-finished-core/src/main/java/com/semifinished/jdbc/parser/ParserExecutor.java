@@ -74,7 +74,7 @@ public class ParserExecutor {
      */
     public void doParse(ObjectNode params, Collection<? extends ParamsParser> paramsParsers, SqlDefinition sqlDefinition) {
         for (ParamsParser paramsParser : paramsParsers) {
-            paramsParser.parser(params, sqlDefinition);
+            paramsParser.parse(params, sqlDefinition);
         }
     }
 
