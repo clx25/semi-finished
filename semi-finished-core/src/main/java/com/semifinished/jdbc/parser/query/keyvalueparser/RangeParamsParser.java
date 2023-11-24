@@ -12,7 +12,6 @@ import com.semifinished.util.Assert;
 import com.semifinished.util.ParserUtils;
 import com.semifinished.util.TableUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,7 +60,7 @@ public class RangeParamsParser implements SelectParamsParser {
         int count = length;//获取字段时的截取长度
 
         if (has(chars)) {
-            value = commonParser.brackets(valueCondition, key, value);
+            value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
             offset = chars[1] == '=' ? 2 : 1;
             operator = (char) (62 ^ 60 ^ chars[0]);
             count -= offset;
@@ -102,7 +101,7 @@ public class RangeParamsParser implements SelectParamsParser {
         } else if ((lastIndex = hasLast(chars)) > 0) {
             operator = chars[lastIndex];
             count = lastIndex;
-            value = commonParser.brackets(valueCondition, key, value);
+            value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
         }
 
         if (operator == 0) {

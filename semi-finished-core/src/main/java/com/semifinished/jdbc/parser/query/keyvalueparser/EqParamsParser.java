@@ -13,7 +13,6 @@ import com.semifinished.util.ParserUtils;
 import com.semifinished.util.TableUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,7 +52,7 @@ public class EqParamsParser implements SelectParamsParser{
             return true;
         }
 
-        value = commonParser.brackets(valueCondition, key, value);
+        value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
 
         key = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, key);
 

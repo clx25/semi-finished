@@ -1,8 +1,10 @@
 package com.semifinished.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.annontation.RequestParamNode;
 import com.semifinished.exception.ParamsException;
+import com.semifinished.util.Assert;
 import lombok.AllArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.NonNull;
@@ -43,10 +45,15 @@ public class RequestNodeResolver extends AbstractNamedValueMethodArgumentResolve
             result.put(key, values);
         });
 
+        Class<?> type = methodParameter.getParameter().getType();
+
+
+        Assert.isFalse(ObjectNode.class.isAssignableFrom(type), () -> new ParamsException(name + "格式错误"));
         try {
-            return objectMapper.convertValue(result, methodParameter.getParameter().getType());
-        } catch (IllegalArgumentException e) {
-            throw new ParamsException(name + "格式错误");
+
+            return objectMapper.convertValue(result, type);
+        } catch (Exception e) {
+            throw new ParamsException(name + "格式错误", e);
         }
 
     }
@@ -58,7 +65,7 @@ public class RequestNodeResolver extends AbstractNamedValueMethodArgumentResolve
      */
     @Override
     protected void handleMissingValue(@NonNull String name, @NonNull MethodParameter parameter, @NonNull NativeWebRequest request) {
-        throw new ParamsException("缺少参数:" + name);
+        throw new ParamsException("缺少参数：" + name);
     }
 
     @Override

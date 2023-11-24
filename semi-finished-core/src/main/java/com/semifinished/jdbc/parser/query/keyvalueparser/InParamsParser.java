@@ -12,7 +12,6 @@ import com.semifinished.util.ParserUtils;
 import com.semifinished.util.TableUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class InParamsParser implements SelectParamsParser{
             return false;
         }
 
-        value = commonParser.brackets(valueCondition, key, value);
+        value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
 
         String[] values;
         if (value instanceof ArrayNode) {

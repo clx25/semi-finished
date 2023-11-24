@@ -2,9 +2,9 @@ spring:
   datasource:
     master:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://192.168.2.3:3306/javdb?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+      jdbc-url: jdbc:mysql://192.168.2.3:3306/xxxx?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
       username: root
-      password: XYvw#P5f$tc
+      password: 123456
       mapping:
         enable: true
         table:
@@ -17,9 +17,9 @@ spring:
           - comment
     test:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://192.168.2.3:3306/javlibrary?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true
+      jdbc-url: jdbc:mysql://192.168.2.3:3306/yyyy?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true
       username: root
-      password: XYvw#P5f$tc
+      password: 123456
       mapping:
         enable: true
 

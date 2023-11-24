@@ -1,6 +1,8 @@
 package com.semifinished.controller;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.annontation.RequestBodyValue;
 import com.semifinished.annontation.RequestParamNode;
@@ -30,13 +32,4 @@ public class EnhanceController {
         return Result.success(enhanceService.select(params));
     }
 
-    @GetMapping("testRequestNode")
-    public void testRequestNode(@RequestParamNode ArrayNode objectNode) {
-        System.out.println(objectNode);
-    }
-
-    @PostMapping("testRequestValue")
-    public void testRequestValue(@RequestBodyValue(required = false) String a, @RequestBodyValue String b) {
-        System.out.println(a + b);
-    }
 }

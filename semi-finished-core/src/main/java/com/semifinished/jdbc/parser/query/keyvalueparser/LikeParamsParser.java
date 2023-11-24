@@ -11,7 +11,6 @@ import com.semifinished.pojo.ValueCondition;
 import com.semifinished.util.ParserUtils;
 import com.semifinished.util.TableUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,7 +43,7 @@ public class LikeParamsParser implements SelectParamsParser{
         if (chars[0] != symbol && chars[last] != symbol) {
             return false;
         }
-        value = commonParser.brackets(valueCondition, key, value);
+        value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
 
 
         int offset = 0;

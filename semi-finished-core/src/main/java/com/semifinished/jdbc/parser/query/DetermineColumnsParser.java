@@ -135,7 +135,7 @@ public class DetermineColumnsParser implements ParamsParser {
      * @param sqlDefinition SQL定义信息
      */
     public void allColumns(String table, SqlDefinition sqlDefinition) {
-        List<Column> columns = TableUtils.getColumns(semiCache, sqlDefinition, table);
+        List<Column> columns = TableUtils.getColumns(semiCache, sqlDefinition.getDataSource(), table);
         Assert.isEmpty(columns, () -> new ParamsException(table + "参数错误"));
 
         columns.stream()

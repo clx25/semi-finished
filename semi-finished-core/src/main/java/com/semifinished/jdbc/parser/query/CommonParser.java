@@ -15,6 +15,7 @@ import com.semifinished.util.MapUtils;
 import com.semifinished.util.ParamsUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -68,21 +69,26 @@ public class CommonParser {
      * 以上解析为 (col1=value2 and col2=value2) or col3=value3
      *
      * @param valueCondition where条件实体类
+     * @param dataSource     数据源
      * @param key            请求规则key，如上方的col1
      * @param value          规则value,如上方{ "bracketsKey":"value1",  "col2":"value2"}
      * @return 根据bracketsKey获取的值
      */
-    public JsonNode brackets(ValueCondition valueCondition, String key, JsonNode value) {
-        if (value instanceof ObjectNode) {
-            ObjectNode params = (ObjectNode) value;
-            SqlDefinition sqlDefinition = new SqlDefinition(valueCondition.getTable(), params);
-
-            value = params.remove(configProperties.getBracketsKey());
-            Assert.isTrue(value == null, () -> new ParamsException(key + "参数错误"));
-            keyValueParamsParserExecutor.parse(params, sqlDefinition, paramsParsers);
-
-            valueCondition.addBracketsAll(sqlDefinition.getValueCondition());
+    public JsonNode brackets(ValueCondition valueCondition, String dataSource, String key, JsonNode value) {
+        if (!(value instanceof ObjectNode)) {
+            return value;
         }
+        ObjectNode params = (ObjectNode) value;
+        SqlDefinition sqlDefinition = new SqlDefinition(valueCondition.getTable(), params);
+        sqlDefinition.setDataSource(dataSource);
+        value = params.remove(configProperties.getBracketsKey());
+        Assert.isTrue(value == null, () -> new ParamsException(key + "参数错误"));
+        if (params.isEmpty()) {
+            return value;
+        }
+        keyValueParamsParserExecutor.parse(params, sqlDefinition, paramsParsers);
+
+        valueCondition.addBracketsAll(sqlDefinition.getValueCondition());
 
 
         return value;
@@ -152,6 +158,9 @@ public class CommonParser {
 
 
     public DataSourceConfig.Mapping mapping(String dataSource) {
+        if (!StringUtils.hasText(dataSource)) {
+            dataSource = configProperties.getDataSource();
+        }
         return dataSourceProperties.getDataSource().get(dataSource).getMapping();
     }
 }

@@ -30,7 +30,7 @@ public class TableUtils {
             Assert.isFalse(validTableName(semiCache, sqlDefinition.getDataSource(), table), () -> new ParamsException(table + "参数错误"));
             return;
         }
-        List<Column> tableColumnsName = getColumns(semiCache, sqlDefinition, table);
+        List<Column> tableColumnsName = getColumns(semiCache, sqlDefinition.getDataSource(), table);
         Assert.isEmpty(tableColumnsName, () -> new ParamsException(table + "参数错误"));
         List<String> columnsName = tableColumnsName.stream().map(column -> ParamsUtils.hasText(column.getAlias(), column.getColumn())).collect(Collectors.toList());
         for (String column : columns) {
@@ -51,27 +51,6 @@ public class TableUtils {
      */
     public static void validColumnsName(SemiCache semiCache, SqlDefinition sqlDefinition, String table, String... columns) {
         validColumnsName(semiCache, sqlDefinition, table, Arrays.asList(columns));
-    }
-
-    /**
-     * 获取表对应的所有字段
-     *
-     * @param semiCache     缓存
-     * @param sqlDefinition SQL定义信息
-     * @param table         表名
-     * @return 表名对应的字段
-     */
-    public static List<Column> getColumns(SemiCache semiCache, SqlDefinition sqlDefinition, String table) {
-        List<Column> tableColumnsName = getColumns(semiCache, sqlDefinition.getDataSource(), table);
-        if (tableColumnsName.isEmpty()) {
-            //在缓存中没有表名对应的字段的情况下，考虑是不是子查询，对应的字段就是子查询的返回字段
-            String tb = sqlDefinition.getTable();
-            if (!table.equals(tb)) {
-                return tableColumnsName;
-            }
-            tableColumnsName = sqlDefinition.getSubTable().getColumns();
-        }
-        return tableColumnsName;
     }
 
 
