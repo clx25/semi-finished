@@ -1,17 +1,16 @@
 package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.semifinished.cache.SemiCache;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
-import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.ParserUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -27,8 +26,8 @@ import javax.annotation.Resource;
 @Component
 @RequiredArgsConstructor
 public class AliasParser implements SelectParamsParser {
-    private final SemiCache semiCache;
-    private final IdGenerator idGenerator;
+
+    private final TableUtils tableUtils;
     @Resource
     private CommonParser commonParser;
 
@@ -41,6 +40,10 @@ public class AliasParser implements SelectParamsParser {
         if (!":".equals(key)) {
             return false;
         }
+
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
+                ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("别名规则位置错误"));
+
         String[] values = value.asText().split(",");
         for (int i = 0; i < values.length; i++) {
             String[] alias = values[i].split(":");
@@ -49,14 +52,14 @@ public class AliasParser implements SelectParamsParser {
             values[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0]);
 
             if (!ParamsUtils.isLegalName(alias[1])) {
-                String legalAlias = TableUtils.uniqueAlias(idGenerator, "legal_" + table + "_" + alias[0]);
+                String legalAlias = tableUtils.uniqueAlias("legal_" + table + "_" + alias[0]);
                 sqlDefinition.addIllegalAlias(null, legalAlias, alias[1]);
                 alias[1] = legalAlias;
             }
             sqlDefinition.addAlias(table, values[i], alias[1]);
         }
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, values);
+        tableUtils.validColumnsName(sqlDefinition, table, values);
         return true;
     }
 

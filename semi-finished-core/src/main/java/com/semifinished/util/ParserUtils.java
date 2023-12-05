@@ -1,12 +1,10 @@
 package com.semifinished.util;
 
 
-import com.semifinished.cache.SemiCache;
-import com.semifinished.exception.CodeException;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.ValueCondition;
-import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 
@@ -50,20 +48,17 @@ public class ParserUtils {
         return ValueCondition.builder().table(table).column(key).combination(and ? " and " : " or ").conditionBoolean(eq).build();
     }
 
-    public static void addColumn(SqlDefinition sqlDefinition, SemiCache semiCache, String table, String columns) {
-        Assert.hasNotText(table, () -> new CodeException("传入的table不能为空"));
-        if (!StringUtils.hasText(columns)) {
-            return;
-        }
-        String[] values = columns.split(",");
+    /**
+     * 匹配状态，任意一个匹配就返回true
+     *
+     * @param sqlDefinition sql定义信息
+     * @param parserStatus  需要匹配的所有状态
+     * @return 返回true表示至少有一个匹配，返回false表示所有都不匹配
+     */
+    public static boolean statusAnyMatch(SqlDefinition sqlDefinition, ParserStatus... parserStatus) {
+        return Arrays.stream(parserStatus)
+                .anyMatch(status -> status.getStatus() == sqlDefinition.getStatus());
 
-        String[] fieldArray = Arrays.stream(values).map(field -> {
-            String[] fields = field.split(":");
-            sqlDefinition.addColumn(table, fields[0], fields.length == 2 ? fields[1] : "");
-            return fields[0];
-        }).toArray(String[]::new);
-
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, fieldArray);
     }
 
 

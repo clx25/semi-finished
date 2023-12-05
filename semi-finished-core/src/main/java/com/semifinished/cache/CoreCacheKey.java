@@ -29,7 +29,6 @@ public enum CoreCacheKey {
     DEFAULT_DATASOURCE("semi:core:default_datasource");
 
 
-
     private final String key;
 
     CoreCacheKey(String key) {

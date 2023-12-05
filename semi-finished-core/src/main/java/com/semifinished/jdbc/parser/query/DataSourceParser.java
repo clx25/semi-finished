@@ -4,12 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.config.ConfigProperties;
 import com.semifinished.config.DataSourceProperties;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
+import com.semifinished.util.ParserUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,7 +28,14 @@ public class DataSourceParser implements ParamsParser {
 
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
+
         JsonNode db = params.remove("@ds");
+
+        if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.JOIN, ParserStatus.SUB_TABLE, ParserStatus.DICTIONARY)) {
+            Assert.isTrue(db != null, () -> new ParamsException("数据源规则位置错误"));
+            return;
+        }
+
         String dataSource = "";
         if (db != null) {
             dataSource = db.asText();

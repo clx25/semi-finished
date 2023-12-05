@@ -1,12 +1,17 @@
-package com.semifinished.util;
+package com.semifinished.util.bean;
 
 
-import com.semifinished.cache.SemiCache;
 import com.semifinished.cache.CoreCacheKey;
+import com.semifinished.cache.SemiCache;
 import com.semifinished.exception.ParamsException;
+import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
+import com.semifinished.util.Assert;
+import com.semifinished.util.ParamsUtils;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
@@ -15,58 +20,11 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@Component
+@AllArgsConstructor
 public class TableUtils {
-
-    /**
-     * 校验 表名和字段名
-     *
-     * @param semiCache     缓存
-     * @param sqlDefinition SQL定义数据
-     * @param table         校验的表名
-     * @param columns       校验的字段集合
-     */
-    public static void validColumnsName(SemiCache semiCache, SqlDefinition sqlDefinition, String table, List<String> columns) {
-        if (columns == null || columns.isEmpty()) {
-            Assert.isFalse(validTableName(semiCache, sqlDefinition.getDataSource(), table), () -> new ParamsException(table + "参数错误"));
-            return;
-        }
-        List<Column> tableColumnsName = getColumns(semiCache, sqlDefinition.getDataSource(), table);
-        Assert.isEmpty(tableColumnsName, () -> new ParamsException(table + "参数错误"));
-        List<String> columnsName = tableColumnsName.stream().map(column -> ParamsUtils.hasText(column.getAlias(), column.getColumn())).collect(Collectors.toList());
-        for (String column : columns) {
-            Assert.hasNotText(column, () -> new ParamsException("字段名不能为空"));
-            boolean flag = columnsName.stream()
-                    .anyMatch(col -> col.equals(column));
-            Assert.isFalse(flag, () -> new ParamsException(column + "参数错误"));
-        }
-    }
-
-    /**
-     * 校验 表名和字段名
-     *
-     * @param semiCache     缓存
-     * @param sqlDefinition SQL定义数据
-     * @param table         校验的表名
-     * @param columns       校验的字段数组
-     */
-    public static void validColumnsName(SemiCache semiCache, SqlDefinition sqlDefinition, String table, String... columns) {
-        validColumnsName(semiCache, sqlDefinition, table, Arrays.asList(columns));
-    }
-
-
-    /**
-     * 通过程序添加的字段为了避免与已经有的字段或别名重名，所以稍做处理,生成一个唯一的别名
-     *
-     * @param prefix 别名前缀，用于定位和区分别名
-     * @return 处理后的别名
-     */
-    public static String uniqueAlias(IdGenerator idGenerator, String prefix) {
-        return (prefix == null ? "" : (prefix + "_")) + idGenerator.getId();
-    }
-
-    public static String uniqueAlias(IdGenerator idGenerator) {
-        return String.valueOf(idGenerator.getId());
-    }
+    private final SemiCache semiCache;
+    private final IdGenerator idGenerator;
 
     /**
      * 获取非空数据
@@ -80,13 +38,67 @@ public class TableUtils {
     }
 
     /**
+     * 校验 表名和字段名
+     *
+     * @param sqlDefinition SQL定义数据
+     * @param table         校验的表名
+     * @param columns       校验的字段集合
+     */
+    public void validColumnsName(SqlDefinition sqlDefinition, String table, List<String> columns) {
+        if (columns == null || columns.isEmpty()) {
+            Assert.isFalse(validTableName(sqlDefinition.getDataSource(), table), () -> new ParamsException(table + "参数错误"));
+            return;
+        }
+        List<Column> tableColumnsName = getColumns(sqlDefinition.getDataSource(), table);
+        boolean sub = false;
+        if (tableColumnsName.isEmpty()) {
+            //如果是子查询，校验字段名称应该判断是否是子查询返回的字段
+            SqlDefinition subTable = sqlDefinition.getSubTable();
+            if (subTable != null) {
+                tableColumnsName = SqlCombiner.columnsAll(subTable);
+                sub = true;
+            }
+        }
+
+        Assert.isEmpty(tableColumnsName, () -> new ParamsException(table + "参数错误"));
+        List<String> columnsName = tableColumnsName.stream().map(column -> ParamsUtils.hasText(column.getAlias(), column.getColumn())).collect(Collectors.toList());
+        boolean finSub = sub;
+        for (String column : columns) {
+            Assert.hasNotText(column, () -> new ParamsException("字段名不能为空"));
+            boolean flag = columnsName.stream()
+                    .anyMatch(col -> col.equals(column));
+            Assert.isFalse(flag, () -> new ParamsException(column + "参数错误" + (finSub ? ",子查询外层应该使用内层返回的字段名" : "")));
+        }
+    }
+
+    /**
+     * 校验 表名和字段名
+     *
+     * @param sqlDefinition SQL定义数据
+     * @param table         校验的表名
+     * @param columns       校验的字段数组
+     */
+    public void validColumnsName(SqlDefinition sqlDefinition, String table, String... columns) {
+        validColumnsName(sqlDefinition, table, Arrays.asList(columns));
+    }
+
+    /**
+     * 通过程序添加的字段为了避免与已经有的字段或别名重名，所以稍做处理,生成一个唯一的别名
+     *
+     * @param prefix 别名前缀，用于定位和区分别名
+     * @return 处理后的别名
+     */
+    public String uniqueAlias(String prefix) {
+        return (prefix == null ? "" : (prefix + "_")) + idGenerator.getId();
+    }
+
+    /**
      * 判断表是否存在
      *
-     * @param semiCache 缓存
-     * @param table     表名
+     * @param table 表名
      * @return true表示存在，false表示不存在
      */
-    public static boolean validTableName(SemiCache semiCache, String dataSource, String table) {
+    public boolean validTableName(String dataSource, String table) {
         if (!StringUtils.hasText(table)) {
             return false;
         }
@@ -100,12 +112,11 @@ public class TableUtils {
     /**
      * 获取表对应的字段名列表
      *
-     * @param semiCache 缓存
-     * @param table     表名
+     * @param table 表名
      * @return 字段名列表
      */
-    public static List<String> getColumnNames(SemiCache semiCache, String dataSource, String table) {
-        return getColumns(semiCache, dataSource, table).stream()
+    public List<String> getColumnNames(String dataSource, String table) {
+        return getColumns(dataSource, table).stream()
                 .map(Column::getColumn)
                 .collect(Collectors.toList());
     }
@@ -113,11 +124,10 @@ public class TableUtils {
     /**
      * 获取表对应的字段信息
      *
-     * @param semiCache 缓存
-     * @param table     表名
+     * @param table 表名
      * @return 字段信息
      */
-    public static List<Column> getColumns(SemiCache semiCache, String dataSource, String table) {
+    public List<Column> getColumns(String dataSource, String table) {
         List<Column> columns = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + dataSource);
 
         if (columns == null || columns.isEmpty()) {
@@ -128,7 +138,6 @@ public class TableUtils {
                 .filter(column -> table.equals(column.getTable()))
                 .collect(Collectors.toList());
     }
-
 
 
 }

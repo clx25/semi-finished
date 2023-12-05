@@ -3,6 +3,7 @@ package com.semifinished.jdbc;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.pojo.AggregationFun;
 import com.semifinished.pojo.Column;
@@ -25,6 +26,13 @@ import java.util.Map;
 @Getter
 @Setter
 public class SqlDefinition {
+
+    /**
+     * 当前SqlDefinition所处状态，如正在解析子查询，正在解析join查询，正在解析括号
+     *
+     * @see ParserStatus
+     */
+    private int status = ParserStatus.NORMAL.getStatus();
 
     /**
      * 请求参数中指定的查询字段列表

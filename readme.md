@@ -4,7 +4,8 @@
 
 # 数据源配置
 
-semi-finished支持多数据源，如下配置中，`master`与`test`是数据源的名称，配置数据源的同时可配置[表名字段名映射](#表名，字段名映射配置)
+semi-finished支持多数据源，如下配置中，`master`与`test`
+是数据源的名称，配置数据源的同时可配置[表名字段名映射](#表名，字段名映射配置)
 
 ```yml
 spring:
@@ -26,25 +27,25 @@ spring:
 ## 一些符号的灵感来源与释义
 
 > `@`:论坛或聊天工具中代表指定
-> 
+>
 > `~`:位运算中的“取反”操作
-> 
+>
 > `:`:表示key-value的对应关系，映射
-> 
+>
 > `%`:sql中的模糊查询匹配符
-> 
+>
 > `!`:在判断式中代表“非”
-> 
+>
 > `&`:位运算中的“与”操作
-> 
+>
 > `#`:代表规则
-> 
+>
 > `/`:排序二叉树中左边为从大到小
-> 
+>
 > `\\`:排序二叉树中从小到大
-> 
+>
 > `^`:树结构
-> 
+>
 > `$`:在一些语言中使用`${字段}`的方式表示引用字段的值
 
 ## 查询规则（在SQL中生效的规则）
@@ -222,7 +223,8 @@ spring:
 
 ### 括号、或
 
-使用`|`作为前缀就表示或查询，可以在任何查询条件中添加，一般与括号查询一起使用。字段后使用`{}`表示与该字段括号在一起查询，`{}`内的`value`参数表示外层字段的查询内容，`value`字段可以配置
+使用`|`作为前缀就表示或查询，可以在任何查询条件中添加，一般与括号查询一起使用。字段后使用`{}`
+表示与该字段括号在一起查询，`{}`内的`value`参数表示外层字段的查询内容，`value`字段可以配置
 
 如下查询解析结果为: where （ 字段1=字段2 or 字段2=字段3）and 字段3=内容3
 
@@ -254,7 +256,8 @@ spring:
 
 ### JOIN查询
 
-与表字典查询类似，只是把`:`改为了`&`，`&`在字段右方时表示`left join`，在右方时表示`inner join`。该查询解析结果为`user inner join order on user.id=order.user_id`。支持深度`join`，就是`oder`表的查询也可以使用`join`规则
+与表字典查询类似，只是把`:`改为了`&`，`&`在字段右方时表示`left join`，在右方时表示`inner join`
+。该查询解析结果为`user inner join order on user.id=order.user_id`。支持深度`join`，就是`oder`表的查询也可以使用`join`规则
 
 ```json
 {
@@ -356,7 +359,9 @@ public class RandomInterpolation implements Interpolation {
 
 ### 表字典查询
 
-`:`表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`就是两个表的关联关系`user.id=order.user_id`。该查询会先查询`user`表，获取`id`后用`in`查询去查`order`表，最后合并。由于id名称重复，所以使用别名规则修改`order.id`的返回字段名。暂不支持深度映射和一个字段对应多个表映射。
+`:`表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`
+就是两个表的关联关系`user.id=order.user_id`。该查询会先查询`user`表，获取`id`后用`in`查询去查`order`
+表，最后合并。由于id名称重复，所以使用别名规则修改`order.id`的返回字段名。暂不支持深度映射和一个字段对应多个表映射。
 
 ```json
 {
@@ -397,7 +402,8 @@ public class RandomInterpolation implements Interpolation {
 
 ### 数字格式化
 
-`num0.00`是规则内容，由不同的实现类自定义。`num`表示这是一个数字的替换规则，`0.00`是格式化规则，该规则由`DecimalFormat`实现，所以可以使用`DecimalFormat`的所有规则。如果`DecimalFormat`无法解析该规则，那么会抛出异常。
+`num0.00`是规则内容，由不同的实现类自定义。`num`表示这是一个数字的替换规则，`0.00`是格式化规则，该规则由`DecimalFormat`
+实现，所以可以使用`DecimalFormat`的所有规则。如果`DecimalFormat`无法解析该规则，那么会抛出异常。
 
 ```json
 {
@@ -427,7 +433,8 @@ public class RandomInterpolation implements Interpolation {
 
 ### 日期时间格式化
 
-`time`表示时间规则，后面的字符串表示指定字段的时间格式化规则。该规则使用`DateTimeFormatter`实现，所以`time`后面能使用`DateTimeFormatter`支持的所有规则。
+`time`表示时间规则，后面的字符串表示指定字段的时间格式化规则。该规则使用`DateTimeFormatter`实现，所以`time`
+后面能使用`DateTimeFormatter`支持的所有规则。
 
 对于数据的日期格式，目前只支持`yyyy-MM-dd HH:mm:ss`与`yyyy-MM-dd`两种。
 
@@ -449,7 +456,9 @@ public class RandomInterpolation implements Interpolation {
 
 # 自定义查询规则
 
-有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`两个接口，可供不同情况下选择使用。这两个接口的本质都是在实现类中对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`中。这两个接口都继承了`Ordered`接口，所以需要指定解析类的顺序。
+有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`
+两个接口，可供不同情况下选择使用。这两个接口的本质都是在实现类中对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`
+中。这两个接口都继承了`Ordered`接口，所以需要指定解析类的顺序。
 
 ## 实现ParamsParser接口
 
@@ -475,7 +484,8 @@ public interface ParamsParser extends Ordered {
 
 `KeyValueParamsParser`接口适用于需要对key进行解析的规则，如模糊查询规则，范围查询规则等。该方法把请求参数进行了遍历，将每一项的key和value传入进行解析。
 
-`KeyValueParamsParser`接口的执行类也是`ParamsParser`接口的实现类，所以如果想相对于`ParamsParser`接口的某个实现类排序，那么只能实现`ParamsParser`接口。
+`KeyValueParamsParser`接口的执行类也是`ParamsParser`接口的实现类，所以如果想相对于`ParamsParser`
+接口的某个实现类排序，那么只能实现`ParamsParser`接口。
 
 ```java
 public interface KeyValueParamsParser extends Ordered {
@@ -556,7 +566,8 @@ public interface AfterQueryEnhance extends ServiceEnhance {
 
 # 自定义结果替换规则
 
-结果替换规则由增强类`ValueReplaceEnhance`实现，这也是一个增强规则，在这个增强类中定义了`#`规则和使用`ValueReplace`接口作为替换规则的实现方式。
+结果替换规则由增强类`ValueReplaceEnhance`实现，这也是一个增强规则，在这个增强类中定义了`#`规则和使用`ValueReplace`
+接口作为替换规则的实现方式。
 
 #### 实现ValueReplace接口
 

@@ -303,7 +303,7 @@ public class SqlCombiner {
             if (CollectionUtils.isEmpty(valueCondition)) {
                 return;
             }
-            valueCondition.sort((c1, c2) -> "and".equals(c1.getCombination()) ? -1 : 1);
+            valueCondition.sort((c1, c2) -> "and".equals(c1.getCombination().trim()) ? -1 : 1);
             for (ValueCondition w : valueCondition) {
                 whereFragment.append(" ")
                         .append(ParamsUtils.hasText(w.getCombination(), "and"))

@@ -2,14 +2,12 @@ package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.annontation.Where;
-import com.semifinished.cache.SemiCache;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
-import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.ValueCondition;
 import com.semifinished.util.ParserUtils;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -29,10 +27,10 @@ import org.springframework.stereotype.Component;
 @Where
 @Component
 @AllArgsConstructor
-public class LikeParamsParser implements SelectParamsParser{
-    private final SemiCache semiCache;
-    private final IdGenerator idGenerator;
+public class LikeParamsParser implements SelectParamsParser {
+
     private final CommonParser commonParser;
+    private final TableUtils tableUtils;
 
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
@@ -64,10 +62,10 @@ public class LikeParamsParser implements SelectParamsParser{
 
         column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
+        tableUtils.validColumnsName(sqlDefinition, table, column);
         valueCondition.setColumn(column);
 
-        String argName = TableUtils.uniqueAlias(idGenerator, "like_" + table + "_" + column);
+        String argName = tableUtils.uniqueAlias("like_" + table + "_" + column);
         valueCondition.setValue(argsValue);
         valueCondition.setCondition(((valueCondition.isConditionBoolean() ? "" : " not ") + " like ") + ":" + argName);
         valueCondition.setArgName(argName);

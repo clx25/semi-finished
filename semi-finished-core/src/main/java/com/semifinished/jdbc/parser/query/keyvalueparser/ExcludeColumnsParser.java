@@ -1,13 +1,15 @@
 package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.cache.SemiCache;
 import com.semifinished.config.DataSourceConfig;
+import com.semifinished.constant.ParserStatus;
+import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
+import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
-import com.semifinished.jdbc.parser.query.ParamsParser;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.Assert;
+import com.semifinished.util.ParserUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,21 +27,22 @@ import java.util.Map;
  */
 @Component
 @AllArgsConstructor
-public class ExcludeColumnsParser implements ParamsParser {
+public class ExcludeColumnsParser implements SelectParamsParser {
 
-    private final SemiCache semiCache;
+    private final TableUtils tableUtils;
     private final CommonParser commonParser;
     private final DataSourceConfig dataSourceConfig;
 
     @Override
-    public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
-        String table = sqlDefinition.getTable();
-        excludesConfig(table, sqlDefinition);
+    public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
 
-        JsonNode value = params.remove("~");
-        if (value == null) {
-            return;
+        if (!"~".equals(key)) {
+            return false;
         }
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
+                ParserStatus.JOIN), () -> new ParamsException("排除规则位置错误"));
+
+        excludesConfig(table, sqlDefinition);
 
         String[] fields = value.asText().split(",");
 
@@ -47,9 +50,10 @@ public class ExcludeColumnsParser implements ParamsParser {
             fields[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, fields[i]);
         }
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, fields);
+        tableUtils.validColumnsName(sqlDefinition, table, fields);
 
         sqlDefinition.addExcludeColumns(table, fields);
+        return true;
     }
 
     private void excludesConfig(String table, SqlDefinition sqlDefinition) {
@@ -68,5 +72,4 @@ public class ExcludeColumnsParser implements ParamsParser {
     public int getOrder() {
         return -1000;
     }
-
 }

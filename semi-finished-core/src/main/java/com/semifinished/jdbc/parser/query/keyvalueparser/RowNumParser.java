@@ -1,12 +1,13 @@
 package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
-import org.springframework.core.annotation.Order;
+import com.semifinished.util.ParserUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,9 +29,15 @@ import org.springframework.stereotype.Component;
 public class RowNumParser implements SelectParamsParser {
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
+
         if (!"@row".equals(key)) {
             return false;
         }
+
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.DICTIONARY),
+                () -> new ParamsException("@row规则位置错误"));
+
+
         Assert.isTrue(sqlDefinition.isPage(), () -> new ParamsException("@row规则与分页规则冲突"));
         String text = value.asText();
         String[] values = text.split(",");

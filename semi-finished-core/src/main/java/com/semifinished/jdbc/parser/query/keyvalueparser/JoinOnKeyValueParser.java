@@ -17,7 +17,7 @@ public class JoinOnKeyValueParser implements SelectParamsParser {
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
 
-        Assert.isTrue("@on".equals(key), () -> new ParamsException("@on规则需要配合join规则使用：" + value));
+        Assert.isTrue("@on".equals(key), () -> new ParamsException("@on规则位置错误"));
         return false;
     }
 

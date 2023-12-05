@@ -1,13 +1,15 @@
 package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.semifinished.cache.SemiCache;
+import com.semifinished.constant.ParserStatus;
+import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.Assert;
+import com.semifinished.util.ParserUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,11 +28,13 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class SortParserSelect implements SelectParamsParser {
-    private final SemiCache semiCache;
+
     private final CommonParser commonParser;
+    private final TableUtils tableUtils;
 
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
+
         if (sqlDefinition.getOrderFragment() != null) {
             return false;
         }
@@ -42,6 +46,7 @@ public class SortParserSelect implements SelectParamsParser {
         } else {
             return false;
         }
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.JOIN), () -> new ParamsException("排序规则位置错误"));
         String[] columns = value.asText().split(",");
         String[] orders = new String[columns.length];
         for (int i = 0; i < columns.length; i++) {
@@ -49,7 +54,7 @@ public class SortParserSelect implements SelectParamsParser {
             orders[i] = columns[i] + " " + order;
         }
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, columns);
+        tableUtils.validColumnsName(sqlDefinition, table, columns);
 
         sqlDefinition.setOrderFragment(String.join(",", orders));
 

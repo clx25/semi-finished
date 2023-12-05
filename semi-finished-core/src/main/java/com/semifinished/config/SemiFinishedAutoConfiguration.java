@@ -11,12 +11,11 @@ import com.semifinished.cache.SemiCache;
 import com.semifinished.exception.ConfigException;
 import com.semifinished.jdbc.SqlExecutor;
 import com.semifinished.util.Assert;
-import com.semifinished.util.SpringBeanUtils;
+import com.semifinished.util.bean.SpringBeanUtils;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -32,7 +31,6 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * 项目的自动配置类
@@ -42,7 +40,7 @@ import java.util.function.Supplier;
 @ComponentScan(basePackages = "com.semifinished")
 public class SemiFinishedAutoConfiguration implements InitializingBean {
 
-    private final DefaultListableBeanFactory defaultListableBeanFactory;
+    private final SpringBeanUtils springBeanUtils;
 
 
     @Bean
@@ -103,14 +101,14 @@ public class SemiFinishedAutoConfiguration implements InitializingBean {
     public void sqlExecutor(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
                             TransactionTemplate transactionTemplate, ConfigProperties configProperties) {
         //注册SQLExecutor
-        registerBean(SqlExecutor.class, () -> new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate), "sqlExecutor" + configProperties.getDataSource());
+        springBeanUtils.registerBean(SqlExecutor.class, () -> new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate), "sqlExecutor" + configProperties.getDataSource());
     }
 
 
     @Override
     public void afterPropertiesSet() {
-        DataSourceProperties dataSourceProperties = SpringBeanUtils.getBean(defaultListableBeanFactory, DataSourceProperties.class);
-        ConfigProperties configProperties = SpringBeanUtils.getBean(defaultListableBeanFactory, ConfigProperties.class);
+        DataSourceProperties dataSourceProperties = springBeanUtils.getBean(DataSourceProperties.class);
+        ConfigProperties configProperties = springBeanUtils.getBean(ConfigProperties.class);
         Map<String, ? extends HikariDataSource> dataSourceMap = dataSourceProperties.getDataSource();
 
         Assert.isTrue(dataSourceMap == null || dataSourceMap.isEmpty(), () -> new ConfigException("未添加数据库配置"));
@@ -123,23 +121,19 @@ public class SemiFinishedAutoConfiguration implements InitializingBean {
             HikariDataSource dataSource = entry.getValue();
 
             //注册dataSource
-            registerBean(HikariDataSource.class, () -> dataSource, "dataSource" + name);
+            springBeanUtils.registerBean(HikariDataSource.class, () -> dataSource, "dataSource" + name);
 
             //注册NamedParameterJdbcTemplate
             NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-            registerBean(NamedParameterJdbcTemplate.class, () -> namedParameterJdbcTemplate, "namedParameterJdbcTemplate" + name);
+            springBeanUtils.registerBean(NamedParameterJdbcTemplate.class, () -> namedParameterJdbcTemplate, "namedParameterJdbcTemplate" + name);
 
             //注册TransactionTemplate
             TransactionTemplate transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
-            registerBean(TransactionTemplate.class, () -> transactionTemplate, "transactionTemplate" + name);
+            springBeanUtils.registerBean(TransactionTemplate.class, () -> transactionTemplate, "transactionTemplate" + name);
 
             //注册SQLExecutor
-            registerBean(SqlExecutor.class, () -> new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate), "sqlExecutor" + name);
+            springBeanUtils.registerBean(SqlExecutor.class, () -> new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate), "sqlExecutor" + name);
         }
-    }
-
-    private <T> void registerBean(Class<T> clazz, Supplier<T> supplier, String name) {
-        SpringBeanUtils.registerBean(defaultListableBeanFactory, clazz, supplier, name);
     }
 
 

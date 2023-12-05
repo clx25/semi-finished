@@ -3,9 +3,12 @@ package com.semifinished.jdbc.parser.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.config.ConfigProperties;
+import com.semifinished.constant.ParserStatus;
+import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
+import com.semifinished.util.Assert;
+import com.semifinished.util.ParserUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,6 +35,10 @@ public class PageParser implements ParamsParser {
 
         JsonNode pageSizeNode = params.remove(configProperties.getPageSizeKey());
 
+        if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL)) {
+            Assert.isTrue(pageNumNode != null || pageSizeNode != null, () -> new ParamsException("分页规则位置错误"));
+            return;
+        }
         if (pageNumNode == null && pageSizeNode == null) {
             sqlDefinition.setMaxPageSize(configProperties.getMaxPageSize());
             return;

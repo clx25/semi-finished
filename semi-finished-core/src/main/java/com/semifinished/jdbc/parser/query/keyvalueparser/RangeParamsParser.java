@@ -2,7 +2,6 @@ package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.annontation.Where;
-import com.semifinished.cache.SemiCache;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
@@ -10,7 +9,7 @@ import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.pojo.ValueCondition;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParserUtils;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +34,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class RangeParamsParser implements SelectParamsParser {
 
-    private final SemiCache semiCache;
+    private final TableUtils tableUtils;
     private final CommonParser commonParser;
 
     /**
@@ -68,7 +67,7 @@ public class RangeParamsParser implements SelectParamsParser {
                 Assert.isFalse(chars[0] == chars[lastIndex], () -> new ParamsException(key + "参数错误"));
                 String column = new String(chars, offset, lastIndex - offset);
                 column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
-                TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
+                tableUtils.validColumnsName(sqlDefinition, table, column);
                 valueCondition.setColumn(column);
                 String[] values = value.asText().split(",");
 
@@ -112,7 +111,7 @@ public class RangeParamsParser implements SelectParamsParser {
 
         column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
+        tableUtils.validColumnsName(sqlDefinition, table, column);
         valueCondition.setColumn(column);
         populateSqlDefinition(valueCondition,
                 operator + ((length - count) == 2 ? "=" : ""),

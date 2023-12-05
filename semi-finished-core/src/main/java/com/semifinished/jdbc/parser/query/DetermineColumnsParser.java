@@ -3,15 +3,17 @@ package com.semifinished.jdbc.parser.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.cache.SemiCache;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
+import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.ParserUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -36,6 +38,7 @@ import java.util.List;
 public class DetermineColumnsParser implements ParamsParser {
     private final SemiCache semiCache;
     private final CommonParser commonParser;
+    private final TableUtils tableUtils;
     private final IdGenerator idGenerator;
     private final String[] patterns = {"min(", "max(", "avg(", "sum(", "count("};
 
@@ -47,7 +50,16 @@ public class DetermineColumnsParser implements ParamsParser {
      */
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
+
+
         JsonNode columnsNode = params.remove("@");
+
+        if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY)) {
+            Assert.isTrue(columnsNode != null, () -> new ParamsException("列名规则位置错误"));
+            return;
+        }
+
+
         String table = sqlDefinition.getTable();
 
         //如果没有指定字段，默认所有字段
@@ -87,7 +99,7 @@ public class DetermineColumnsParser implements ParamsParser {
 
             //不合法的别名就不放到SQL查询，而是查询后对结果进行处理
             if (hasAlias && !ParamsUtils.isLegalName(alias[1])) {
-                String legalAlias = TableUtils.uniqueAlias(idGenerator);
+                String legalAlias = tableUtils.uniqueAlias("_alias");
                 sqlDefinition.addIllegalAlias(null, legalAlias, alias[1]);
                 alias[1] = legalAlias;
             }
@@ -98,7 +110,7 @@ public class DetermineColumnsParser implements ParamsParser {
                 validColumns.add(col);
             }
         }
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, validColumns);
+        tableUtils.validColumnsName(sqlDefinition, table, validColumns);
     }
 
     /**
@@ -135,7 +147,15 @@ public class DetermineColumnsParser implements ParamsParser {
      * @param sqlDefinition SQL定义信息
      */
     public void allColumns(String table, SqlDefinition sqlDefinition) {
-        List<Column> columns = TableUtils.getColumns(semiCache, sqlDefinition.getDataSource(), table);
+        List<Column> columns = tableUtils.getColumns(sqlDefinition.getDataSource(), table);
+        if (columns.isEmpty()) {
+            //如果是子查询，外层查询的字段就是内层返回的字段
+            SqlDefinition subTable = sqlDefinition.getSubTable();
+            if (subTable != null) {
+                columns = SqlCombiner.columnsAll(subTable);
+                Assert.isEmpty(columns, () -> new ParamsException("请求字段为空"));
+            }
+        }
         Assert.isEmpty(columns, () -> new ParamsException(table + "参数错误"));
 
         columns.stream()

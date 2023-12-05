@@ -5,18 +5,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.SqlExecutorHolder;
-import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
 import com.semifinished.pojo.ValueCondition;
+import com.semifinished.service.EnhanceService;
 import com.semifinished.util.ParamsUtils;
-import com.semifinished.util.TableUtils;
-import lombok.AllArgsConstructor;
+import com.semifinished.util.bean.TableUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -31,10 +32,12 @@ import java.util.stream.Collectors;
  */
 @Order(100)
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GroupByEnhance implements AfterQueryEnhance {
     private final SqlExecutorHolder sqlExecutorHolder;
-    private final IdGenerator idGenerator;
+    private final TableUtils tableUtils;
+    @Resource
+    private EnhanceService enhanceService;
 
     /**
      * 判断group by的字段是否覆盖了所有查询字段，用以决定是否执行一对多查询
@@ -153,7 +156,7 @@ public class GroupByEnhance implements AfterQueryEnhance {
                         )
                 )
                 .forEach(col -> {
-                    String alias = TableUtils.uniqueAlias(idGenerator, "group_by_alias");
+                    String alias = tableUtils.uniqueAlias("group_by_alias");
                     sqlDefinition.addColumn(col.getTable(), col.getColumn(), alias);
                     col.setAlias(alias);
                 });
@@ -190,7 +193,7 @@ public class GroupByEnhance implements AfterQueryEnhance {
         //获取查询SQL
         String sql = SqlCombiner.creatorSqlWithoutLimit(sqlDef);
 
-        //执行查询
+        //执行查询 todo 这个查询也要增强
         List<ObjectNode> noGroupRecords = sqlExecutorHolder.dataSource(sqlDef.getDataSource()).list(sql, SqlCombiner.getArgs(sqlDef));
 
         //合并数据
@@ -262,7 +265,7 @@ public class GroupByEnhance implements AfterQueryEnhance {
         sqlDef.setColumns(columns);
         sqlDef.setValueCondition(null);
         String inColumn = "(" + groupBy.stream().map(col -> col.getTable() + "." + col.getColumn()).collect(Collectors.joining(",")) + ")";
-        String argName = TableUtils.uniqueAlias(idGenerator, "group_by_in");
+        String argName = tableUtils.uniqueAlias("group_by_in");
         ValueCondition valueCondition = ValueCondition.builder().column(inColumn).condition("in( :" + argName + ")").argName(argName).build();
         List<ValueCondition> argValueCopy = new ArrayList<>();
         if (sqlDef.getValueCondition() != null) {

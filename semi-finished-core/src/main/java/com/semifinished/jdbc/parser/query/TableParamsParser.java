@@ -3,14 +3,14 @@ package com.semifinished.jdbc.parser.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
-import com.semifinished.cache.SemiCache;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.util.Assert;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.ParserUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -26,28 +26,37 @@ import org.springframework.util.StringUtils;
 @Component
 @AllArgsConstructor
 public class TableParamsParser implements ParamsParser {
-    private final SemiCache semiCache;
+
     private final ParserExecutor parserExecutor;
     private final CommonParser commonParser;
+    private final TableUtils tableUtils;
 
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
+
         JsonNode tbNode = params.remove("@tb");
-        Assert.isTrue(tbNode == null || !StringUtils.hasText(tbNode.asText()), () -> new ParamsException("没有指定表名"));
+
+        if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY)) {
+            Assert.isTrue(tbNode != null, () -> new ParamsException("@tb规则位置错误"));
+            return;
+        }
+        Assert.isTrue(tbNode instanceof ValueNode && !StringUtils.hasText(tbNode.asText()), () -> new ParamsException("没有指定表名"));
 
         if (tbNode instanceof ValueNode) {
             String tb = tbNode.asText();
             tb = commonParser.getActualTable(sqlDefinition.getDataSource(), tb);
-            TableUtils.validColumnsName(semiCache, sqlDefinition, tb);
+            tableUtils.validColumnsName(sqlDefinition, tb);
             sqlDefinition.setTable(tb);
             return;
         }
 
+        //解析子查询规则
         params = tbNode.deepCopy();
-
-        SqlDefinition innerSqlDefinition = parserExecutor.parse(params);
-        sqlDefinition.setTable("__semi_inner_table__" + innerSqlDefinition.getTable());
-        sqlDefinition.setSubTable(innerSqlDefinition);
+        SqlDefinition subSqlDefinition = new SqlDefinition(params);
+        subSqlDefinition.setStatus(ParserStatus.SUB_TABLE.getStatus());
+        parserExecutor.parse(subSqlDefinition);
+        sqlDefinition.setTable(tableUtils.uniqueAlias(subSqlDefinition.getTable()));
+        sqlDefinition.setSubTable(subSqlDefinition);
     }
 
     @Override

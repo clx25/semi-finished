@@ -1,10 +1,7 @@
 package com.semifinished.listener;
 
 
-import com.semifinished.config.ConfigProperties;
 import com.semifinished.config.CoreConfigurer;
-import com.semifinished.config.DataSourceConfig;
-import com.semifinished.config.DataSourceProperties;
 import com.semifinished.service.enhance.query.DesensitizeEnhance;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationListener;
@@ -12,12 +9,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 把代码配置放入缓存

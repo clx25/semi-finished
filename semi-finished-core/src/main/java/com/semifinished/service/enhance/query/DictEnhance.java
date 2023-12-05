@@ -4,18 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.CodeException;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
-import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
 import com.semifinished.pojo.ValueCondition;
 import com.semifinished.service.EnhanceService;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.apache.commons.math3.util.Pair;
 import org.springframework.core.annotation.Order;
@@ -42,8 +42,7 @@ import java.util.stream.Stream;
 @Order(-500)
 @AllArgsConstructor
 public class DictEnhance implements AfterQueryEnhance {
-
-    private final IdGenerator idGenerator;
+    private final TableUtils tableUtils;
     @Resource
     private EnhanceService enhanceService;
 
@@ -107,7 +106,7 @@ public class DictEnhance implements AfterQueryEnhance {
                     .orElseThrow(() -> new CodeException("表字典查询未找到in查询字段"));
 
             //构建占位符名称
-            String argName = TableUtils.uniqueAlias(idGenerator, "in_" + definition.getTable() + "_" + inCol);
+            String argName = tableUtils.uniqueAlias("in_" + definition.getTable() + "_" + inCol);
 
             //构建查询条件
             ValueCondition valueCondition = ValueCondition.builder()
@@ -125,7 +124,7 @@ public class DictEnhance implements AfterQueryEnhance {
             int rowEnd = definition.getRowEnd();
             definition.setRowStart(0);
             definition.setRowEnd(0);
-
+            definition.setStatus(ParserStatus.DICTIONARY.getStatus());
             Object data = enhanceService.selectNoParse(definition);
             List<ObjectNode> records;
 

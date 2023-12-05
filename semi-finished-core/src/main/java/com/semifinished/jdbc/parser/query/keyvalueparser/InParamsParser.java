@@ -3,13 +3,12 @@ package com.semifinished.jdbc.parser.query.keyvalueparser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.semifinished.annontation.Where;
-import com.semifinished.cache.SemiCache;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.pojo.ValueCondition;
 import com.semifinished.util.ParserUtils;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -33,8 +32,8 @@ import java.util.List;
 @Where
 @Component
 @AllArgsConstructor
-public class InParamsParser implements SelectParamsParser{
-    private final SemiCache semiCache;
+public class InParamsParser implements SelectParamsParser {
+    private final TableUtils tableUtils;
     private final CommonParser commonParser;
 
     @Override
@@ -63,7 +62,7 @@ public class InParamsParser implements SelectParamsParser{
 
         column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
+        tableUtils.validColumnsName(sqlDefinition, table, column);
         valueCondition.setColumn(column);
         String argName = "in_" + table + "_" + column;
         boolean conditionBoolean = valueCondition.isConditionBoolean();

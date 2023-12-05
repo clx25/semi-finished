@@ -6,7 +6,6 @@ import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.interpolation.Interpolation;
 import lombok.AllArgsConstructor;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -49,8 +48,8 @@ public class InterpolationParser implements ParamsParser {
 
     private JsonNode interpolation(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition) {
         for (Interpolation interpolation : interpolations) {
-            if (interpolation.match(key,interpolatedKey)) {
-                return interpolation.value(table,key, interpolatedKey, sqlDefinition);
+            if (interpolation.match(key, interpolatedKey)) {
+                return interpolation.value(table, key, interpolatedKey, sqlDefinition);
             }
         }
         throw new ParamsException("未找到" + interpolatedKey + "对应的值");

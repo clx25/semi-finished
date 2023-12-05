@@ -4,13 +4,11 @@ package com.semifinished.config;
 import com.semifinished.pojo.Desensitization;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 使用代码的方式配置
  */
 public interface CoreConfigurer {
-
 
 
     /**

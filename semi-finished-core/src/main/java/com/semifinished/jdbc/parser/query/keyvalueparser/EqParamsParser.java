@@ -2,15 +2,13 @@ package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.annontation.Where;
-import com.semifinished.cache.SemiCache;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
-import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.ValueCondition;
 import com.semifinished.util.ParamsUtils;
 import com.semifinished.util.ParserUtils;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,11 +27,10 @@ import org.springframework.stereotype.Component;
 @Where
 @Component
 @RequiredArgsConstructor
-public class EqParamsParser implements SelectParamsParser{
+public class EqParamsParser implements SelectParamsParser {
 
-    private final SemiCache semiCache;
     private final CommonParser commonParser;
-    private final IdGenerator idGenerator;
+    private final TableUtils tableUtils;
 
     /**
      * 当前解析器为最后一个解析器，所以只返回true
@@ -56,9 +53,9 @@ public class EqParamsParser implements SelectParamsParser{
 
         key = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, key);
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, key);
+        tableUtils.validColumnsName(sqlDefinition, table, key);
         boolean conditionBoolean = valueCondition.isConditionBoolean();
-        String argName = TableUtils.uniqueAlias(idGenerator, "eq_" + table + "_" + key);
+        String argName = tableUtils.uniqueAlias("eq_" + table + "_" + key);
         if ("id".equals(key)) {
             argName = "id";
         }

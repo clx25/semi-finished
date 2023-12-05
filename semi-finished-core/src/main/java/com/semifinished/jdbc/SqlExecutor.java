@@ -2,13 +2,9 @@ package com.semifinished.jdbc;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.cache.SemiCache;
-import com.semifinished.exception.ParamsException;
 import com.semifinished.exception.SqlDataException;
-import com.semifinished.util.Assert;
 import com.semifinished.util.MapUtils;
 import com.semifinished.util.ParamsUtils;
-import com.semifinished.util.TableUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -182,34 +178,6 @@ public class SqlExecutor {
         }
         Set<String> fields = ParamsUtils.fields(objectNodes);
         fields.remove("id");
-        String sql = SqlCreator.insert(table, fields);
-        jdbcTemplate.batchUpdate(sql, SqlCreator.toSqlParameterSourceArray(objectNodes));
-    }
-
-
-    public void batchValidInsert(SemiCache semiCache, String dbKey, String table, List<Map<String, String>> params) {
-        if (params == null || params.isEmpty()) {
-            return;
-        }
-
-
-        List<String> columnsName = TableUtils.getColumnNames(semiCache, dbKey, table);
-        Assert.isEmpty(columnsName, () -> new ParamsException(table + "参数错误"));
-
-        List<ObjectNode> objectNodes = new ArrayList<>();
-        //只匹配数据库中存在的字段
-        for (Map<String, String> param : params) {
-            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
-            for (String name : columnsName) {
-                if (param.containsKey(name) && !"id".equals(name)) {
-                    objectNode.put(name, param.get(name));
-                }
-            }
-            objectNodes.add(objectNode);
-        }
-
-        Set<String> fields = ParamsUtils.fields(objectNodes);
-
         String sql = SqlCreator.insert(table, fields);
         jdbcTemplate.batchUpdate(sql, SqlCreator.toSqlParameterSourceArray(objectNodes));
     }

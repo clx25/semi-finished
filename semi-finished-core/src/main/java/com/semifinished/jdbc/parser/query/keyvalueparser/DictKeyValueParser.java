@@ -2,18 +2,17 @@ package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.cache.SemiCache;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.jdbc.parser.SelectParamsParser;
-import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.ParserUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.apache.commons.math3.util.Pair;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,9 +31,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class DictKeyValueParser implements SelectParamsParser {
 
-    private final SemiCache semiCache;
     private final ParserExecutor parserExecutor;
-    private final IdGenerator idGenerator;
+    private final TableUtils tableUtils;
 
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
@@ -43,10 +41,13 @@ public class DictKeyValueParser implements SelectParamsParser {
             return false;
         }
 
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL,
+                ParserStatus.DICTIONARY), () -> new ParamsException("表字典规则位置错误"));
         Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("表字典规则错误：" + key));
+
         String column = key.substring(0, key.length() - 1);
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, column);
+        tableUtils.validColumnsName(sqlDefinition, table, column);
 
         ObjectNode node = (ObjectNode) value;
 
@@ -56,13 +57,15 @@ public class DictKeyValueParser implements SelectParamsParser {
         String on = onNode.asText();
 
         //解析表字典规则
-        SqlDefinition dict = parserExecutor.parse(node);
+        SqlDefinition dict = new SqlDefinition(node);
+        dict.setStatus(ParserStatus.DICTIONARY.getStatus());
+        parserExecutor.parse(dict);
 
-        TableUtils.validColumnsName(semiCache, dict, dict.getTable(), on);
+        tableUtils.validColumnsName(dict, dict.getTable(), on);
 
 
-        String mainOn = complete(sqlDefinition, dict, column, TableUtils.uniqueAlias(idGenerator, "dict_" + table + "_" + column));
-        String innerOn = complete(dict, dict, on, TableUtils.uniqueAlias(idGenerator, "dict_" + dict.getTable() + "_" + on));
+        String mainOn = complete(sqlDefinition, dict, column, tableUtils.uniqueAlias("dict_" + table + "_" + column));
+        String innerOn = complete(dict, dict, on, tableUtils.uniqueAlias("dict_" + dict.getTable() + "_" + on));
 
         dict.setJoinOn(new Pair<>(mainOn, innerOn));
         sqlDefinition.addDict(dict);

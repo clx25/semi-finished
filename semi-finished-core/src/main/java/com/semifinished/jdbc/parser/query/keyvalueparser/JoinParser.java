@@ -2,13 +2,14 @@ package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.cache.SemiCache;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.util.Assert;
-import com.semifinished.util.TableUtils;
+import com.semifinished.util.ParserUtils;
+import com.semifinished.util.bean.TableUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.math3.util.Pair;
 import org.springframework.stereotype.Component;
@@ -23,8 +24,9 @@ import javax.annotation.Resource;
  * @see JoinOnKeyValueParser
  * <pre>
  *     "@table":"tb1",
- *     "&tb2":{
- *         "@on":"col1=col2"或者"@on":"col1,col2"
+ *     "&col1":{
+ *         "@tb":"tb2",
+ *         "@on":"col2"
  *     }
  * </pre>
  * 以上解析为tb1 left join tb2 on tb1.col1=tb2.col2
@@ -33,7 +35,7 @@ import javax.annotation.Resource;
 @RequiredArgsConstructor
 public class JoinParser implements SelectParamsParser {
 
-    private final SemiCache semiCache;
+    private final TableUtils tableUtils;
     @Resource
     private ParserExecutor parserExecutor;
 
@@ -47,6 +49,10 @@ public class JoinParser implements SelectParamsParser {
         if (!left && !inner) {
             return false;
         }
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
+                ParserStatus.JOIN), () -> new ParamsException("join规则位置错误"));
+
+
         Assert.isTrue(left && inner, () -> new ParamsException("join规则错误：" + key));
         Assert.isFalse(value.isObject(), () -> new ParamsException("join规则错误"));
 
@@ -62,11 +68,11 @@ public class JoinParser implements SelectParamsParser {
         SqlDefinition join = new SqlDefinition(node);
 
         join.setJoinType(inner ? " inner join " : " left join ");
-
+        join.setStatus(ParserStatus.JOIN.getStatus());
         parserExecutor.parse(node, join);
 
-        TableUtils.validColumnsName(semiCache, sqlDefinition, table, col);
-        TableUtils.validColumnsName(semiCache, join, join.getTable(), on);
+        tableUtils.validColumnsName(sqlDefinition, table, col);
+        tableUtils.validColumnsName(join, join.getTable(), on);
 
         join.setJoinOn(new Pair<>(col, on));
 
