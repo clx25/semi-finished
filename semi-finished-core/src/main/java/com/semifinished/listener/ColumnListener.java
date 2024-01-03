@@ -5,6 +5,7 @@ import com.semifinished.cache.CoreCacheKey;
 import com.semifinished.cache.SemiCache;
 import com.semifinished.config.DataSourceConfig;
 import com.semifinished.config.DataSourceProperties;
+import com.semifinished.exception.CodeException;
 import com.semifinished.exception.ConfigException;
 import com.semifinished.jdbc.SqlExecutorHolder;
 import com.semifinished.pojo.Column;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +50,15 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
             if (tableList == null) {
                 tableList = new ArrayList<>();
             }
-            List<Column> tables = executor.list("SELECT '" + db + "', col.TABLE_NAME `table`,col.COLUMN_NAME `column`,col.COLUMN_TYPE type,if(IS_NULLABLE='YES',true,false) null_able FROM information_schema.`COLUMNS` col  WHERE TABLE_SCHEMA='" + db + "'", Column.class);
+            String databaseProductName = executor.getDatabaseProductName();
+            List<Column> tables;
+            if ("H2".equalsIgnoreCase(databaseProductName)) {
+                tables = executor.list("SELECT  TABLE_NAME `table`,COLUMN_NAME `column`,TYPE_NAME  `type` ,CASE WHEN IS_NULLABLE = 'YES' THEN TRUE ELSE FALSE END AS NULL_ABLE FROM INFORMATION_SCHEMA.COLUMNS  WHERE  TABLE_SCHEMA = 'PUBLIC'", Column.class);
+            } else if ("mysql".equalsIgnoreCase(databaseProductName)) {
+                tables = executor.list("SELECT '" + db + "', col.TABLE_NAME `table`,col.COLUMN_NAME `column`,col.COLUMN_TYPE type,if(IS_NULLABLE='YES',true,false) null_able FROM information_schema.`COLUMNS` col  WHERE TABLE_SCHEMA='" + db + "'", Column.class);
+            } else {
+                throw new CodeException("无法识别的数据库");
+            }
             tableList.addAll(tables);
             semiCache.setValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName, tableList);
         });
@@ -73,14 +83,21 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
      */
     private void validExcludes(List<Column> columnList, DataSourceConfig dataSourceConfig) {
 
-        Map<String, List<String>> excludes = dataSourceConfig.getExcludes();
+        Map<String, Set<String>> excludes = dataSourceConfig.getExcludes();
         if (excludes == null || excludes.isEmpty()) {
             return;
         }
         String tableMatch = excludes.keySet().stream().filter(tb -> columnList.stream().noneMatch(column -> column.getTable().equals(tb))).collect(Collectors.joining(","));
         Assert.hasText(tableMatch, () -> new ConfigException("请检查排除规则," + tableMatch + "表不存在"));
+
         excludes.forEach((table, columns) -> {
-            String noneMatch = columns.stream().filter(column -> columnList.stream().noneMatch(col -> table.equals(col.getTable()) && col.getColumn().equals(column))).collect(Collectors.joining(","));
+            String noneMatch = columns.stream()
+                    .filter(column -> columnList.stream()
+                            .filter(col -> table.equals(col.getTable()))
+                            .noneMatch(col -> col.getColumn().equals(column))
+                    )
+                    .collect(Collectors.joining(","));
+
             Assert.hasText(noneMatch, () -> new ConfigException("请检查排除规则," + table + "表不存在" + noneMatch + "字段"));
         });
 

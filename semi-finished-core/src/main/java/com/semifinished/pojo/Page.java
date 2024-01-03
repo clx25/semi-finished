@@ -1,6 +1,7 @@
 package com.semifinished.pojo;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,8 +10,7 @@ import java.util.List;
 /**
  * 分页信息
  */
-@Getter
-@Setter
+@Data
 public class Page {
     /**
      * 数据总数

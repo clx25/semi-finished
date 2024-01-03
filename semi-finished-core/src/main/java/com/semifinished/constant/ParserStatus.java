@@ -12,8 +12,7 @@ public enum ParserStatus {
     SUB_TABLE(2, "子查询"),
     BRACKET(3, "括号查询"),
     JOIN(4, "join查询"),
-    DICTIONARY(5, "字典查询"),
-    GROUP(6, "group查询");
+    DICTIONARY(5, "字典查询");
 
     private final int status;
     private final String description;

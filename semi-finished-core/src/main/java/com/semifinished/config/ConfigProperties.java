@@ -16,7 +16,7 @@ public class ConfigProperties {
     /**
      * 在没有指定分页参数时的最大获取行数
      */
-    private int maxPageSize = 200;
+    private int maxPageSize = 0;
 
     /**
      * 分页参数pageSize与pageNum的键名

@@ -1,7 +1,6 @@
 package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.cache.SemiCache;
 import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
@@ -26,7 +25,7 @@ import java.util.function.Function;
 @AllArgsConstructor
 @Getter
 public class DesensitizeEnhance implements AfterQueryEnhance {
-    private final SemiCache semiCache;
+
 
     private final List<Desensitization> desensitizes = new ArrayList<>();
 
@@ -94,7 +93,7 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
             right = length * right;
         }
         char[] chars = value.toCharArray();
-        for (double i = left; i < chars.length - right; i++) {
+        for (double i = left; i < chars.length - (int)right; i++) {
             chars[(int) i] = '*';
         }
 

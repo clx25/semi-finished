@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.text.DecimalFormat;
 
 @Component
-public class NumberValue implements ValueReplace {
+public class NumberValue implements ValueReplacer {
     private final DecimalFormat decimalFormat = new DecimalFormat();
 
     @Override
@@ -18,9 +18,10 @@ public class NumberValue implements ValueReplace {
         if (!key.startsWith("num")) {
             return value;
         }
+
         String pattern = key.substring(3);
         Assert.hasNotText(pattern, () -> new ParamsException("格式化规则错误，缺少数字格式化规则：" + key));
-        double d = value.asDouble();
+        double d = value.asDouble(0);
         decimalFormat.applyPattern(pattern);
         try {
             return TextNode.valueOf(decimalFormat.format(d));

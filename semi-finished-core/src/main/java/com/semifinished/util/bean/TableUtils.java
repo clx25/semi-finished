@@ -42,6 +42,17 @@ public class TableUtils {
      *
      * @param sqlDefinition SQL定义数据
      * @param table         校验的表名
+     * @param columns       校验的字段数组
+     */
+    public void validColumnsName(SqlDefinition sqlDefinition, String table, String... columns) {
+        validColumnsName(sqlDefinition, table, Arrays.asList(columns));
+    }
+
+    /**
+     * 校验 表名和字段名
+     *
+     * @param sqlDefinition SQL定义数据
+     * @param table         校验的表名
      * @param columns       校验的字段集合
      */
     public void validColumnsName(SqlDefinition sqlDefinition, String table, List<String> columns) {
@@ -55,7 +66,7 @@ public class TableUtils {
             //如果是子查询，校验字段名称应该判断是否是子查询返回的字段
             SqlDefinition subTable = sqlDefinition.getSubTable();
             if (subTable != null) {
-                tableColumnsName = SqlCombiner.columnsAll(subTable);
+                tableColumnsName = SqlCombiner.queryColumns(subTable);
                 sub = true;
             }
         }
@@ -69,17 +80,9 @@ public class TableUtils {
                     .anyMatch(col -> col.equals(column));
             Assert.isFalse(flag, () -> new ParamsException(column + "参数错误" + (finSub ? ",子查询外层应该使用内层返回的字段名" : "")));
         }
-    }
 
-    /**
-     * 校验 表名和字段名
-     *
-     * @param sqlDefinition SQL定义数据
-     * @param table         校验的表名
-     * @param columns       校验的字段数组
-     */
-    public void validColumnsName(SqlDefinition sqlDefinition, String table, String... columns) {
-        validColumnsName(sqlDefinition, table, Arrays.asList(columns));
+
+
     }
 
     /**

@@ -5,17 +5,17 @@ import com.semifinished.exception.ParamsException;
 import com.semifinished.pojo.AggregationFun;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.ValueCondition;
+import com.semifinished.pojo.ValueReplace;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import com.semifinished.util.ParserUtils;
 import org.apache.commons.math3.util.Pair;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,9 +23,6 @@ import java.util.stream.Stream;
  * 把{@link SqlDefinition}中的数据组合成sql的接口
  */
 
-@Getter
-@Builder
-@AllArgsConstructor
 public class SqlCombiner {
 
 
@@ -55,12 +52,15 @@ public class SqlCombiner {
                 .toString();
     }
 
+
     /**
      * 构建不带分页参数的查询sql
      *
      * @return sql
      */
     public static String creatorSqlWithoutLimit(SqlDefinition sqlDefinition) {
+
+        validUniqueColumns(sqlDefinition);
 
         return new StringBuilder("select ")
                 .append(columns(sqlDefinition))
@@ -75,19 +75,51 @@ public class SqlCombiner {
                 .toString();
     }
 
+
+    /**
+     * 获取group by SQL片段
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return group by SQL片段
+     */
     private static StringBuilder groupBy(SqlDefinition sqlDefinition) {
 
         StringBuilder sql = new StringBuilder();
-
-        List<Column> groupByList = sqlDefinition.getGroupBy();
-        if (groupByList != null && !groupByList.isEmpty()) {
-            String groupBy = groupByList.stream()
-                    .map(g -> g.getTable() + "." + g.getColumn())
-                    .collect(Collectors.joining(","));
-            sql.append(" group by ").append(groupBy).append(" ");
+        if (sqlDefinition.getGroupStatus() == SqlDefinition.GROUP_DISABLE) {
+            return sql;
         }
+        List<Column> columns = groupByAll(sqlDefinition);
+        if (columns.isEmpty()) {
+            return sql;
+        }
+        sql.append(" group by ");
+
+        String groupBy = columns.stream()
+                .map(g -> g.getTable() + "." + g.getColumn())
+                .collect(Collectors.joining(","));
+        sql.append(groupBy).append(" ");
+
         return sql;
     }
+
+
+    /**
+     * 获取group by 字段
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return group by 字段
+     */
+    public static List<Column> groupByAll(SqlDefinition sqlDefinition) {
+        List<Column> groupByAll = new ArrayList<>();
+        integration(sqlDefinition, poll -> {
+            List<Column> groupBy = poll.getGroupBy();
+            if (groupBy != null) {
+                groupByAll.addAll(groupBy);
+            }
+        }, SqlDefinition::getJoin);
+        return groupByAll;
+    }
+
 
     /**
      * 获取查询的表名或者子表查询
@@ -103,6 +135,7 @@ public class SqlCombiner {
         return sqlDefinition.getTable();
     }
 
+
     /**
      * 获取所有普通查询字段+聚合字段
      *
@@ -110,7 +143,7 @@ public class SqlCombiner {
      * @return 所有普通查询字段+聚合字段
      */
     public static List<Column> columnAggregationAll(SqlDefinition sqlDefinition) {
-        List<Column> columnAll = columnsAll(sqlDefinition);
+        List<Column> columnAll = queryColumns(sqlDefinition);
         List<Column> aggregationColumns = aggregationColumns(sqlDefinition);
         Assert.isTrue(!columnAll.isEmpty() &&
                         !aggregationColumns.isEmpty() &&
@@ -121,6 +154,7 @@ public class SqlCombiner {
         return columnAll;
     }
 
+
     /**
      * 获取查询的字段并添加去重字段，如果判断有一对多查询，也就是group by的字段没有覆盖查询字段，那么会进行筛选
      * 去除没有覆盖的字段，并会在增强类中补齐
@@ -129,17 +163,37 @@ public class SqlCombiner {
      * @return 经过筛选后的包含查询字段和去重规则的SQL片段
      */
     private static String columns(SqlDefinition sqlDefinition) {
-        List<Column> groupBy = sqlDefinition.getGroupBy();
-        List<Column> columns = columnsAll(sqlDefinition);
+        List<Column> groupBy = groupByAll(sqlDefinition);
+        List<Column> columns = queryColumns(sqlDefinition);
         List<Column> aggregationColumns = aggregationColumns(sqlDefinition);
-        return (sqlDefinition.isDistinct() ? " distinct " : "") + Stream.concat(columns.stream()
-                        .filter(col -> !sqlDefinition.isToMany() || groupBy.stream()
-                                .anyMatch(group -> col.getTable().equals(group.getTable())
-                                        && col.getColumn().equals(group.getColumn())
-                                )
-                        ), aggregationColumns.stream()).map(col -> (StringUtils.hasText(col.getTable()) ? (col.getTable() + ".") : "") + col.getColumn() + " " + getAlias(col.getAlias()))
+
+        Stream<Column> columnsStream = columns.stream();
+        //如果有group规则，那么需要查询字段与group字段取交集
+        if (sqlDefinition.getGroupStatus() == SqlDefinition.GROUP_NOT_COVER) {
+            columnsStream = columnsStream.filter(col -> groupBy.stream()
+                    .filter(group -> col.getTable().equals(group.getTable()))
+                    .anyMatch(group -> col.getColumn().equals(group.getColumn()))
+            );
+        }
+
+        //构建查询字段SQL片段
+        String queryColumns = Stream.concat(columnsStream, aggregationColumns.stream())
+                .map(SqlCombiner::columnItem)
                 .collect(Collectors.joining(","));
+
+        return (sqlDefinition.isDistinct() ? " distinct " : "") + queryColumns;
     }
+
+    /**
+     * 单个查询字段SQL片段
+     *
+     * @param col 查询的字段
+     * @return 查询字段SQL片段
+     */
+    private static String columnItem(Column col) {
+        return (StringUtils.hasText(col.getTable()) ? (col.getTable() + ".") : "") + col.getColumn() + " " + (StringUtils.hasText(col.getAlias()) ? "`" + col.getAlias() + "`" : "");
+    }
+
 
     /**
      * 获取所有普通查询字段，不包含聚合字段
@@ -147,83 +201,59 @@ public class SqlCombiner {
      * @param sqlDefinition SQL定义信息
      * @return 所有普通查询字段，不包含聚合字段
      */
-    public static List<Column> columnsAll(SqlDefinition sqlDefinition) {
+    public static List<Column> queryColumns(SqlDefinition sqlDefinition) {
 
-        List<Column> columnAll = new ArrayList<>(sqlDefinition.getColumns());
+        List<Column> columnAll = new ArrayList<>();
 
-        LinkedList<SqlDefinition> linkedList = new LinkedList<>();
-        List<SqlDefinition> join = sqlDefinition.getJoin();
-
-        if (join != null) {
-            linkedList.addAll(join);
-        }
-
-        while (!linkedList.isEmpty()) {
-            SqlDefinition poll = linkedList.poll();
-            if (poll == null) {
-                break;
+        integration(sqlDefinition, poll -> {
+            for (Column column : poll.getColumns()) {
+                if (!column.isDisabled()) {
+                    columnAll.add(column);
+                }
             }
-            columnAll.addAll(poll.getColumns());
-            columnAll.addAll(aggregationColumns(poll));
-            List<SqlDefinition> innerJoin = poll.getJoin();
-            if (innerJoin != null) {
-                linkedList.addAll(innerJoin);
-            }
-        }
 
-        excludeColumns(sqlDefinition, columnAll);
+        }, SqlDefinition::getJoin);
+
 
         aliasColumns(sqlDefinition, columnAll);
-
-        validUniqueColumns(columnAll);
 
         return columnAll;
     }
 
 
+    public static List<Column> columnsAll(SqlDefinition sqlDefinition) {
+
+        List<Column> columnAll = new ArrayList<>();
+
+        integration(sqlDefinition, poll -> {
+            for (Column column : poll.getColumns()) {
+                if (!column.isDisabled()) {
+                    columnAll.add(column);
+                }
+            }
+
+        }, SqlDefinition::getJoin, SqlDefinition::getDict, inner -> ParserUtils.asList(inner.getSubTable()));
+
+
+        aliasColumns(sqlDefinition, columnAll);
+
+        return columnAll;
+    }
+
     /**
-     * 执行字段排除规则，把不查询的字段排除
-     *
-     * @param columns 所有查询的字段
+     * 获取所有排除字段
      */
-    private static void excludeColumns(SqlDefinition sqlDefinition, List<Column> columns) {
-        integration(sqlDefinition, join -> {
-            List<Column> excludeColumns = join.getExcludeColumns();
-            if (excludeColumns == null || excludeColumns.isEmpty()) {
-                return;
+    public static List<Column> excludeColumns(SqlDefinition sqlDefinition) {
+        List<Column> excludeColumns = new ArrayList<>();
+        integration(sqlDefinition, poll -> {
+            List<Column> columns = poll.getExcludeColumns();
+            if (columns != null) {
+                excludeColumns.addAll(columns);
             }
-
-            columns.removeIf(column -> excludeColumns.stream()
-                    .filter(col -> col.getTable().equals(column.getTable()))
-                    .anyMatch(col -> col.getColumn().equals(column.getColumn())));
-        });
+        }, SqlDefinition::getJoin, SqlDefinition::getDict, inner -> ParserUtils.asList(inner.getSubTable()));
+        return excludeColumns;
     }
 
-    public static List<Column> excludeRecordsColumns(SqlDefinition sqlDefinition) {
-        List<Column> excludeRecordsColumns = new ArrayList<>();
-        List<Column> recordsColumns = sqlDefinition.getExcludeRecordsColumns();
-        if (recordsColumns != null) {
-            excludeRecordsColumns.addAll(recordsColumns);
-        }
-        integration(sqlDefinition, join -> {
-            List<Column> excludeColumns = join.getExcludeRecordsColumns();
-            if (excludeColumns != null) {
-                excludeRecordsColumns.addAll(excludeColumns);
-            }
-
-        });
-        List<SqlDefinition> dictList = sqlDefinition.getDict();
-        if (dictList == null) {
-            return excludeRecordsColumns;
-        }
-        for (SqlDefinition dict : dictList) {
-            List<Column> excludeColumns = dict.getExcludeRecordsColumns();
-            if (excludeColumns != null) {
-                excludeRecordsColumns.addAll(excludeColumns);
-            }
-        }
-        return excludeRecordsColumns;
-    }
 
     /**
      * 执行别名规则，把别名应用到查询字段上
@@ -231,8 +261,8 @@ public class SqlCombiner {
      * @param columns 查询字段
      */
     private static void aliasColumns(SqlDefinition sqlDefinition, List<Column> columns) {
-        integration(sqlDefinition, join -> {
-            List<Column> alias = join.getAlias();
+        integration(sqlDefinition, poll -> {
+            List<Column> alias = poll.getAlias();
             if (CollectionUtils.isEmpty(alias)) {
                 return;
             }
@@ -245,28 +275,42 @@ public class SqlCombiner {
                     }
                 }
             }
-        });
-
+        }, SqlDefinition::getJoin, SqlDefinition::getDict, inner -> ParamsUtils.asList(inner.getSubTable()));
 
     }
+
 
     /**
      * 检查字段重复
      *
-     * @param columns 所有查询字段
+     * @param sqlDefinition SQL定义信息
      */
-    private static void validUniqueColumns(List<Column> columns) {
+    private static void validUniqueColumns(SqlDefinition sqlDefinition) {
         Set<String> uniqueSet = new HashSet<>();
         StringJoiner joiner = new StringJoiner(",");
-        for (Column column : columns) {
-            String alias = column.getAlias();
-            String col = ParamsUtils.hasText(alias, column.getColumn());
-            if (!uniqueSet.add(col)) {
-                joiner.add(col);
+        integration(sqlDefinition, poll -> {
+            poll.getColumns()
+                    .stream()
+                    .filter(column -> !column.isDisabled())
+                    .map(column -> ParamsUtils.hasText(column.getAlias(), column.getColumn()))
+                    .filter(column -> !uniqueSet.add(column))
+                    .forEach(joiner::add);
+
+            List<AggregationFun> aggregationFuns = poll.getAggregationFuns();
+            if (aggregationFuns == null || aggregationFuns.isEmpty()) {
+                return;
             }
-        }
-        Assert.isTrue(joiner.length() > 0, () -> new ParamsException("字段名重复:" + joiner));
+            aggregationFuns.stream()
+                    .map(agg -> ParamsUtils.hasText(agg.getAlias(), agg.getColumn()))
+                    .filter(agg -> !uniqueSet.add(agg))
+                    .forEach(joiner::add);
+
+        }, SqlDefinition::getJoin, SqlDefinition::getDict);
+
+
+        Assert.isTrue(joiner.length() > 0, () -> new ParamsException("字段名重复：" + joiner));
     }
+
 
     /**
      * 获取聚合函数
@@ -287,9 +331,6 @@ public class SqlCombiner {
         }).collect(Collectors.toList());
     }
 
-    public static String getAlias(String alias) {
-        return StringUtils.hasText(alias) ? "'" + alias + "'" : "";
-    }
 
     /**
      * 创建where条件sql片段
@@ -298,8 +339,8 @@ public class SqlCombiner {
      */
     public static StringBuilder where(SqlDefinition sqlDefinition) {
         StringBuilder whereFragment = new StringBuilder(" where 1=1 ");
-        integration(sqlDefinition, join -> {
-            List<ValueCondition> valueCondition = join.getValueCondition();
+        integration(sqlDefinition, poll -> {
+            List<ValueCondition> valueCondition = poll.getValueCondition();
             if (CollectionUtils.isEmpty(valueCondition)) {
                 return;
             }
@@ -310,10 +351,11 @@ public class SqlCombiner {
                         .append(" ")
                         .append(brackets(w));
             }
-        });
+        }, SqlDefinition::getJoin);
 
         return whereFragment;
     }
+
 
     /**
      * 解析包含括号的查询规则
@@ -341,6 +383,7 @@ public class SqlCombiner {
         }
         return whereFragment.append(" ) ");
     }
+
 
     /**
      * 解析join查询SQL片段
@@ -374,9 +417,11 @@ public class SqlCombiner {
         return sql.toString();
     }
 
+
     /**
      * 获取order by规则
      *
+     * @param sqlDefinition SQL定义信息
      * @return order by 字符串
      */
     private static StringBuilder orderBy(SqlDefinition sqlDefinition) {
@@ -387,10 +432,11 @@ public class SqlCombiner {
             orderBy.append(" ")
                     .append(orderFragment == null ? "" : orderFragment)
                     .append(" ");
-        });
+        }, SqlDefinition::getJoin);
 
         return StringUtils.hasText(orderBy) ? orderBy.insert(0, " order by ") : orderBy;
     }
+
 
     /**
      * 获取SQL的占位符数据
@@ -400,17 +446,16 @@ public class SqlCombiner {
      */
     public static Map<String, Object> getArgs(SqlDefinition sqlDefinition) {
         Map<String, Object> args = new HashMap<>();
-        subTableArgs(args, sqlDefinition);
-        integration(sqlDefinition, join -> {
-            subTableArgs(args, join);
-            List<ValueCondition> valueConditions = join.getValueCondition();
+        integration(sqlDefinition, poll -> {
+            List<ValueCondition> valueConditions = poll.getValueCondition();
             if (CollectionUtils.isEmpty(valueConditions)) {
                 return;
             }
             valueConditions.forEach(column -> bracketsArgs(args, column));
-        });
+        }, SqlDefinition::getJoin, inner -> ParamsUtils.asList(inner.getSubTable()));
         return args;
     }
+
 
     /**
      * 递归获取包含括号的占位符数据
@@ -430,19 +475,76 @@ public class SqlCombiner {
     }
 
 
-    private static void subTableArgs(Map<String, Object> args, SqlDefinition sqlDefinition) {
-        SqlDefinition subTable = sqlDefinition.getSubTable();
-        while (subTable != null) {
-            List<ValueCondition> valueCondition = subTable.getValueCondition();
-            if (CollectionUtils.isEmpty(valueCondition)) {
-                return;
+    /**
+     * 获取不合法的别名
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return 不合法别名集合
+     */
+    public static List<Column> illegalAlias(SqlDefinition sqlDefinition) {
+        List<Column> illegalAlias = new ArrayList<>();
+        integration(sqlDefinition, poll -> {
+            List<Column> alias = poll.getIllegalAlias();
+            if (alias != null) {
+                illegalAlias.addAll(alias);
             }
-            valueCondition.forEach(column -> args.put(column.getArgName(), column.getValue()));
-            subTable = subTable.getSubTable();
-        }
+        }, SqlDefinition::getJoin, poll -> ParserUtils.asList(poll.getSubTable()));
+        return illegalAlias;
     }
 
-    private static void integration(SqlDefinition sqlDefinition, Consumer<SqlDefinition> consumer) {
+
+    /**
+     * 获取所有表字典规则
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return 表字典规则集合
+     */
+    public static List<SqlDefinition> dicts(SqlDefinition sqlDefinition) {
+
+        List<SqlDefinition> dictList = new ArrayList<>();
+
+        integration(sqlDefinition, poll -> {
+            List<SqlDefinition> dict = poll.getDict();
+            if (dict != null) {
+                dictList.addAll(dict);
+            }
+        }, poll -> ParserUtils.asList(poll.getSubTable()), SqlDefinition::getDict, SqlDefinition::getJoin);
+        return dictList;
+    }
+
+
+    /**
+     * 获取所有数据替换信息
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return 数据替换信息集合
+     */
+    public static List<ValueReplace> valueReplacesAll(SqlDefinition sqlDefinition) {
+        List<ValueReplace> valueReplacesAll = new ArrayList<>();
+        integration(sqlDefinition, poll -> {
+                    List<ValueReplace> valueReplaces = poll.getValueReplaces();
+                    if (valueReplaces != null) {
+                        valueReplacesAll.addAll(valueReplaces);
+                    }
+                }, SqlDefinition::getJoin, SqlDefinition::getDict
+                , inner -> ParserUtils.asList(inner.getSubTable()));
+
+        return valueReplacesAll;
+    }
+
+
+    /**
+     * 深度获取指定数据
+     *
+     * @param sqlDefinition SQL定义信息
+     * @param consumer      数据消费者，调用者使用该消费者传入的对象获取数据
+     * @param inners        数据来源提供者
+     */
+    @SafeVarargs
+    private static void integration(SqlDefinition sqlDefinition, Consumer<SqlDefinition> consumer, Function<SqlDefinition, List<SqlDefinition>>... inners) {
+        if (sqlDefinition == null) {
+            return;
+        }
         LinkedList<SqlDefinition> linkedList = new LinkedList<>();
         linkedList.add(sqlDefinition);
         while (!linkedList.isEmpty()) {
@@ -452,47 +554,14 @@ public class SqlCombiner {
             }
             consumer.accept(poll);
 
-            List<SqlDefinition> innerJoin = poll.getJoin();
-            if (innerJoin != null) {
-                linkedList.addAll(innerJoin);
+            for (Function<SqlDefinition, List<SqlDefinition>> inner : inners) {
+                List<SqlDefinition> innerSqlDefinition = inner.apply(poll);
+                if (innerSqlDefinition != null) {
+                    linkedList.addAll(innerSqlDefinition);
+                }
             }
         }
     }
 
 
-    public static String insert(SqlDefinition sqlDefinition) {
-        List<ValueCondition> valueCondition = sqlDefinition.getValueCondition();
-        Assert.isEmpty(valueCondition, () -> new ParamsException("新增字段不能为空"));
-        StringJoiner cols = new StringJoiner(",");
-        StringJoiner values = new StringJoiner(",");
-        String table = sqlDefinition.getTable();
-        for (ValueCondition column : valueCondition) {
-            String col = column.getColumn();
-            if ("id".equalsIgnoreCase(col)) {
-                continue;
-            }
-            cols.add(table + "." + col);
-            values.add(":" + column.getArgName());
-        }
-
-        return "insert " + table + " (" + cols + ") values(" + values + ")";
-    }
-
-    public static String update(SqlDefinition sqlDefinition) {
-        List<ValueCondition> valueCondition = sqlDefinition.getValueCondition();
-        Assert.isEmpty(valueCondition, () -> new ParamsException("修改字段不能为空"));
-
-        StringJoiner cols = new StringJoiner(",");
-        long count = valueCondition.stream().filter(col -> !"id".equals(col.getColumn()))
-                .peek(col -> cols.add(col.getColumn() + "=:" + col.getArgName())
-                ).count();
-
-        Assert.isTrue(count == valueCondition.size(), () -> new ParamsException("更新缺少id"));
-
-        return "update " + sqlDefinition.getTable() + " set " + cols + " where id=:id";
-    }
-
-    public static String delete(SqlDefinition sqlDefinition) {
-        return "delete from " + sqlDefinition.getTable() + where(sqlDefinition);
-    }
 }

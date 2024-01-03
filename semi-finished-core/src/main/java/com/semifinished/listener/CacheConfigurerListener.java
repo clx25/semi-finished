@@ -36,10 +36,5 @@ public class CacheConfigurerListener implements ApplicationListener<ContextRefre
         }
     }
 
-//    private <S> S getOrEmpty(S config) {
-//        return config == null ? (S) new HashMap<>() : config;
-//    }
-
-
 }
 

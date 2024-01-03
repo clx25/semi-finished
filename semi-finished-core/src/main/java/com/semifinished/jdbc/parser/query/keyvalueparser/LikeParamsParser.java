@@ -69,7 +69,7 @@ public class LikeParamsParser implements SelectParamsParser {
         valueCondition.setValue(argsValue);
         valueCondition.setCondition(((valueCondition.isConditionBoolean() ? "" : " not ") + " like ") + ":" + argName);
         valueCondition.setArgName(argName);
-        sqlDefinition.addColumnValue(valueCondition);
+        sqlDefinition.addValueCondition(valueCondition);
         return true;
     }
 

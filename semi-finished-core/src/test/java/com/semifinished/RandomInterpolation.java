@@ -17,6 +17,6 @@ public class RandomInterpolation implements Interpolation {
 
     @Override
     public JsonNode value(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition) {
-        return JsonNodeFactory.instance.numberNode(new Random().nextInt());
+        return JsonNodeFactory.instance.numberNode(new Random().nextInt(50)+1);
     }
 }

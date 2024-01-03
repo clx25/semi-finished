@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 @Getter
@@ -20,7 +21,7 @@ public class DataSourceConfig extends HikariDataSource {
     /**
      * 排除字段
      */
-    private Map<String, List<String>> excludes;
+    private Map<String, Set<String>> excludes;
 
 
     @Getter

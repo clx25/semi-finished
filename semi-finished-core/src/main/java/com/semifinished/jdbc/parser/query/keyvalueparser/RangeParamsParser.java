@@ -141,7 +141,7 @@ public class RangeParamsParser implements SelectParamsParser {
         valueCondition.setCondition(condition + ":" + argName);
         valueCondition.setArgName(argName);
         valueCondition.setValue(argValue);
-        sqlDefinition.addColumnValue(valueCondition);
+        sqlDefinition.addValueCondition(valueCondition);
 
     }
 

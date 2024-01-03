@@ -1,15 +1,13 @@
 package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,7 +21,7 @@ public class IllLegalAliasEnhance implements AfterQueryEnhance {
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {
         List<ObjectNode> records = page.getRecords();
-        List<Column> illegalAlias = getIllegalAlias(sqlDefinition);
+        List<Column> illegalAlias = SqlCombiner.illegalAlias(sqlDefinition);
         if (illegalAlias.isEmpty()) {
             return;
         }
@@ -47,27 +45,4 @@ public class IllLegalAliasEnhance implements AfterQueryEnhance {
         }
     }
 
-    /**
-     * 获取所有的不合法别名
-     *
-     * @param sqlDefinition SQL定义信息
-     * @return 不合法别名集合
-     */
-    private List<Column> getIllegalAlias(SqlDefinition sqlDefinition) {
-        List<Column> illegalAlias = sqlDefinition.getIllegalAlias();
-        if (CollectionUtils.isEmpty(illegalAlias)) {
-            return Collections.emptyList();
-        }
-        List<Column> alias = new ArrayList<>(illegalAlias);
-
-        List<SqlDefinition> joins = sqlDefinition.getJoin();
-        if (CollectionUtils.isEmpty(joins)) {
-            return alias;
-        }
-
-        for (SqlDefinition join : joins) {
-            alias.addAll(getIllegalAlias(join));
-        }
-        return alias;
-    }
 }

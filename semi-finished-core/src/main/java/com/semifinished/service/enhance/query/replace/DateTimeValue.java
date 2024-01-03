@@ -6,12 +6,13 @@ import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.util.Assert;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Component
-public class DateTimeValue implements ValueReplace {
+public class DateTimeValue implements ValueReplacer {
     DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -21,10 +22,12 @@ public class DateTimeValue implements ValueReplace {
         if (!key.startsWith("time")) {
             return value;
         }
-
+        String text = value.asText(null);
+        if (!StringUtils.hasText(text)) {
+            return value;
+        }
         String pattern = key.substring(4);
         Assert.hasNotText(pattern, () -> new ParamsException("缺少时间格式化规则：" + key));
-        String text = value.asText();
 
         try {
             String date = LocalDate.parse(text, text.contains(":") ? dateTimeFormatter : dateFormatter)

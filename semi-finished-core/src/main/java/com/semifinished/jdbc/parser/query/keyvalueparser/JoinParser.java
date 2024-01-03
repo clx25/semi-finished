@@ -57,7 +57,7 @@ public class JoinParser implements SelectParamsParser {
         Assert.isFalse(value.isObject(), () -> new ParamsException("join规则错误"));
 
         String col = left ? key.substring(1) : key.substring(0, key.length() - 1);
-        Assert.isFalse(StringUtils.hasText(col), () -> new ParamsException("join规则字段名不能为空:" + key));
+        Assert.isFalse(StringUtils.hasText(col), () -> new ParamsException("join规则字段名不能为空：" + key));
 
         ObjectNode node = (ObjectNode) value;
 

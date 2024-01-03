@@ -7,6 +7,8 @@ import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.ValueCondition;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class ParserUtils {
 
@@ -20,7 +22,7 @@ public class ParserUtils {
      * @return 包含解析后通用规则的where条件实体类
      */
     public static ValueCondition columnValue(String table, String key) {
-        char[] chars = key.toCharArray();
+        char[] chars = key.trim().toCharArray();
         Assert.isTrue(chars.length == 0, () -> new ParamsException("key长度不能为0"));
 
         boolean eq = true;
@@ -61,5 +63,8 @@ public class ParserUtils {
 
     }
 
+    public static <T> List<T> asList(T t) {
+        return t == null ? Collections.emptyList() : Collections.singletonList(t);
+    }
 
 }

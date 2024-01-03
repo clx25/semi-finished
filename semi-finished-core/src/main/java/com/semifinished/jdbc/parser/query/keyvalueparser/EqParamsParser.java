@@ -56,18 +56,15 @@ public class EqParamsParser implements SelectParamsParser {
         tableUtils.validColumnsName(sqlDefinition, table, key);
         boolean conditionBoolean = valueCondition.isConditionBoolean();
         String argName = tableUtils.uniqueAlias("eq_" + table + "_" + key);
-        if ("id".equals(key)) {
-            argName = "id";
-        }
         valueCondition.setColumn(key);
         valueCondition.setArgName(argName);
 
-        sqlDefinition.addColumnValue(valueCondition);
+        sqlDefinition.addValueCondition(valueCondition);
         if (value.isNull()) {
             if (log.isDebugEnabled()) {
                 log.debug("表" + table + "添加查询条件" + key + " is " + (conditionBoolean ? "" : "not ") + "null");
             }
-            valueCondition.setCondition(" is " + (conditionBoolean ? "" : "not "));
+            valueCondition.setCondition(" is " + (conditionBoolean ? "" : "not ") + " null ");
             return true;
         }
         valueCondition.setCondition((conditionBoolean ? "" : "!") + "=:" + argName);

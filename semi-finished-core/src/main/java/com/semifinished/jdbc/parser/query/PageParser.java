@@ -35,7 +35,7 @@ public class PageParser implements ParamsParser {
 
         JsonNode pageSizeNode = params.remove(configProperties.getPageSizeKey());
 
-        if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL)) {
+        if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE)) {
             Assert.isTrue(pageNumNode != null || pageSizeNode != null, () -> new ParamsException("分页规则位置错误"));
             return;
         }

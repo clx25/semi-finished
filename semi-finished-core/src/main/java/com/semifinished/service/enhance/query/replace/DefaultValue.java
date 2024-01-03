@@ -6,7 +6,7 @@ import com.semifinished.jdbc.SqlDefinition;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DefaultValue implements ValueReplace {
+public class DefaultValue implements ValueReplacer {
     @Override
     public JsonNode replace(SqlDefinition sqlDefinition, String pattern, JsonNode value) {
         if (!pattern.startsWith("def")) {

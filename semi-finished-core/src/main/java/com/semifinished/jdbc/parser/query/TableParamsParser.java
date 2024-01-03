@@ -37,10 +37,13 @@ public class TableParamsParser implements ParamsParser {
         JsonNode tbNode = params.remove("@tb");
 
         if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY)) {
-            Assert.isTrue(tbNode != null, () -> new ParamsException("@tb规则位置错误"));
+            Assert.isTrue(tbNode != null, () -> new ParamsException("表名规则位置错误"));
             return;
         }
-        Assert.isTrue(tbNode instanceof ValueNode && !StringUtils.hasText(tbNode.asText()), () -> new ParamsException("没有指定表名"));
+        if (tbNode == null && sqlDefinition.getStatus() == ParserStatus.DICTIONARY.getStatus()) {
+            return;
+        }
+        Assert.isTrue(tbNode == null || (tbNode instanceof ValueNode && !StringUtils.hasText(tbNode.asText())), () -> new ParamsException("没有指定表名"));
 
         if (tbNode instanceof ValueNode) {
             String tb = tbNode.asText();
@@ -51,8 +54,7 @@ public class TableParamsParser implements ParamsParser {
         }
 
         //解析子查询规则
-        params = tbNode.deepCopy();
-        SqlDefinition subSqlDefinition = new SqlDefinition(params);
+        SqlDefinition subSqlDefinition = new SqlDefinition(tbNode.deepCopy());
         subSqlDefinition.setStatus(ParserStatus.SUB_TABLE.getStatus());
         parserExecutor.parse(subSqlDefinition);
         sqlDefinition.setTable(tableUtils.uniqueAlias(subSqlDefinition.getTable()));

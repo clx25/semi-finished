@@ -1,6 +1,7 @@
 package com.semifinished.exception;
 
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.semifinished.constant.ResultInfo;
 import com.semifinished.pojo.Result;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,12 @@ public class ProjectExceptionHandler {
     public Result projectRuntimeException(ProjectRuntimeException e) {
         log.error("未知错误", e);
         return Result.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result JsonParseException(JsonParseException e) {
+        return Result.error(HttpStatus.BAD_REQUEST.value(), "请求参数错误");
     }
 
     @ExceptionHandler

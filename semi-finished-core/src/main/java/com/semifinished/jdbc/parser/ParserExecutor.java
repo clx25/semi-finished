@@ -47,9 +47,7 @@ public class ParserExecutor {
      * @return SQL定义信息
      */
     public SqlDefinition parse(ObjectNode params) {
-        SqlDefinition sqlDefinition = new SqlDefinition(params);
-        doParse(params, paramsParsers, sqlDefinition);
-        return sqlDefinition;
+        return parse(params, paramsParsers);
     }
 
     /**

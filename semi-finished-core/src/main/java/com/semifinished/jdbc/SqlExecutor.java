@@ -2,10 +2,11 @@ package com.semifinished.jdbc;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.exception.ProjectRuntimeException;
 import com.semifinished.exception.SqlDataException;
 import com.semifinished.util.MapUtils;
 import com.semifinished.util.ParamsUtils;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -13,6 +14,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -23,11 +25,11 @@ import java.util.function.Function;
 /**
  * SQL执行器，封装了一些常用的查询方法
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SqlExecutor {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionManager;
-
+    private final ObjectNodeRowMapper objectNodeRowMapper = new ObjectNodeRowMapper();
 
     public <R> R transaction(Function<SqlExecutor, R> function) {
         return transactionManager.execute(transactionStatus -> function.apply(this));
@@ -83,11 +85,11 @@ public class SqlExecutor {
 
 
     public List<ObjectNode> list(String sql, Map<String, ?> params) {
-        return jdbcTemplate.query(sql, params, new ObjectNodeRowMapper());
+        return jdbcTemplate.query(sql, params, objectNodeRowMapper);
     }
 
     public List<ObjectNode> list(String sql, SqlParameterSource params) {
-        return jdbcTemplate.query(sql, params, new ObjectNodeRowMapper());
+        return jdbcTemplate.query(sql, params, objectNodeRowMapper);
     }
 
     public int total(String sql, Map<String, Object> args) {
@@ -116,7 +118,7 @@ public class SqlExecutor {
      * @return 获取的数据集合
      */
     public List<ObjectNode> list(String sql) {
-        return jdbcTemplate.query(sql, new ObjectNodeRowMapper());
+        return jdbcTemplate.query(sql, objectNodeRowMapper);
     }
 
     public <T> List<T> list(String sql, Class<T> t) {
@@ -143,7 +145,7 @@ public class SqlExecutor {
 
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
-        ObjectNodeRowMapper objectNodeRowMapper = new ObjectNodeRowMapper();
+
         for (int i = 1; i <= columnCount; i++) {
             objectNodeRowMapper.ObtainAndPut(resultSet, metaData, objectNode, i);
         }
@@ -274,5 +276,17 @@ public class SqlExecutor {
         String sql = SqlCreator.count(table, params.keySet());
         Integer integer = jdbcTemplate.queryForObject(sql, params, Integer.class);
         return integer != null && (integer > 0);
+    }
+
+    public String getDatabaseProductName() {
+        DataSource dataSource = jdbcTemplate.getJdbcTemplate().getDataSource();
+        if (dataSource == null) {
+            return "";
+        }
+        try {
+            return dataSource.getConnection().getMetaData().getDatabaseProductName();
+        } catch (Exception e) {
+            throw new ProjectRuntimeException("获取数据库类型错误", e);
+        }
     }
 }

@@ -46,7 +46,7 @@ public class SortParserSelect implements SelectParamsParser {
         } else {
             return false;
         }
-        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.JOIN), () -> new ParamsException("排序规则位置错误"));
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.JOIN, ParserStatus.SUB_TABLE), () -> new ParamsException("排序规则位置错误"));
         String[] columns = value.asText().split(",");
         String[] orders = new String[columns.length];
         for (int i = 0; i < columns.length; i++) {

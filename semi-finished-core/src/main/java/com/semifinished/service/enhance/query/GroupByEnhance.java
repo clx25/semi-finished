@@ -1,14 +1,13 @@
 package com.semifinished.service.enhance.query;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.SqlExecutorHolder;
+import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
 import com.semifinished.pojo.ValueCondition;
-import com.semifinished.service.EnhanceService;
 import com.semifinished.util.ParamsUtils;
 import com.semifinished.util.bean.TableUtils;
 import lombok.RequiredArgsConstructor;
@@ -17,16 +16,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 实现group by一对多查询
- * 第一次查询：把group by没有覆盖的查询字段去除，如果查询字段中没有group by的字段，那么添加到查询字段，也添加到排除字段，执行查询
+ * 第一次查询：把group by没有覆盖的查询字段去除，如果查询字段中没有group by的字段，那么添加到查询字段，也添加到排除字段列表，执行查询
  * 第二次查询：从查询的列表取出group by字段的结果，作为IN查询的参数。把之前的查询字段与group by字段合并，去除group by规则，执行查询
  * 合并：根据group by字段进行合并，group by没有覆盖的查询字段是集合形式
  */
@@ -35,25 +30,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GroupByEnhance implements AfterQueryEnhance {
     private final SqlExecutorHolder sqlExecutorHolder;
+    private final ParserExecutor parserExecutor;
     private final TableUtils tableUtils;
-    @Resource
-    private EnhanceService enhanceService;
-
-    /**
-     * 判断group by的字段是否覆盖了所有查询字段，用以决定是否执行一对多查询
-     *
-     * @param groupBy group by字段
-     * @param columns 查询字段
-     * @return true表示需要执行一对多查询，false表示不需要
-     */
-    private static boolean isMany(List<Column> groupBy, List<Column> columns) {
-        return columns.stream()
-                .anyMatch(col -> groupBy.stream()
-                        .noneMatch(group -> group.getTable().equals(col.getTable()) &&
-                                group.getColumn().equals(col.getColumn())
-                        )
-                );
-    }
 
     /**
      * 获取查询字段中有，但是group by中没有的字段，这些字段就是需要匹配后去合并的字段
@@ -64,7 +42,9 @@ public class GroupByEnhance implements AfterQueryEnhance {
      */
     private static List<String> getMergeColumns(List<Column> columns, List<Column> groupBy) {
         return columns.stream()
-                .filter(col -> groupBy.stream().noneMatch(column -> col.getTable().equals(column.getTable()) && col.getColumn().equals(column.getColumn())))
+                .filter(col -> groupBy.stream()
+                        .filter(column -> col.getTable().equals(column.getTable()))
+                        .noneMatch(column -> col.getColumn().equals(column.getColumn())))
                 .map(col -> ParamsUtils.hasText(col.getAlias(), col.getColumn()))
                 .collect(Collectors.toList());
     }
@@ -75,12 +55,15 @@ public class GroupByEnhance implements AfterQueryEnhance {
      * @param columns 查询字段
      * @param groupBy group by字段
      */
-    private static void secondQueryColumns(List<Column> columns, List<Column> groupBy) {
+    private static List<Column> secondQueryColumns(List<Column> columns, List<Column> groupBy) {
+        List<Column> secondQueryColumns = new ArrayList<>();
         groupBy.stream()
                 .filter(col -> columns.stream()
-                        .noneMatch(column -> col.getTable().equals(column.getTable()) && col.getColumn().equals(column.getColumn()))
+                        .filter(column -> col.getTable().equals(column.getTable()))
+                        .noneMatch(column -> col.getColumn().equals(column.getColumn()))
                 )
-                .forEach(columns::add);
+                .forEach(secondQueryColumns::add);
+        return secondQueryColumns;
     }
 
     /**
@@ -118,37 +101,40 @@ public class GroupByEnhance implements AfterQueryEnhance {
         }
     }
 
-    @Override
-    public boolean support(SqlDefinition sqlDefinition) {
-        JsonNode jsonNode = sqlDefinition.getParams().path("@group");
-        return !jsonNode.isMissingNode();
-    }
 
     @Override
     public void afterParse(SqlDefinition sqlDefinition) {
-        List<Column> groupBy = sqlDefinition.getGroupBy();
-        if (groupBy == null || groupBy.isEmpty()) {
+//        SqlDefinition lastSubTable = getLastSubTable(sqlDefinition);
+
+        List<Column> columnsAll = SqlCombiner.queryColumns(sqlDefinition);
+        List<Column> groupByAll = SqlCombiner.groupByAll(sqlDefinition);
+
+        completion(sqlDefinition, groupByAll, columnsAll);
+
+        if (groupByAll.isEmpty()) {
             return;
         }
-        List<Column> columns = SqlCombiner.columnsAll(sqlDefinition);
 
-        //判断是否一对多查询
-        boolean many = isMany(groupBy, columns);
-        sqlDefinition.setToMany(many);
+        boolean cover = columnsAll.stream()
+                .allMatch(col -> groupByAll.stream()
+                        .filter(group -> group.getTable().equals(col.getTable()))
+                        .anyMatch(group -> group.getColumn().equals(col.getColumn()))
+                );
 
-        //查询字段与group by字段取并集
-        union(sqlDefinition, groupBy, columns);
+        sqlDefinition.setGroupStatus(cover ? SqlDefinition.GROUP_COVER : SqlDefinition.GROUP_NOT_COVER);
     }
+
 
     /**
      * 把group by 字段添加到第一次查询里面，如果之前不存在，那么添加到group by别名里
      * 为了避免group by 字段名与已有的别名重复，需要使用别名
+     * todo 尝试不修改原始数据
      *
      * @param sqlDefinition SQL定义信息
      * @param groupBy       group by字段
      * @param columns       查询字段
      */
-    private void union(SqlDefinition sqlDefinition, List<Column> groupBy, List<Column> columns) {
+    private void completion(SqlDefinition sqlDefinition, List<Column> groupBy, List<Column> columns) {
         groupBy.stream()
                 .filter(pair -> columns.stream()
                         .noneMatch(col -> col.getTable().equals(pair.getTable()) &&
@@ -165,21 +151,21 @@ public class GroupByEnhance implements AfterQueryEnhance {
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {
         List<ObjectNode> records = page.getRecords();
-        if (records.isEmpty() || !sqlDefinition.isToMany()) {
+        if (records.isEmpty() || sqlDefinition.getGroupStatus() == SqlDefinition.GROUP_DISABLE) {
             return;
         }
         combine(sqlDefinition, records);
     }
 
     private void combine(SqlDefinition sqlDefinition, List<ObjectNode> records) {
-        List<Column> columns = SqlCombiner.columnsAll(sqlDefinition);
-        List<Column> groupBy = sqlDefinition.getGroupBy();
+        List<Column> columns = SqlCombiner.queryColumns(sqlDefinition);
+        List<Column> groupBy = SqlCombiner.groupByAll(sqlDefinition);
 
         //获取合并字段
         List<String> mergeColumns = getMergeColumns(columns, groupBy);
 
         //整合第二次查询的字段
-        secondQueryColumns(columns, groupBy);
+        List<Column> secondQueryColumns = secondQueryColumns(columns, groupBy);
 
         //获取匹配字段
         List<String> matchColumns = matchColumns(columns, groupBy);
@@ -188,7 +174,7 @@ public class GroupByEnhance implements AfterQueryEnhance {
         List<Object[]> argValue = argsValue(records, matchColumns);
 
         //构建查询条件
-        SqlDefinition sqlDef = buildSecondSqlSqlDefinition(sqlDefinition, columns, groupBy, argValue);
+        SqlDefinition sqlDef = buildSecondSqlSqlDefinition(sqlDefinition, secondQueryColumns, groupBy, argValue);
 
         //获取查询SQL
         String sql = SqlCombiner.creatorSqlWithoutLimit(sqlDef);
@@ -261,19 +247,25 @@ public class GroupByEnhance implements AfterQueryEnhance {
         sqlDef.setGroupBy(Collections.emptyList());
         sqlDef.setAggregationFuns(Collections.emptyList());
         sqlDef.setDistinct(false);
-        sqlDef.setToMany(false);
+        sqlDef.setGroupStatus(SqlDefinition.GROUP_DISABLE);
+        columns.addAll(sqlDef.getColumns());
         sqlDef.setColumns(columns);
-        sqlDef.setValueCondition(null);
-        String inColumn = "(" + groupBy.stream().map(col -> col.getTable() + "." + col.getColumn()).collect(Collectors.joining(",")) + ")";
+
+
+        StringJoiner joiner = new StringJoiner(",", "(", ")");
+        groupBy.forEach(col -> joiner.add(col.getTable() + "." + col.getColumn()));
+
         String argName = tableUtils.uniqueAlias("group_by_in");
-        ValueCondition valueCondition = ValueCondition.builder().column(inColumn).condition("in( :" + argName + ")").argName(argName).build();
-        List<ValueCondition> argValueCopy = new ArrayList<>();
-        if (sqlDef.getValueCondition() != null) {
-            Collections.copy(argValueCopy, sqlDef.getValueCondition());
-        }
-        valueCondition.setValue(argValue);
-        argValueCopy.add(valueCondition);
-        sqlDef.setValueCondition(argValueCopy);
+
+        ValueCondition valueCondition = ValueCondition.builder()
+                .column(joiner.toString())
+                .condition("in( :" + argName + ")")
+                .argName(argName)
+                .value(argValue)
+                .build();
+
+        sqlDef.addValueCondition(valueCondition);
+
         return sqlDef;
     }
 }

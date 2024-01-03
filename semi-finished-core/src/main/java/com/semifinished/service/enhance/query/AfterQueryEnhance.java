@@ -18,7 +18,5 @@ public interface AfterQueryEnhance extends ServiceEnhance {
      * @param page          分页信息，包含查询返回的数据列表
      * @param sqlDefinition SQL定义信息
      */
-    default void afterQuery(Page page, SqlDefinition sqlDefinition) {
-
-    }
+    void afterQuery(Page page, SqlDefinition sqlDefinition);
 }

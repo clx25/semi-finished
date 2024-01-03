@@ -3,7 +3,6 @@ package com.semifinished.jdbc;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -14,7 +13,7 @@ import java.util.Map;
 /**
  * 使用ObjectNode包装数据库查询结果
  */
-@Component
+
 public class ObjectNodeRowMapper implements RowMapper<ObjectNode> {
     private final Map<String, ResultConsumer> obtain;
 
@@ -109,7 +108,7 @@ public class ObjectNodeRowMapper implements RowMapper<ObjectNode> {
     }
 
     private void putBigDecimal(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {
-        objectNode.put(columns, row.getBigDecimal(columns));
+        objectNode.put(columns, row.getBigDecimal(columns).toPlainString());
     }
 
     private void putLong(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {

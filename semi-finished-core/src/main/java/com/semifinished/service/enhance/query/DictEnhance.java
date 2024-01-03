@@ -6,26 +6,22 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.CodeException;
-import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
+import com.semifinished.jdbc.SqlExecutorHolder;
+import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
-import com.semifinished.pojo.ValueCondition;
-import com.semifinished.service.EnhanceService;
-import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
-import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.apache.commons.math3.util.Pair;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * 表字典查询
@@ -42,143 +38,143 @@ import java.util.stream.Stream;
 @Order(-500)
 @AllArgsConstructor
 public class DictEnhance implements AfterQueryEnhance {
-    private final TableUtils tableUtils;
-    @Resource
-    private EnhanceService enhanceService;
 
-    @Override
-    public void afterParse(SqlDefinition sqlDefinition) {
-        List<Column> columns = new ArrayList<>();
-        populateColumns(columns, sqlDefinition);
-        Set<String> uniqueSet = new HashSet<>();
-        for (Column column : columns) {
-            String alias = column.getAlias();
-            String addColumn = ParamsUtils.hasText(alias, column.getColumn());
-            Assert.isFalse(uniqueSet.add(addColumn), () -> new ParamsException("字段重复:" + addColumn));
-        }
-    }
+    private final ParserExecutor parserExecutor;
+    private final SqlExecutorHolder sqlExecutorHolder;
 
-    private void populateColumns(List<Column> columns, SqlDefinition sqlDefinition) {
-        List<Column> columnList = SqlCombiner.columnAggregationAll(sqlDefinition);
-        columns.addAll(columnList);
-        List<SqlDefinition> dicts = sqlDefinition.getDict();
-        if (CollectionUtils.isEmpty(dicts)) {
-            return;
-        }
-        for (SqlDefinition dict : dicts) {
-            populateColumns(columns, dict);
-        }
-    }
 
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {
-        List<SqlDefinition> dict = sqlDefinition.getDict();
-        if (CollectionUtils.isEmpty(dict)) {
-            return;
-        }
-        for (SqlDefinition definition : dict) {
+        List<SqlDefinition> dictList = SqlCombiner.dicts(sqlDefinition);
+        List<ObjectNode> records = page.getRecords();
+
+        for (SqlDefinition definition : dictList) {
             Pair<String, String> joinOn = definition.getJoinOn();
-            String key = joinOn.getKey();
-            String value = joinOn.getValue();
 
             //获取关联字段的数据集合
-            List<String> args = page.getRecords()
-                    .stream()
-                    .flatMap(node -> {
-                        JsonNode jsonNode = node.get(key);
-                        if (!(jsonNode instanceof ArrayNode)) {
-                            return Stream.of(jsonNode.asText());
-                        }
-                        String[] nodes = new String[jsonNode.size()];
-                        for (int i = 0; i < jsonNode.size(); i++) {
-                            nodes[i] = jsonNode.get(i).asText();
-                        }
-                        return Stream.of(nodes);
-                    })
-                    .collect(Collectors.toList());
+            List<String> args = getArgs(records, joinOn.getFirst());
 
             //获取查询的where字段
-            String inCol = definition.getColumns()
-                    .stream()
-                    .filter(col -> value.equals(col.getAlias()) || value.equals(col.getColumn()))
-                    .map(Column::getColumn)
-                    .findFirst()
-                    .orElseThrow(() -> new CodeException("表字典查询未找到in查询字段"));
+            String inCol = getColumn(definition, joinOn.getValue());
 
-            //构建占位符名称
-            String argName = tableUtils.uniqueAlias("in_" + definition.getTable() + "_" + inCol);
+            //构建查询的SQL定义
+            buildQuery(definition, args, inCol);
 
-            //构建查询条件
-            ValueCondition valueCondition = ValueCondition.builder()
-                    .table(definition.getTable())
-                    .column(inCol)
-                    .combination("and")
-                    .argName(argName)
-                    .condition("in ( :" + argName + ") ")
-                    .value(args)
-                    .build();
+            //获取查询SQL
+            String sql = SqlCombiner.creatorSqlWithoutLimit(definition);
 
-            definition.addColumnValue(valueCondition);
-            definition.setMaxPageSize(0);
-            int rowStart = definition.getRowStart();
-            int rowEnd = definition.getRowEnd();
-            definition.setRowStart(0);
-            definition.setRowEnd(0);
-            definition.setStatus(ParserStatus.DICTIONARY.getStatus());
-            Object data = enhanceService.selectNoParse(definition);
-            List<ObjectNode> records;
+            //查询数据
+            List<ObjectNode> secondRecords = sqlExecutorHolder.dataSource(definition.getDataSource()).list(sql, SqlCombiner.getArgs(definition));
 
-            if (data instanceof Page) {
-                records = ((Page) data).getRecords();
-            } else {
-                records = (List<ObjectNode>) data;
+            //合并数据
+            combine(definition, records, secondRecords, definition.getRowStart(), definition.getRowEnd());
+        }
+
+        //排除系统添加的字段
+        List<Column> excludeColumns = SqlCombiner.excludeColumns(sqlDefinition);
+
+        for (Column excludeColumn : excludeColumns) {
+            for (ObjectNode record : records) {
+                record.remove(excludeColumn.getColumn());
             }
-
-            combine(definition, page.getRecords(), records, rowStart, rowEnd);
         }
 
     }
 
+    private void buildQuery(SqlDefinition definition, List<String> args, String inCol) {
+        ObjectNode params = JsonNodeFactory.instance.objectNode();
+        ArrayNode values = params.withArray("[" + inCol + "]");
+        args.forEach(values::add);
+        params.put("@", "");
+
+        definition.setStatus(ParserStatus.DICTIONARY.getStatus());
+        parserExecutor.parse(params, definition);
+    }
+
+
+    private static String getColumn(SqlDefinition definition, String value) {
+        return definition.getColumns()
+                .stream()
+                .filter(col -> value.equals(col.getAlias()) || value.equals(col.getColumn()))
+                .map(Column::getColumn)
+                .findFirst()
+                .orElseThrow(() -> new CodeException("表字典查询未找到in查询字段"));
+    }
+
+    private static List<String> getArgs(List<ObjectNode> records, String key) {
+        return records
+                .stream()
+                .map(node -> node.get(key))
+                .filter(Objects::nonNull)
+                .flatMap(node -> node instanceof ArrayNode
+                        ? StreamSupport.stream(node.spliterator(), false).map(JsonNode::asText)
+                        : Stream.of(node.asText()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 合并数据
+     *
+     * @param definition 表字典的SQL定义信息
+     * @param records    第一次查询数据
+     * @param replaces   第二次查询数据
+     * @param rowStart   开始行
+     * @param rowEnd     结束行
+     */
     private void combine(SqlDefinition definition, List<ObjectNode> records, List<ObjectNode> replaces, int rowStart, int rowEnd) {
         Pair<String, String> joinOn = definition.getJoinOn();
         String left = joinOn.getFirst();
         String right = joinOn.getSecond();
 
-
-        Map<String, ObjectNode> map = new HashMap<>();
+        //把关联字段作为key把第一次查询数据转为map，减少循环
+        Map<String, List<ObjectNode>> map = new HashMap<>();
         for (ObjectNode record : records) {
-            map.put(record.path(left).asText(), record);
-        }
-        for (ObjectNode replace : replaces) {
-            ObjectNode record = map.get(replace.path(right).asText());
-            if (record == null) {
+            JsonNode key = record.path(left);
+            //关联字段的数据可能是上一次表字典的数据，所以需要处理数组的情况
+            if (key instanceof ArrayNode) {
+                key.forEach(node -> map.computeIfAbsent(node.asText(), k -> new ArrayList<>()).add(record));
                 continue;
             }
+            map.computeIfAbsent(key.asText(), k -> new ArrayList<>()).add(record);
+        }
 
+
+        for (ObjectNode replace : replaces) {
+            List<ObjectNode> targets = map.get(replace.path(right).asText());
+            if (targets == null) {
+                continue;
+            }
+            //将第二次查询的数据根据关联字段匹配后合并到第一次查询的数据中
             replace.fields().forEachRemaining(entry -> {
                 JsonNode node = entry.getValue();
-                String key = entry.getKey();
-                ArrayNode jsonNodes = record.withArray(key);
-                if (node instanceof ArrayNode) {
-                    jsonNodes.addAll((ArrayNode) node);
-                    return;
+                for (ObjectNode target : targets) {
+                    ArrayNode jsonNodes = target.withArray(entry.getKey());
+                    if (node instanceof ArrayNode) {
+                        jsonNodes.addAll((ArrayNode) node);
+                        return;
+                    }
+                    jsonNodes.add(node);
                 }
-                jsonNodes.add(node);
+
             });
-
-
         }
+
         List<Column> columns = definition.getColumns();
         List<String> columnsField = columns.stream().map(col -> ParamsUtils.hasText(col.getAlias(), col.getColumn())).collect(Collectors.toList());
-        List<Column> excludeColumns = definition.getExcludeColumns();
+
         for (ObjectNode record : records) {
+
+            //实现表字典查询的@row规则，第一次查询的key可能对应第二次查询的多条数据，所以会产生数组
+            //这里的@row可以指定返回1条还是多条数据
             for (String field : columnsField) {
                 if (rowStart <= 0) {
                     break;
                 }
                 if (rowEnd == 0) {
                     JsonNode jsonNode = record.remove(field);
-                    record.set(field, jsonNode.get(rowStart - 1));
+                    if (jsonNode != null) {
+                        record.set(field, jsonNode.get(rowStart - 1));
+                    }
                     continue;
                 }
                 ArrayNode jsonNodes = record.withArray(field);
@@ -191,12 +187,7 @@ public class DictEnhance implements AfterQueryEnhance {
                 record.set(field, rows);
             }
 
-            if (CollectionUtils.isEmpty(excludeColumns)) {
-                continue;
-            }
-            for (Column excludeColumn : excludeColumns) {
-                record.remove(excludeColumn.getColumn());
-            }
+
         }
 
 

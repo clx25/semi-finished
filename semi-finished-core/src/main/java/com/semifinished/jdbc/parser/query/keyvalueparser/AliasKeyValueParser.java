@@ -1,6 +1,7 @@
 package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
@@ -25,7 +26,7 @@ import javax.annotation.Resource;
  */
 @Component
 @RequiredArgsConstructor
-public class AliasParser implements SelectParamsParser {
+public class AliasKeyValueParser implements SelectParamsParser {
 
     private final TableUtils tableUtils;
     @Resource
@@ -37,23 +38,34 @@ public class AliasParser implements SelectParamsParser {
      */
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
-        if (!":".equals(key)) {
+        if (!":".equals(key.trim())) {
             return false;
         }
 
-        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
-                ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("别名规则位置错误"));
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("别名规则位置错误"));
 
-        String[] values = value.asText().split(",");
+
+        String[] values;
+        if (value instanceof ArrayNode) {
+            values = new String[value.size()];
+            for (int i = 0; i < value.size(); i++) {
+                values[i] = value.get(i).asText();
+            }
+        } else {
+            values = value.asText().split(",");
+        }
+
+
         for (int i = 0; i < values.length; i++) {
+
             String[] alias = values[i].split(":");
             Assert.isTrue(alias.length != 2, () -> new ParamsException("别名参数错误"));
 
             values[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0]);
-
+            //todo 已知问题，当使用了子查询，且别名为不合法别名时，外层查询无法匹配到对应字段
             if (!ParamsUtils.isLegalName(alias[1])) {
                 String legalAlias = tableUtils.uniqueAlias("legal_" + table + "_" + alias[0]);
-                sqlDefinition.addIllegalAlias(null, legalAlias, alias[1]);
+                sqlDefinition.addIllegalAlias(table, legalAlias, alias[1]);
                 alias[1] = legalAlias;
             }
             sqlDefinition.addAlias(table, values[i], alias[1]);

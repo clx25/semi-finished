@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
-public class BooleanValue implements ValueReplace {
+public class BooleanValue implements ValueReplacer {
     @Override
     public JsonNode replace(SqlDefinition sqlDefinition, String pattern, JsonNode value) {
         if (!"boolean".equals(pattern)) {

@@ -1,14 +1,17 @@
 package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.ParamsException;
+import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
-import com.semifinished.service.enhance.query.replace.ValueReplace;
+import com.semifinished.pojo.ValueReplace;
+import com.semifinished.service.enhance.query.replace.ValueReplacer;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +19,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -28,7 +30,7 @@ import java.util.List;
 public class ValueReplaceEnhance implements AfterQueryEnhance {
 
     private final CommonParser commonParser;
-    private final List<ValueReplace> valueReplaces;
+    private final List<ValueReplacer> valueReplacers;
 
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {
@@ -36,59 +38,79 @@ public class ValueReplaceEnhance implements AfterQueryEnhance {
         if (records.isEmpty()) {
             return;
         }
-        JsonNode params = sqlDefinition.getRawParams();
-        Iterator<String> names = params.fieldNames();
-        while (names.hasNext()) {
-            String name = names.next();
-            if (name == null || name.length() < 2 || !name.startsWith("#")) {
-                continue;
-            }
-            JsonNode fieldsNode = params.get(name);
-            Assert.isTrue(fieldsNode.isMissingNode() || fieldsNode.isNull(), () -> new ParamsException(name + "规则错误"));
-            String[] fields = fieldsNode.asText().split(",");
 
-            String pattern = name.substring(1);
-            replaceValue(sqlDefinition, pattern, fields, records);
+        List<ValueReplace> valueReplaces = SqlCombiner.valueReplacesAll(sqlDefinition);
+        if (valueReplaces.isEmpty()) {
+            return;
+        }
 
+        for (ValueReplace valueReplace : valueReplaces) {
+            replaceValue(sqlDefinition, valueReplace, records);
         }
     }
 
-
-    private void replaceValue(SqlDefinition sqlDefinition, String pattern, String[] fields, List<ObjectNode> objectNodes) {
-        String table = sqlDefinition.getTable();
-        List<Column> columns = sqlDefinition.getColumns();
+    /**
+     * 替换数据
+     *
+     * @param sqlDefinition SQL定义信息
+     * @param valueReplace  替换规则
+     * @param objectNodes   被替换的数据集合
+     */
+    private void replaceValue(SqlDefinition sqlDefinition, ValueReplace valueReplace, List<ObjectNode> objectNodes) {
+        String table = valueReplace.getTable();
+        List<Column> columns = SqlCombiner.columnsAll(sqlDefinition);
 
         List<String> recodeKeys = new ArrayList<>();
-        for (String field : fields) {
+        for (String field : valueReplace.getColumn().split(",")) {
             //获取前端字段的实际字段
             String column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, field);
             String recodeKey = columns.stream()
-                    .filter(col -> col.getTable().equals(table) && col.getColumn().equals(column))
+                    .filter(col -> col.getTable().equals(table))
+                    .filter(col -> col.getColumn().equals(column))
                     .map(col -> ParamsUtils.hasText(col.getAlias(), col.getColumn()))
                     .findFirst().orElse("");
+            Assert.hasNotText(recodeKey, () -> new ParamsException("字段不存在：" + field));
             recodeKeys.add(recodeKey);
         }
+        String pattern = valueReplace.getPattern();
         for (ObjectNode objectNode : objectNodes) {
             doReplace(sqlDefinition, pattern, recodeKeys, objectNode);
         }
     }
 
+    /**
+     * 执行替换
+     *
+     * @param sqlDefinition SQL定义信息
+     * @param pattern       替换规则
+     * @param recodeKeys    被替换数据的key
+     * @param objectNode    被替换的数据对象
+     */
     private void doReplace(SqlDefinition sqlDefinition, String pattern, List<String> recodeKeys, ObjectNode objectNode) {
         for (String recodeKey : recodeKeys) {
 
-            JsonNode jsonNode = objectNode.get(recodeKey);
-            if (jsonNode == null) {
+            JsonNode value = objectNode.get(recodeKey);
+            if (value == null) {
                 continue;
             }
-            for (ValueReplace valueReplace : valueReplaces) {
-                jsonNode = valueReplace.replace(sqlDefinition, pattern, jsonNode);
-                objectNode.set(recodeKey, jsonNode == null ? NullNode.instance : jsonNode);
+            if (!(value instanceof ArrayNode)) {
+                value = extracted(sqlDefinition, pattern, value);
+                objectNode.set(recodeKey, value == null ? NullNode.instance : value);
+                return;
             }
 
-//                List<ObjectNode> items = objectMapper.convertValue(arrayNode, new TypeReference<List<ObjectNode>>() {
-//                });
-//                arrayNode.removeAll().addAll(items);
-//                doFormat(sqlDefinition, fields, items, function);
+            for (int i = 0; i < value.size(); i++) {
+                JsonNode item = extracted(sqlDefinition, pattern, value.get(i));
+                ((ArrayNode) value).set(i, item);
+            }
+
         }
+    }
+
+    private JsonNode extracted(SqlDefinition sqlDefinition, String pattern, JsonNode value) {
+        for (ValueReplacer valueReplacer : valueReplacers) {
+            value = valueReplacer.replace(sqlDefinition, pattern, value);
+        }
+        return value;
     }
 }

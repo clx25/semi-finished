@@ -1,13 +1,12 @@
 package com.semifinished.jdbc.parser.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.cache.SemiCache;
 import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
-import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
@@ -36,10 +35,8 @@ import java.util.List;
 @Component
 @AllArgsConstructor
 public class DetermineColumnsParser implements ParamsParser {
-    private final SemiCache semiCache;
     private final CommonParser commonParser;
     private final TableUtils tableUtils;
-    private final IdGenerator idGenerator;
     private final String[] patterns = {"min(", "max(", "avg(", "sum(", "count("};
 
     /**
@@ -63,14 +60,13 @@ public class DetermineColumnsParser implements ParamsParser {
         String table = sqlDefinition.getTable();
 
         //如果没有指定字段，默认所有字段
-        if (columnsNode == null) {
+        if (columnsNode == null||columnsNode instanceof NullNode) {
             allColumns(table, sqlDefinition);
             return;
         }
 
-        String column = columnsNode.asText();
+        String column = columnsNode.asText().trim();
         if (!StringUtils.hasText(column)) {
-            allColumns(table, sqlDefinition);
             return;
         }
         String[] columns = column.split(",");
@@ -84,7 +80,7 @@ public class DetermineColumnsParser implements ParamsParser {
             String[] alias = col.split(":");
             Assert.isFalse(StringUtils.hasText(alias[0]) && alias.length < 3, () -> new ParamsException(column + "参数错误"));
 
-            String actualColumn = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0]);
+            String actualColumn = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0].trim());
 
             boolean hasAlias = alias.length == 2;
 
@@ -94,7 +90,7 @@ public class DetermineColumnsParser implements ParamsParser {
             //创建一个长度为2的数组，并拷贝旧数组
             alias = Arrays.copyOf(alias, 2);
             alias[0] = actualColumn;
-            alias[1] = hasAlias ? alias[1] : a;
+            alias[1] = (hasAlias ? alias[1] : a).trim();
 
 
             //不合法的别名就不放到SQL查询，而是查询后对结果进行处理
@@ -152,7 +148,7 @@ public class DetermineColumnsParser implements ParamsParser {
             //如果是子查询，外层查询的字段就是内层返回的字段
             SqlDefinition subTable = sqlDefinition.getSubTable();
             if (subTable != null) {
-                columns = SqlCombiner.columnsAll(subTable);
+                columns = SqlCombiner.queryColumns(subTable);
                 Assert.isEmpty(columns, () -> new ParamsException("请求字段为空"));
             }
         }

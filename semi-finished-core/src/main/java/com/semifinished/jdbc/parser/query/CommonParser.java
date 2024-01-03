@@ -2,18 +2,18 @@ package com.semifinished.jdbc.parser.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.annontation.Where;
 import com.semifinished.config.ConfigProperties;
 import com.semifinished.config.DataSourceConfig;
 import com.semifinished.config.DataSourceProperties;
+import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
-import com.semifinished.jdbc.parser.query.keyvalueparser.KeyValueParamsParser;
 import com.semifinished.pojo.ValueCondition;
 import com.semifinished.util.Assert;
 import com.semifinished.util.MapUtils;
 import com.semifinished.util.ParamsUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -21,16 +21,16 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
+
 @Component
 @RequiredArgsConstructor
 public class CommonParser {
     private final ConfigProperties configProperties;
     private final DataSourceProperties dataSourceProperties;
+    @Lazy
     @Resource
-    private KeyValueParamsParserExecutor keyValueParamsParserExecutor;
+    private List<ParamsParser> paramsParsers;
 
-    @Where
-    private List<KeyValueParamsParser> paramsParsers;
 
     /**
      * 获取实际的值
@@ -81,12 +81,14 @@ public class CommonParser {
         ObjectNode params = (ObjectNode) value;
         SqlDefinition sqlDefinition = new SqlDefinition(valueCondition.getTable(), params);
         sqlDefinition.setDataSource(dataSource);
+        sqlDefinition.setStatus(ParserStatus.BRACKET.getStatus());
         value = params.remove(configProperties.getBracketsKey());
         Assert.isTrue(value == null, () -> new ParamsException(key + "参数错误"));
         if (params.isEmpty()) {
             return value;
         }
-        keyValueParamsParserExecutor.parse(params, sqlDefinition, paramsParsers);
+
+        paramsParsers.forEach(parser -> parser.parse(params, sqlDefinition));
 
         valueCondition.addBracketsAll(sqlDefinition.getValueCondition());
 
@@ -102,7 +104,7 @@ public class CommonParser {
      */
     public String getActualTable(String dataSource, String tableKey) {
         DataSourceConfig.Mapping mapping = mapping(dataSource);
-        return mapping.isEnable() ? actual(mapping.getTable(), tableKey) : tableKey;
+        return mapping != null && mapping.isEnable() ? actual(mapping.getTable(), tableKey) : tableKey;
     }
 
     /**
@@ -116,7 +118,7 @@ public class CommonParser {
      */
     public String getActualColumn(String dataSource, String table, String column) {
         DataSourceConfig.Mapping mapping = mapping(dataSource);
-        if (!mapping.isEnable()) {
+        if (mapping == null || !mapping.isEnable()) {
             return column;
         }
 
@@ -138,7 +140,7 @@ public class CommonParser {
      */
     public String getActualAlias(String dataSource, String table, String column) {
         DataSourceConfig.Mapping mapping = mapping(dataSource);
-        if (!mapping.isEnable()) {
+        if (mapping == null || !mapping.isEnable()) {
             return column;
         }
 

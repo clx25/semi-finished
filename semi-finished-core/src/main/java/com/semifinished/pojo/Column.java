@@ -1,6 +1,5 @@
 package com.semifinished.pojo;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,7 +7,6 @@ import lombok.NoArgsConstructor;
  * 表的字段信息
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class Column {
 
@@ -35,9 +33,9 @@ public class Column {
     private String header;
 
     /**
-     * 是否允许查询
+     * 是否禁止查询
      */
-//    private String allow;
+    private boolean disabled;
 
     /**
      * 是否允许为空

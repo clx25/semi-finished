@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
+import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.jdbc.parser.SelectParamsParser;
@@ -37,12 +38,14 @@ public class DictKeyValueParser implements SelectParamsParser {
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
 
-        if (key.length() < 2 || !key.endsWith(":")) {
+        if (key.length() < 2 || !key.trim().endsWith(":")) {
             return false;
         }
 
-        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL,
-                ParserStatus.DICTIONARY), () -> new ParamsException("表字典规则位置错误"));
+        boolean statusAnyMatch = ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL,
+                ParserStatus.DICTIONARY, ParserStatus.SUB_TABLE);
+
+        Assert.isFalse(statusAnyMatch, () -> new ParamsException("表字典规则位置错误"));
         Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("表字典规则错误：" + key));
 
         String column = key.substring(0, key.length() - 1);
@@ -54,7 +57,7 @@ public class DictKeyValueParser implements SelectParamsParser {
         //删除并获取on规则，在这里获取是为了校验表字典规则与on规则同时存在
         JsonNode onNode = node.remove("@on");
         Assert.isTrue(onNode == null, () -> new ParamsException("表字典规则需要配合@on规则使用：" + key));
-        String on = onNode.asText();
+        String on = onNode.asText().trim();
 
         //解析表字典规则
         SqlDefinition dict = new SqlDefinition(node);
@@ -86,7 +89,7 @@ public class DictKeyValueParser implements SelectParamsParser {
      */
     private String complete(SqlDefinition sqlDefinition, SqlDefinition dict, String column, String alias) {
         String table = sqlDefinition.getTable();
-        return sqlDefinition.getColumns().stream()
+        return SqlCombiner.queryColumns(sqlDefinition).stream()
                 .filter(col -> table.equals(col.getTable()) && column.equals(col.getColumn()))
                 .findFirst()
                 .map(col -> ParamsUtils.hasText(col.getAlias(), column))

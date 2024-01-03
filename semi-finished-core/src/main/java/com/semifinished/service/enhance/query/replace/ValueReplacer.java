@@ -3,7 +3,7 @@ package com.semifinished.service.enhance.query.replace;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.jdbc.SqlDefinition;
 
-public interface ValueReplace {
+public interface ValueReplacer {
 
     /**
      * 替换原始的值

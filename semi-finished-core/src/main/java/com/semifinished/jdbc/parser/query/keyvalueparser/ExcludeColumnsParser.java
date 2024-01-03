@@ -7,14 +7,15 @@ import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
+import com.semifinished.pojo.Column;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParserUtils;
 import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * 在SQL层面排除字段
@@ -36,36 +37,45 @@ public class ExcludeColumnsParser implements SelectParamsParser {
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
 
-        if (!"~".equals(key)) {
+        if (!"~".equals(key.trim())) {
             return false;
         }
         Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
-                ParserStatus.JOIN), () -> new ParamsException("排除规则位置错误"));
+                ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("排除规则位置错误"));
 
-        excludesConfig(table, sqlDefinition);
 
         String[] fields = value.asText().split(",");
 
         for (int i = 0; i < fields.length; i++) {
-            fields[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, fields[i]);
+            fields[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, fields[i].trim());
         }
 
         tableUtils.validColumnsName(sqlDefinition, table, fields);
+        List<Column> columns = sqlDefinition.getColumns();
+        if (columns == null || columns.isEmpty()) {
+            return true;
+        }
+        Set<String> excludes = excludesConfig(table);
 
-        sqlDefinition.addExcludeColumns(table, fields);
+        Stream.concat(excludes.stream(), Arrays.stream(fields))
+                .forEach(field -> columns.stream()
+                        .filter(column -> table.equals(column.getTable()))
+                        .filter(column -> field.equals(column.getColumn()))
+                        .forEach(column -> column.setDisabled(true))
+                );
+
+
         return true;
     }
 
-    private void excludesConfig(String table, SqlDefinition sqlDefinition) {
-        Map<String, List<String>> excludes = dataSourceConfig.getExcludes();
+    private Set<String> excludesConfig(String table) {
+        Map<String, Set<String>> excludes = dataSourceConfig.getExcludes();
         if (excludes == null || excludes.isEmpty()) {
-            return;
+            return Collections.emptySet();
         }
-        List<String> columns = excludes.get(table);
-        if (columns == null || columns.isEmpty()) {
-            return;
-        }
-        sqlDefinition.addExcludeColumns(table, columns);
+        Set<String> columns = excludes.get(table);
+
+        return columns == null ? Collections.emptySet() : columns;
     }
 
     @Override

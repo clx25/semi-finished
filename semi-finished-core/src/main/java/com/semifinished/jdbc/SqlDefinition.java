@@ -7,16 +7,14 @@ import com.semifinished.constant.ParserStatus;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.pojo.AggregationFun;
 import com.semifinished.pojo.Column;
-import com.semifinished.pojo.Dict;
 import com.semifinished.pojo.ValueCondition;
+import com.semifinished.pojo.ValueReplace;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.math3.util.Pair;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * sql的定义文件，所有解析出来的数据保存到里面，根据这些数据生成sql
@@ -26,6 +24,9 @@ import java.util.Map;
 @Getter
 @Setter
 public class SqlDefinition {
+    public static final int GROUP_DISABLE = 0;//关闭group规则
+    public static final int GROUP_COVER = 1;//group字段覆盖了查询字段
+    public static final int GROUP_NOT_COVER = 2;//group字段未覆盖查询字段
 
     /**
      * 当前SqlDefinition所处状态，如正在解析子查询，正在解析join查询，正在解析括号
@@ -79,9 +80,9 @@ public class SqlDefinition {
     private boolean distinct;
 
     /**
-     * 对多查询
+     * group规则状态
      */
-    private boolean toMany;
+    private int groupStatus = GROUP_DISABLE;
     /**
      * 字典查询
      */
@@ -95,18 +96,17 @@ public class SqlDefinition {
      * 别名
      */
     private List<Column> alias;
+
     /**
      * 不合法的别名
      */
     private List<Column> illegalAlias;
+
     /**
-     * 从SQL排除字段
+     * 从结果排除字段
      */
     private List<Column> excludeColumns;
-    /**
-     * 从查询结果排除字段
-     */
-    private List<Column> excludeRecordsColumns;
+
 
     /**
      * where查询条件/修改，新增的字段值
@@ -154,15 +154,20 @@ public class SqlDefinition {
      */
     private List<Column> groupBy;
 
+
     /**
-     * 字典查询数据
+     * 数据替换规则
      */
-    private List<Dict> dictList;
+    private List<ValueReplace> valueReplaces;
 
     /**
      * 扩展参数
      */
     private ObjectNode expand;
+
+    public SqlDefinition() {
+
+    }
 
     public SqlDefinition(ObjectNode params) {
         this(null, params);
@@ -209,19 +214,11 @@ public class SqlDefinition {
     }
 
 
-    public void addColumnValue(ValueCondition valueCondition) {
+    public void addValueCondition(ValueCondition valueCondition) {
         if (this.valueCondition == null) {
             this.valueCondition = new ArrayList<>();
         }
         this.valueCondition.add(valueCondition);
-    }
-
-    public Map<String, Object> getArgs() {
-        Map<String, Object> args = new HashMap<>();
-        if (valueCondition != null) {
-            valueCondition.forEach(column -> args.put(column.getArgName(), column.getValue()));
-        }
-        return args;
     }
 
 
@@ -239,14 +236,6 @@ public class SqlDefinition {
         this.illegalAlias.add(new Column(table, alias, illegalAlias));
     }
 
-    public void addExcludeColumns(String table, List<String> excludeColumns) {
-        if (this.excludeColumns == null) {
-            this.excludeColumns = new ArrayList<>();
-        }
-        for (String column : excludeColumns) {
-            this.excludeColumns.add(new Column(table, column, null));
-        }
-    }
 
     public void addExcludeColumns(String table, String... excludeColumns) {
         if (this.excludeColumns == null) {
@@ -257,14 +246,6 @@ public class SqlDefinition {
         }
     }
 
-    public void addExcludeRecordsColumns(String table, String column) {
-        {
-            if (this.excludeRecordsColumns == null) {
-                this.excludeRecordsColumns = new ArrayList<>();
-            }
-            this.excludeRecordsColumns.add(new Column(table, column));
-        }
-    }
 
     public void addGroupBy(String table, String... columns) {
         if (this.groupBy == null) {
@@ -290,18 +271,20 @@ public class SqlDefinition {
         this.join.add(sqlDefinition);
     }
 
-    public void addDict(Dict dict) {
-        if (this.dictList == null) {
-            this.dictList = new ArrayList<>();
-        }
-        this.dictList.add(dict);
-    }
 
     public void addDict(SqlDefinition sqlDefinition) {
         if (this.dict == null) {
             this.dict = new ArrayList<>();
         }
         this.dict.add(sqlDefinition);
+    }
+
+
+    public void addReplace(String table, String column, String pattern) {
+        if (valueReplaces == null) {
+            valueReplaces = new ArrayList<>();
+        }
+        valueReplaces.add(new ValueReplace(table, column, pattern));
     }
 
 }
