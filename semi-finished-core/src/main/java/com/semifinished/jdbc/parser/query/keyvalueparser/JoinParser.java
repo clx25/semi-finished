@@ -66,7 +66,7 @@ public class JoinParser implements SelectParamsParser {
         String on = onNode.asText();
 
         SqlDefinition join = new SqlDefinition(node);
-
+        join.setDataSource(sqlDefinition.getDataSource());
         join.setJoinType(inner ? " inner join " : " left join ");
         join.setStatus(ParserStatus.JOIN.getStatus());
         parserExecutor.parse(node, join);

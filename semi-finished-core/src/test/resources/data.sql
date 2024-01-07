@@ -1,4 +1,9 @@
 DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "user_order";
+DROP TABLE IF EXISTS "gender";
+DROP TABLE IF EXISTS "user_order";
+DROP TABLE IF EXISTS "role";
+DROP TABLE IF EXISTS "user_role";
 
 CREATE TABLE IF NOT EXISTS "users"(
     id INT  PRIMARY KEY,
@@ -6,15 +11,7 @@ CREATE TABLE IF NOT EXISTS "users"(
     gender INT
 );
 
-DROP TABLE IF EXISTS "gender";
 
-CREATE TABLE IF NOT EXISTS "gender"(
-     id INT  PRIMARY KEY,
-     name VARCHAR(50)
-);
-
-
-DROP TABLE IF EXISTS "user_order";
 
 CREATE TABLE IF NOT EXISTS "user_order"(
        id INT  PRIMARY KEY,
@@ -24,8 +21,28 @@ CREATE TABLE IF NOT EXISTS "user_order"(
 );
 
 
+CREATE TABLE IF NOT EXISTS "gender"(
+     id INT  PRIMARY KEY,
+     name VARCHAR(50)
+);
 
 
+
+-- 角色表
+CREATE TABLE  IF NOT EXISTS "role" (
+      id INT PRIMARY KEY,
+      name_cn VARCHAR(50) NOT NULL,
+      code VARCHAR(10) NOT NULL,
+      parent_id INT
+);
+
+
+-- 角色与用户的关联表
+CREATE TABLE IF NOT EXISTS "user_role" (
+       id INT PRIMARY KEY,
+       user_id INT NOT NULL,
+       role_id INT NOT NULL
+);
 
 
 INSERT INTO users (id, name, gender) VALUES (1, 'Alice', 23);
@@ -155,3 +172,39 @@ INSERT INTO user_order (id, user_id, order_date, money) VALUES (17, 11, '2024-05
 INSERT INTO user_order (id, user_id, order_date, money) VALUES (18, 24, '2024-06-18 18:18:00', 70.75);
 INSERT INTO user_order (id, user_id, order_date, money) VALUES (19, 31, '2024-07-07 07:07:00', 45.00);
 INSERT INTO user_order (id, user_id, order_date, money) VALUES (20, 45, '2024-08-08 08:08:00', 85.25);
+
+
+-- 角色数据
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (1, 'CEO', '0001', NULL);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (2, 'CTO', '0002', 1);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (3, 'CFO', '0003', 1);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (4, '人力资源总监', '0004', 1);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (5, '市场营销总监', '0005', 1);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (6, '技术总监', '0006', 2);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (7, '软件开发部经理', '0007', 6);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (8, '硬件开发部经理', '0008', 6);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (9, '软件工程师', '0009', 7);
+INSERT INTO role (id, name_cn, code, parent_id) VALUES (10, '硬件工程师', '0010', 8);
+
+
+-- 用户与角色的关联数据
+INSERT INTO user_role (id, user_id, role_id) VALUES (1, 1, 1);
+INSERT INTO user_role (id, user_id, role_id) VALUES (2, 2, 2);
+INSERT INTO user_role (id, user_id, role_id) VALUES (3, 3, 3);
+INSERT INTO user_role (id, user_id, role_id) VALUES (4, 4, 4);
+INSERT INTO user_role (id, user_id, role_id) VALUES (5, 5, 5);
+INSERT INTO user_role (id, user_id, role_id) VALUES (6, 6, 6);
+INSERT INTO user_role (id, user_id, role_id) VALUES (7, 7, 7);
+INSERT INTO user_role (id, user_id, role_id) VALUES (8, 8, 8);
+INSERT INTO user_role (id, user_id, role_id) VALUES (9, 9, 9);
+INSERT INTO user_role (id, user_id, role_id) VALUES (10, 10, 10);
+INSERT INTO user_role (id, user_id, role_id) VALUES (11, 11, 1);
+INSERT INTO user_role (id, user_id, role_id) VALUES (12, 12, 2);
+INSERT INTO user_role (id, user_id, role_id) VALUES (13, 13, 3);
+INSERT INTO user_role (id, user_id, role_id) VALUES (14, 14, 4);
+INSERT INTO user_role (id, user_id, role_id) VALUES (15, 15, 5);
+INSERT INTO user_role (id, user_id, role_id) VALUES (16, 16, 6);
+INSERT INTO user_role (id, user_id, role_id) VALUES (17, 17, 7);
+INSERT INTO user_role (id, user_id, role_id) VALUES (18, 18, 8);
+INSERT INTO user_role (id, user_id, role_id) VALUES (19, 19, 9);
+INSERT INTO user_role (id, user_id, role_id) VALUES (20, 20, 10);

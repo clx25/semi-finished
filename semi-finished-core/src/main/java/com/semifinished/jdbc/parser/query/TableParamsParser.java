@@ -43,7 +43,7 @@ public class TableParamsParser implements ParamsParser {
         if (tbNode == null && sqlDefinition.getStatus() == ParserStatus.DICTIONARY.getStatus()) {
             return;
         }
-        Assert.isTrue(tbNode == null || (tbNode instanceof ValueNode && !StringUtils.hasText(tbNode.asText())), () -> new ParamsException("没有指定表名"));
+        Assert.isTrue(tbNode == null || (tbNode instanceof ValueNode && !StringUtils.hasText(tbNode.asText())), () -> new ParamsException("未指定表名"));
 
         if (tbNode instanceof ValueNode) {
             String tb = tbNode.asText();
@@ -56,6 +56,7 @@ public class TableParamsParser implements ParamsParser {
         //解析子查询规则
         SqlDefinition subSqlDefinition = new SqlDefinition(tbNode.deepCopy());
         subSqlDefinition.setStatus(ParserStatus.SUB_TABLE.getStatus());
+        subSqlDefinition.setDataSource(sqlDefinition.getDataSource());
         parserExecutor.parse(subSqlDefinition);
         sqlDefinition.setTable(tableUtils.uniqueAlias(subSqlDefinition.getTable()));
         sqlDefinition.setSubTable(subSqlDefinition);

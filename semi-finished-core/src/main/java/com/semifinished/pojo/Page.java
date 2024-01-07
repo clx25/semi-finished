@@ -2,8 +2,6 @@ package com.semifinished.pojo;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 

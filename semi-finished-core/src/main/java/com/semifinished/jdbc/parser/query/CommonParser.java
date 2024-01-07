@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +51,7 @@ public class CommonParser {
             }
         }
 
-        Assert.isFalse(mapping.get(key) == null, () -> new ParamsException("参数" + key + "错误"));
+//        Assert.isFalse(mapping.get(key) == null, () -> new ParamsException("参数" + key + "错误"));
 
         return key;
     }
@@ -117,17 +118,8 @@ public class CommonParser {
      * @return 实际字段名
      */
     public String getActualColumn(String dataSource, String table, String column) {
-        DataSourceConfig.Mapping mapping = mapping(dataSource);
-        if (mapping == null || !mapping.isEnable()) {
-            return column;
-        }
 
-        Map<String, Map<String, String>> columnMapping = mapping.getColumn();
-        if (MapUtils.isEmpty(columnMapping)) {
-            return column;
-        }
-
-        return actual(columnMapping.get(table), column);
+        return actual(getColumnMapping(dataSource, table), column);
     }
 
     /**
@@ -139,26 +131,44 @@ public class CommonParser {
      * @return 实际字段名
      */
     public String getActualAlias(String dataSource, String table, String column) {
-        DataSourceConfig.Mapping mapping = mapping(dataSource);
-        if (mapping == null || !mapping.isEnable()) {
-            return column;
-        }
-
-        Map<String, Map<String, String>> columnMapping = mapping.getColumn();
-        if (MapUtils.isEmpty(columnMapping)) {
-            return column;
-        }
-
-        Map<String, String> columns = columnMapping.get(table);
-        if (MapUtils.isEmpty(columns)) {
-            return column;
-        }
-        String actual = columns.get(column);
+        Map<String, String> columnMapping = getColumnMapping(dataSource, table);
+        String actual = columnMapping.get(column);
 
         return ParamsUtils.hasText(actual, column);
     }
 
+    /**
+     * 获取字段映射
+     *
+     * @param dataSource 数据源名称
+     * @param table      表名
+     * @return 字段映射
+     */
+    public Map<String, String> getColumnMapping(String dataSource, String table) {
+        DataSourceConfig.Mapping mapping = mapping(dataSource);
+        if (mapping == null || !mapping.isEnable()) {
+            return Collections.emptyMap();
+        }
 
+        Map<String, Map<String, String>> columnMapping = mapping.getColumn();
+        if (MapUtils.isEmpty(columnMapping)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> columns = columnMapping.get(table);
+        if (MapUtils.isEmpty(columns)) {
+            return Collections.emptyMap();
+        }
+        return columns;
+    }
+
+
+    /**
+     * 获取映射数据
+     *
+     * @param dataSource 数据源
+     * @return 映射数据
+     */
     public DataSourceConfig.Mapping mapping(String dataSource) {
         if (!StringUtils.hasText(dataSource)) {
             dataSource = configProperties.getDataSource();

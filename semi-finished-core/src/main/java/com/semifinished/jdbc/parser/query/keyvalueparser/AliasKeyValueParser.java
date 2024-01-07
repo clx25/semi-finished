@@ -11,10 +11,8 @@ import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
 import com.semifinished.util.ParserUtils;
 import com.semifinished.util.bean.TableUtils;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Resource;
 
 /**
  * 在不指定或排除字段的情况下，设置别名
@@ -25,12 +23,12 @@ import javax.annotation.Resource;
  * </pre>
  */
 @Component
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class AliasKeyValueParser implements SelectParamsParser {
 
     private final TableUtils tableUtils;
-    @Resource
-    private CommonParser commonParser;
+
+    private final CommonParser commonParser;
 
     /**
      * 解析别名规则

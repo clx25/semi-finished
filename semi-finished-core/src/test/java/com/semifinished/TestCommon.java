@@ -5,11 +5,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.controller.EnhanceController;
+import com.semifinished.exception.ParamsException;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @Component
 public class TestCommon {
@@ -18,6 +21,9 @@ public class TestCommon {
     private EnhanceController enhanceController;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+
+
 
     public void test(String params, int size, String resultEquals) {
 
@@ -43,5 +49,12 @@ public class TestCommon {
         ObjectNode jsonNodes = objectMapper.convertValue(o, ObjectNode.class);
         System.out.println(jsonNodes.toPrettyString());
         return jsonNodes;
+    }
+
+
+    public void testException(String params, String message) {
+        assertThatThrownBy(() -> request(params))
+                .isInstanceOf(ParamsException.class)
+                .hasMessage(message);
     }
 }

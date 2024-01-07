@@ -7,7 +7,6 @@ import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Desensitization;
 import com.semifinished.pojo.Page;
 import com.semifinished.util.ParamsUtils;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -21,11 +20,9 @@ import java.util.function.Function;
 /**
  * 脱敏增强
  */
-@Component
-@AllArgsConstructor
 @Getter
+@Component
 public class DesensitizeEnhance implements AfterQueryEnhance {
-
 
     private final List<Desensitization> desensitizes = new ArrayList<>();
 
@@ -44,6 +41,7 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
             }
         });
     }
+
 
     /**
      * 获取查询字段与脱敏方法的映射
@@ -74,6 +72,7 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
         return desensitizeMap;
     }
 
+
     /**
      * 数据脱敏
      *
@@ -93,7 +92,7 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
             right = length * right;
         }
         char[] chars = value.toCharArray();
-        for (double i = left; i < chars.length - (int)right; i++) {
+        for (double i = left; i < chars.length - (int) right; i++) {
             chars[(int) i] = '*';
         }
 
@@ -103,3 +102,4 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
 
 
 }
+

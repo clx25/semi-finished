@@ -1,6 +1,7 @@
 package com.semifinished.jdbc;
 
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.pojo.AggregationFun;
 import com.semifinished.pojo.Column;
@@ -221,6 +222,12 @@ public class SqlCombiner {
     }
 
 
+    /**
+     * 获取参数解析后的所有字段
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return 字段集合
+     */
     public static List<Column> columnsAll(SqlDefinition sqlDefinition) {
 
         List<Column> columnAll = new ArrayList<>();
@@ -532,6 +539,18 @@ public class SqlCombiner {
         return valueReplacesAll;
     }
 
+
+    public static List<ObjectNode> expandAll(SqlDefinition sqlDefinition) {
+        List<ObjectNode> expandAll = new ArrayList<>();
+
+        integration(sqlDefinition, poll -> {
+            ObjectNode expand = poll.getExpand();
+            if (expand != null) {
+                expandAll.add(expand);
+            }
+        }, poll -> ParserUtils.asList(poll.getSubTable()), SqlDefinition::getDict, SqlDefinition::getJoin);
+        return expandAll;
+    }
 
     /**
      * 深度获取指定数据

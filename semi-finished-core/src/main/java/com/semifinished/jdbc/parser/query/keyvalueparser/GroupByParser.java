@@ -16,7 +16,9 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-
+/**
+ * 解析group by规则
+ */
 @Component
 @AllArgsConstructor
 public class GroupByParser implements SelectParamsParser {

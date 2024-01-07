@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.config.ConfigProperties;
 import com.semifinished.config.DataSourceConfig;
+import com.semifinished.exception.ParamsException;
 import com.semifinished.pojo.Desensitization;
 import com.semifinished.service.enhance.query.DesensitizeEnhance;
+import com.semifinished.util.Assert;
 import com.semifinished.util.MapUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -314,8 +316,14 @@ public class NormalTest {
     }
 
 
-    public void testSum() {
-        String params = "";
+    @Test
+    @DisplayName("测试时间数据格式化")
+    public void testDateTimeReplace() {
+        String params = "{\"@tb\":\"user_order\",\"id\":\"1\",\"#timeyyyy/MM/dd\":\"order_date\"}";
+        testCommon.test(params, 0, null);
+
+        String params2 = "{\"@tb\":\"user_order\",\"id\":\"6\",\"#timeyyyy/MM/dd\":\"order_date\"}";
+        testCommon.test(params2, 0, null);
     }
 
 
@@ -344,6 +352,15 @@ public class NormalTest {
         String result2 = "{\"total\":50,\"pageSize\":3,\"pageNum\":1,\"hasPre\":false,\"hasNext\":true,\"size\":3,\"records\":[{\"id\":\"1\",\"name\":\"Alice\",\"gender\":\"**\"},{\"id\":\"2\",\"name\":\"Bob\",\"gender\":\"***\"},{\"id\":\"3\",\"name\":\"Charlie\",\"gender\":\"经历********男性\"}]}";
         testCommon.test(params, 0, result2);
 
+    }
+
+
+    @Test
+    @DisplayName("测试树结构")
+    public void testTree() {
+        String params = "{\"@tb\":\"role\",\"@\":\"code,name_cn\",\"^\":{\"id\":\"id\",\"parent\":\"parent_id\"}}";
+        String result="[{\"code\":\"0001\",\"name_cn\":\"CEO\",\"children\":[{\"code\":\"0002\",\"name_cn\":\"CTO\",\"children\":[{\"code\":\"0006\",\"name_cn\":\"技术总监\",\"children\":[{\"code\":\"0007\",\"name_cn\":\"软件开发部经理\",\"children\":[{\"code\":\"0009\",\"name_cn\":\"软件工程师\"}]},{\"code\":\"0008\",\"name_cn\":\"硬件开发部经理\",\"children\":[{\"code\":\"0010\",\"name_cn\":\"硬件工程师\"}]}]}]},{\"code\":\"0003\",\"name_cn\":\"CFO\"},{\"code\":\"0004\",\"name_cn\":\"人力资源总监\"},{\"code\":\"0005\",\"name_cn\":\"市场营销总监\"}]}]";
+        testCommon.test(params,0,result);
     }
 
 }

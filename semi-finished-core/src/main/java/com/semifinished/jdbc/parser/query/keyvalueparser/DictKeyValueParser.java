@@ -8,6 +8,7 @@ import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.jdbc.parser.SelectParamsParser;
+import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
 import com.semifinished.util.ParserUtils;
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Component;
 public class DictKeyValueParser implements SelectParamsParser {
 
     private final ParserExecutor parserExecutor;
+    private final CommonParser commonParser;
     private final TableUtils tableUtils;
 
     @Override
@@ -49,7 +51,7 @@ public class DictKeyValueParser implements SelectParamsParser {
         Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("表字典规则错误：" + key));
 
         String column = key.substring(0, key.length() - 1);
-
+        column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
         tableUtils.validColumnsName(sqlDefinition, table, column);
 
         ObjectNode node = (ObjectNode) value;
@@ -61,9 +63,10 @@ public class DictKeyValueParser implements SelectParamsParser {
 
         //解析表字典规则
         SqlDefinition dict = new SqlDefinition(node);
+        dict.setDataSource(sqlDefinition.getDataSource());
         dict.setStatus(ParserStatus.DICTIONARY.getStatus());
         parserExecutor.parse(dict);
-
+        on = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, on);
         tableUtils.validColumnsName(dict, dict.getTable(), on);
 
 

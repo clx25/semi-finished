@@ -60,7 +60,7 @@ public class DetermineColumnsParser implements ParamsParser {
         String table = sqlDefinition.getTable();
 
         //如果没有指定字段，默认所有字段
-        if (columnsNode == null||columnsNode instanceof NullNode) {
+        if (columnsNode == null || columnsNode instanceof NullNode) {
             allColumns(table, sqlDefinition);
             return;
         }
@@ -75,10 +75,10 @@ public class DetermineColumnsParser implements ParamsParser {
         List<String> validColumns = new ArrayList<>();
 
         for (String col : columns) {
-            Assert.isFalse(StringUtils.hasText(col), () -> new ParamsException(column + "查询字段不能为空"));
+            Assert.isFalse(StringUtils.hasText(col), () -> new ParamsException("查询字段错误，字段名不能为空：" + column));
 
             String[] alias = col.split(":");
-            Assert.isFalse(StringUtils.hasText(alias[0]) && alias.length < 3, () -> new ParamsException(column + "参数错误"));
+            Assert.isFalse(StringUtils.hasText(alias[0]) && alias.length < 3, () -> new ParamsException("查询字段错误：" + column));
 
             String actualColumn = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0].trim());
 

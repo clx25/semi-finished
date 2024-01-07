@@ -287,4 +287,11 @@ public class SqlDefinition {
         valueReplaces.add(new ValueReplace(table, column, pattern));
     }
 
+    public ObjectNode getExpand() {
+        if (expand == null) {
+            expand = JsonNodeFactory.instance.objectNode();
+        }
+        return expand;
+    }
+
 }

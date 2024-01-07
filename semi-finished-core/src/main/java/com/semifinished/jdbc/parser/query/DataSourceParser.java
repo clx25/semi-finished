@@ -12,6 +12,7 @@ import com.semifinished.util.ParamsUtils;
 import com.semifinished.util.ParserUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * 指定数据源
@@ -41,6 +42,9 @@ public class DataSourceParser implements ParamsParser {
             dataSource = db.asText();
             dataSource = ParamsUtils.hasText(dataSource, configProperties.getDataSource());
         } else {
+            if (StringUtils.hasText(sqlDefinition.getDataSource())) {
+                return;
+            }
             dataSource = configProperties.getDataSource();
         }
 

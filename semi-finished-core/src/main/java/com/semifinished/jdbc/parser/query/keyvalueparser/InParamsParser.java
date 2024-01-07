@@ -48,39 +48,6 @@ public class InParamsParser implements SelectParamsParser {
     private final TableUtils tableUtils;
     private final CommonParser commonParser;
 
-    @Override
-    public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
-        ValueCondition valueCondition = ParserUtils.columnValue(table, key);
-        char[] chars = valueCondition.getColumn().toCharArray();
-        int end = chars.length - 1;
-        if (chars[0] != '[' || chars[end] != ']') {
-            return false;
-        }
-
-        value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
-
-        String column = new String(chars, 1, end - 1);
-        String[] inColumns = column.split(",");
-
-        //判断是否多个字段的in查询
-        if (inColumns.length > 1) {
-            StringJoiner joiner = new StringJoiner(",", "(", ")");
-            for (String inColumn : inColumns) {
-                inColumn = getColumn(sqlDefinition, table, inColumn.trim());
-                joiner.add(table + "." + inColumn);
-            }
-            column = joiner.toString();
-            valueCondition.setTable("");
-        } else {
-            column = getColumn(sqlDefinition, table, column.trim());
-        }
-
-        List<Object> values = parseValues(value, inColumns.length);
-
-        populateValueCondition(sqlDefinition, table, key, valueCondition, values, column);
-        return true;
-    }
-
     /**
      * 解析in查询的数据
      *
@@ -125,6 +92,39 @@ public class InParamsParser implements SelectParamsParser {
         }
 
         return values;
+    }
+
+    @Override
+    public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
+        ValueCondition valueCondition = ParserUtils.columnValue(table, key);
+        char[] chars = valueCondition.getColumn().toCharArray();
+        int end = chars.length - 1;
+        if (chars[0] != '[' || chars[end] != ']') {
+            return false;
+        }
+
+        value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
+
+        String column = new String(chars, 1, end - 1);
+        String[] inColumns = column.split(",");
+
+        //判断是否多个字段的in查询
+        if (inColumns.length > 1) {
+            StringJoiner joiner = new StringJoiner(",", "(", ")");
+            for (String inColumn : inColumns) {
+                inColumn = getColumn(sqlDefinition, table, inColumn.trim());
+                joiner.add(table + "." + inColumn);
+            }
+            column = joiner.toString();
+            valueCondition.setTable("");
+        } else {
+            column = getColumn(sqlDefinition, table, column.trim());
+        }
+
+        List<Object> values = parseValues(value, inColumns.length);
+
+        populateValueCondition(sqlDefinition, table, key, valueCondition, values, column);
+        return true;
     }
 
     /**

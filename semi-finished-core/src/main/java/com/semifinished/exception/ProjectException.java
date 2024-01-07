@@ -8,7 +8,7 @@ public class ProjectException extends Exception {
         super(message);
     }
 
-    public ProjectException(String message,Exception e){
-        super(message,e);
+    public ProjectException(String message, Exception e) {
+        super(message, e);
     }
 }

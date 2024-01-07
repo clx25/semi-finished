@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * 第二次查询：从查询的列表取出group by字段的结果，作为IN查询的参数。把之前的查询字段与group by字段合并，去除group by规则，执行查询
  * 合并：根据group by字段进行合并，group by没有覆盖的查询字段是集合形式
  */
-@Order(100)
+@Order(-600)
 @Component
 @RequiredArgsConstructor
 public class GroupByEnhance implements AfterQueryEnhance {
@@ -104,7 +104,6 @@ public class GroupByEnhance implements AfterQueryEnhance {
 
     @Override
     public void afterParse(SqlDefinition sqlDefinition) {
-//        SqlDefinition lastSubTable = getLastSubTable(sqlDefinition);
 
         List<Column> columnsAll = SqlCombiner.queryColumns(sqlDefinition);
         List<Column> groupByAll = SqlCombiner.groupByAll(sqlDefinition);
@@ -128,7 +127,6 @@ public class GroupByEnhance implements AfterQueryEnhance {
     /**
      * 把group by 字段添加到第一次查询里面，如果之前不存在，那么添加到group by别名里
      * 为了避免group by 字段名与已有的别名重复，需要使用别名
-     * todo 尝试不修改原始数据
      *
      * @param sqlDefinition SQL定义信息
      * @param groupBy       group by字段
@@ -179,7 +177,7 @@ public class GroupByEnhance implements AfterQueryEnhance {
         //获取查询SQL
         String sql = SqlCombiner.creatorSqlWithoutLimit(sqlDef);
 
-        //执行查询 todo 这个查询也要增强
+        //执行查询
         List<ObjectNode> noGroupRecords = sqlExecutorHolder.dataSource(sqlDef.getDataSource()).list(sql, SqlCombiner.getArgs(sqlDef));
 
         //合并数据

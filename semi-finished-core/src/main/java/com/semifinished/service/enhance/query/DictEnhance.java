@@ -55,7 +55,7 @@ public class DictEnhance implements AfterQueryEnhance {
             List<String> args = getArgs(records, joinOn.getFirst());
 
             //获取查询的where字段
-            String inCol = getColumn(definition, joinOn.getValue());
+            String inCol = getColumn(definition, joinOn.getSecond());
 
             //构建查询的SQL定义
             buildQuery(definition, args, inCol);
@@ -69,19 +69,54 @@ public class DictEnhance implements AfterQueryEnhance {
             //合并数据
             combine(definition, records, secondRecords, definition.getRowStart(), definition.getRowEnd());
         }
-
-        //排除系统添加的字段
-        List<Column> excludeColumns = SqlCombiner.excludeColumns(sqlDefinition);
-
-        for (Column excludeColumn : excludeColumns) {
-            for (ObjectNode record : records) {
-                record.remove(excludeColumn.getColumn());
-            }
-        }
-
     }
 
+
+    /**
+     * 获取查询的where字段
+     *
+     * @param definition SQL定义信息
+     * @param onColumn   关联字段
+     * @return 查询的where字段
+     */
+    private static String getColumn(SqlDefinition definition, String onColumn) {
+        return definition.getColumns()
+                .stream()
+                .filter(col -> onColumn.equals(col.getAlias()) || onColumn.equals(col.getColumn()))
+                .map(Column::getColumn)
+                .findFirst()
+                .orElseThrow(() -> new CodeException("表字典查询未找到in查询字段"));
+    }
+
+
+    /**
+     * 获取关联字段的数据集合
+     *
+     * @param records  第一次查询数据集合
+     * @param onColumn 关联字段
+     * @return 关联字段的数据集合
+     */
+    private static List<String> getArgs(List<ObjectNode> records, String onColumn) {
+        return records
+                .stream()
+                .map(node -> node.get(onColumn))
+                .filter(Objects::nonNull)
+                .flatMap(node -> node instanceof ArrayNode
+                        ? StreamSupport.stream(node.spliterator(), false).map(JsonNode::asText)
+                        : Stream.of(node.asText()))
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * 创建第二次in查询规则
+     *
+     * @param definition SQL定义信息
+     * @param args       查询的数据
+     * @param inCol      查询字段
+     */
     private void buildQuery(SqlDefinition definition, List<String> args, String inCol) {
+
         ObjectNode params = JsonNodeFactory.instance.objectNode();
         ArrayNode values = params.withArray("[" + inCol + "]");
         args.forEach(values::add);
@@ -91,26 +126,6 @@ public class DictEnhance implements AfterQueryEnhance {
         parserExecutor.parse(params, definition);
     }
 
-
-    private static String getColumn(SqlDefinition definition, String value) {
-        return definition.getColumns()
-                .stream()
-                .filter(col -> value.equals(col.getAlias()) || value.equals(col.getColumn()))
-                .map(Column::getColumn)
-                .findFirst()
-                .orElseThrow(() -> new CodeException("表字典查询未找到in查询字段"));
-    }
-
-    private static List<String> getArgs(List<ObjectNode> records, String key) {
-        return records
-                .stream()
-                .map(node -> node.get(key))
-                .filter(Objects::nonNull)
-                .flatMap(node -> node instanceof ArrayNode
-                        ? StreamSupport.stream(node.spliterator(), false).map(JsonNode::asText)
-                        : Stream.of(node.asText()))
-                .collect(Collectors.toList());
-    }
 
     /**
      * 合并数据
