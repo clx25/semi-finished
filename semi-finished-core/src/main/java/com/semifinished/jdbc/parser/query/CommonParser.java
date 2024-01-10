@@ -51,7 +51,7 @@ public class CommonParser {
             }
         }
 
-//        Assert.isFalse(mapping.get(key) == null, () -> new ParamsException("参数" + key + "错误"));
+        Assert.isFalse(mapping.get(key) == null, () -> new ParamsException("参数错误：" + key));
 
         return key;
     }

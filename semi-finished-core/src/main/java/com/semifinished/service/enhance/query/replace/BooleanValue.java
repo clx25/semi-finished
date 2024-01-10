@@ -16,9 +16,6 @@ public class BooleanValue implements ValueReplacer {
         if (value.isBoolean()) {
             return value;
         }
-        if (value.isArray()) {
-            return BooleanNode.valueOf(!value.isEmpty());
-        }
         String text = value.asText(null);
         if (!StringUtils.hasText(text)) {
             return BooleanNode.getFalse();

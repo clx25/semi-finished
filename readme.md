@@ -27,28 +27,28 @@ spring:
 ## 一些符号的灵感来源与释义
 
 > `@`:论坛或聊天工具中代表指定
->
+> 
 > `~`:位运算中的“取反”操作
->
+> 
 > `:`:表示key-value的对应关系，映射
->
+> 
 > `%`:sql中的模糊查询匹配符
->
+> 
 > `!`:在判断式中代表“非”
->
+> 
 > `&`:位运算中的“与”操作
->
+> 
 > `#`:代表规则
->
+> 
 > `/`:排序二叉树中左边为从大到小
->
+> 
 > `\\`:排序二叉树中从小到大
->
+> 
 > `^`:树结构
->
+> 
 > `$`:在一些语言中使用`${字段}`的方式表示引用字段的值
 
-## 查询规则（在SQL中生效的规则）
+## 查询规则
 
 **接口地址**:`/enhance`
 
@@ -280,6 +280,8 @@ spring:
 
 如果没有完全覆盖，那么主要逻辑会在增强中执行，默认只会查询已覆盖的字段，然后在增强中根据返回字段的值通过`in`查询未覆盖的字段，再合并结果。
 
+暂不支持复杂情况下的group查询
+
 ```json
 {
     "@tb":"表名",
@@ -290,7 +292,7 @@ spring:
 
 ### 分页
 
-只要参数中存在pageNum或pageSize，那么返回值会携带分页信息，分页参数字段可以
+只要参数中存在pageNum或pageSize，那么返回值会携带分页信息，分页参数字段可以在yaml文件中配置
 
 ```json
 {
@@ -355,8 +357,6 @@ public class RandomInterpolation implements Interpolation {
 }
 ```
 
-## 增强规则（查询后对结果进行处理的规则）
-
 ### 表字典查询
 
 `:`表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`
@@ -383,16 +383,6 @@ public class RandomInterpolation implements Interpolation {
 ```json
 {
     "@row":"1,5"
-}
-```
-
-### 总和
-
-用以计算一些字段的和，并添加到最后一行
-
-```json
-{
-   "+":"字段1,字段2,..."
 }
 ```
 
@@ -456,8 +446,7 @@ public class RandomInterpolation implements Interpolation {
 
 # 自定义查询规则
 
-有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`
-两个接口，可供不同情况下选择使用。这两个接口的本质都是在实现类中对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`
+有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`两个接口，可供不同情况下选择使用。这两个接口的本质都是在实现类中对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`
 中。这两个接口都继承了`Ordered`接口，所以需要指定解析类的顺序。
 
 ## 实现ParamsParser接口
@@ -484,8 +473,7 @@ public interface ParamsParser extends Ordered {
 
 `KeyValueParamsParser`接口适用于需要对key进行解析的规则，如模糊查询规则，范围查询规则等。该方法把请求参数进行了遍历，将每一项的key和value传入进行解析。
 
-`KeyValueParamsParser`接口的执行类也是`ParamsParser`接口的实现类，所以如果想相对于`ParamsParser`
-接口的某个实现类排序，那么只能实现`ParamsParser`接口。
+`KeyValueParamsParser`接口的执行类也是`ParamsParser`接口的实现类，所以如果想相对于`ParamsParser`接口的某个实现类排序，那么只能实现`ParamsParser`接口。
 
 ```java
 public interface KeyValueParamsParser extends Ordered {
@@ -507,7 +495,7 @@ public interface KeyValueParamsParser extends Ordered {
 
 ## 查询增强接口
 
-对结果进行处理，一对多的group查询，表字典查询，格式化数据，脱敏数据等功能就是使用增强接口实现。
+对结果进行处理，一对多的group查询，表字典查询，格式化数据，脱敏数据等功能就是使用查询规则与增强接口共同实现。
 
 ```java
 public interface ServiceEnhance {
@@ -682,4 +670,4 @@ spring:
 }
 ```
 
-上方的请求参数会查询user表id=1的age,name字段
+上方的请求参数会无视`password`查询字段，把`uid`字段解析为`id`，并把表名`person`解析为`user`表，最终结果为查询`user`表id=1的age,name字段

@@ -3,6 +3,7 @@ package com.semifinished.service.enhance.query.replace;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import lombok.AllArgsConstructor;
@@ -25,7 +26,7 @@ public class JsonValue implements ValueReplacer {
             return value;
         }
         try {
-            return objectMapper.readTree(text);
+            return objectMapper.readValue(text, ObjectNode.class);
         } catch (JsonProcessingException e) {
             throw new ParamsException("json规则执行失败", e);
         }

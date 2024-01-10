@@ -74,7 +74,7 @@ public class ValueReplaceEnhance implements AfterQueryEnhance {
         }
         String pattern = valueReplace.getPattern();
         for (ObjectNode objectNode : objectNodes) {
-            doReplace(sqlDefinition, pattern, recodeKeys, objectNode);
+            replaceObject(sqlDefinition, pattern, recodeKeys, objectNode);
         }
     }
 
@@ -86,7 +86,7 @@ public class ValueReplaceEnhance implements AfterQueryEnhance {
      * @param recodeKeys    被替换数据的key
      * @param objectNode    被替换的数据对象
      */
-    private void doReplace(SqlDefinition sqlDefinition, String pattern, List<String> recodeKeys, ObjectNode objectNode) {
+    private void replaceObject(SqlDefinition sqlDefinition, String pattern, List<String> recodeKeys, ObjectNode objectNode) {
         for (String recodeKey : recodeKeys) {
 
             JsonNode value = objectNode.get(recodeKey);
@@ -94,20 +94,38 @@ public class ValueReplaceEnhance implements AfterQueryEnhance {
                 continue;
             }
             if (!(value instanceof ArrayNode)) {
-                value = extracted(sqlDefinition, pattern, value);
+                value = executeReplacer(sqlDefinition, pattern, value);
                 objectNode.set(recodeKey, value == null ? NullNode.instance : value);
                 return;
             }
 
             for (int i = 0; i < value.size(); i++) {
-                JsonNode item = extracted(sqlDefinition, pattern, value.get(i));
-                ((ArrayNode) value).set(i, item);
+                replaceArray(sqlDefinition, pattern, recodeKeys, (ArrayNode) value, i);
             }
 
         }
     }
 
-    private JsonNode extracted(SqlDefinition sqlDefinition, String pattern, JsonNode value) {
+    private void replaceArray(SqlDefinition sqlDefinition, String pattern, List<String> recodeKeys, ArrayNode parent, int index) {
+        JsonNode value = parent.get(index);
+        if (value instanceof ArrayNode) {
+            for (int i = 0; i < value.size(); i++) {
+                replaceArray(sqlDefinition, pattern, recodeKeys, (ArrayNode) value, i);
+            }
+            return;
+        }
+        if (value instanceof ObjectNode) {
+            replaceObject(sqlDefinition, pattern, recodeKeys, (ObjectNode) value);
+            return;
+        }
+
+        value = executeReplacer(sqlDefinition, pattern, value);
+        parent.set(index, value);
+
+    }
+
+
+    private JsonNode executeReplacer(SqlDefinition sqlDefinition, String pattern, JsonNode value) {
         for (ValueReplacer valueReplacer : valueReplacers) {
             value = valueReplacer.replace(sqlDefinition, pattern, value);
         }

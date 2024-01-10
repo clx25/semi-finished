@@ -20,13 +20,16 @@ public class NumberValue implements ValueReplacer {
         }
 
         String pattern = key.substring(3);
-        Assert.hasNotText(pattern, () -> new ParamsException("格式化规则错误，缺少数字格式化规则：" + key));
+        Assert.hasNotText(pattern, () -> new ParamsException("缺少数字格式化规则：" + key));
         double d = value.asDouble(0);
-        decimalFormat.applyPattern(pattern);
+
         try {
-            return TextNode.valueOf(decimalFormat.format(d));
+            decimalFormat.applyPattern(pattern);
         } catch (Exception e) {
-            throw new ParamsException("格式化规则错误，缺少数字格式化规则：" + key, e);
+            throw new ParamsException("数字格式化规则错误：" + key);
         }
+
+        return TextNode.valueOf(decimalFormat.format(d));
+
     }
 }

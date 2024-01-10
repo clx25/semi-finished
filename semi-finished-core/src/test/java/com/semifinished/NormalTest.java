@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.config.ConfigProperties;
 import com.semifinished.config.DataSourceConfig;
-import com.semifinished.exception.ParamsException;
 import com.semifinished.pojo.Desensitization;
 import com.semifinished.service.enhance.query.DesensitizeEnhance;
-import com.semifinished.util.Assert;
 import com.semifinished.util.MapUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -322,10 +320,37 @@ public class NormalTest {
         String params = "{\"@tb\":\"user_order\",\"id\":\"1\",\"#timeyyyy/MM/dd\":\"order_date\"}";
         testCommon.test(params, 0, null);
 
-        String params2 = "{\"@tb\":\"user_order\",\"id\":\"6\",\"#timeyyyy/MM/dd\":\"order_date\"}";
+        String params2 = "{\"@tb\":\"user_order\",\"id\":\"8\",\"#timeyyyy/MM/dd\":\"order_date\"}";
         testCommon.test(params2, 0, null);
     }
 
+
+    @Test
+    @DisplayName("测试转boolean数据")
+    public void testBooleanReplace() {
+        String params = "{\"@tb\":\"user_order\",\"id\":\"8\",\"#boolean\":\"order_date\"}";
+        testCommon.test(params, 0, "[{\"id\":\"8\",\"user_id\":\"45\",\"order_date\":false,\"money\":\"80.50\"}]");
+
+
+        String params2 = "{\"@tb\":\"users\",\"id\":\"11\",\"@\":\"name\",\"id:\":{\"@tb\":\"user_order\",\"@on\":\"user_id\",\"@\":\"money\",\"#boolean\":\"money\"}}";
+        testCommon.test(params2, 0, "[{\"name\":\"Kate\",\"money\":[true,true,true,true,true]}]");
+
+        String params3 = "{\"@tb\":\"menu\",\"id\":\"1\",\"@\":\"id,label,route\",\"#boolean\":\"route\"}\n";
+        String result = "[{\"id\":\"1\",\"label\":\"Home\",\"route\":true}]";
+        testCommon.test(params3, 0, result);
+    }
+
+    @Test
+    @DisplayName("测试json数据格式化")
+    public void testJsonReplace(){
+        String params = "{\"@tb\":\"menu\",\"id\":\"1\",\"#json\":\"icon\"}";
+        String result = "[{\"id\":\"1\",\"label\":\"Home\",\"icon\":{\"type\":\"chart-graph\",\"size\":24,\"strokeWidth\":2,\"theme\":\"outline\",\"fill\":[\"#0045f1\"]},\"route\":true}]";
+        testCommon.test(params, 0, result);
+
+        String params2 = "{\"@tb\":\"menu\",\"id\":\"4\",\"#json\":\"icon\"}";
+        String result2 = "[{\"id\":\"4\",\"label\":\"Role\",\"icon\":null,\"route\":false}]";
+        testCommon.test(params2, 0, result2);
+    }
 
     @Test
     @DisplayName("测试脱敏")
@@ -352,6 +377,12 @@ public class NormalTest {
         String result2 = "{\"total\":50,\"pageSize\":3,\"pageNum\":1,\"hasPre\":false,\"hasNext\":true,\"size\":3,\"records\":[{\"id\":\"1\",\"name\":\"Alice\",\"gender\":\"**\"},{\"id\":\"2\",\"name\":\"Bob\",\"gender\":\"***\"},{\"id\":\"3\",\"name\":\"Charlie\",\"gender\":\"经历********男性\"}]}";
         testCommon.test(params, 0, result2);
 
+        Desensitization nullValue = Desensitization.builder().table("menu").column("icon").left(1).right(1).build();
+        desensitizes.clear();
+        desensitizes.add(nullValue);
+        String param2="{\"@tb\":\"menu\",\"id\":\"4\"}";
+        testCommon.test(param2,0,"[{\"id\":\"4\",\"label\":\"Role\",\"icon\":null,\"route\":false}]");
+
     }
 
 
@@ -359,8 +390,8 @@ public class NormalTest {
     @DisplayName("测试树结构")
     public void testTree() {
         String params = "{\"@tb\":\"role\",\"@\":\"code,name_cn\",\"^\":{\"id\":\"id\",\"parent\":\"parent_id\"}}";
-        String result="[{\"code\":\"0001\",\"name_cn\":\"CEO\",\"children\":[{\"code\":\"0002\",\"name_cn\":\"CTO\",\"children\":[{\"code\":\"0006\",\"name_cn\":\"技术总监\",\"children\":[{\"code\":\"0007\",\"name_cn\":\"软件开发部经理\",\"children\":[{\"code\":\"0009\",\"name_cn\":\"软件工程师\"}]},{\"code\":\"0008\",\"name_cn\":\"硬件开发部经理\",\"children\":[{\"code\":\"0010\",\"name_cn\":\"硬件工程师\"}]}]}]},{\"code\":\"0003\",\"name_cn\":\"CFO\"},{\"code\":\"0004\",\"name_cn\":\"人力资源总监\"},{\"code\":\"0005\",\"name_cn\":\"市场营销总监\"}]}]";
-        testCommon.test(params,0,result);
+        String result = "[{\"code\":\"0001\",\"name_cn\":\"CEO\",\"children\":[{\"code\":\"0002\",\"name_cn\":\"CTO\",\"children\":[{\"code\":\"0006\",\"name_cn\":\"技术总监\",\"children\":[{\"code\":\"0007\",\"name_cn\":\"软件开发部经理\",\"children\":[{\"code\":\"0009\",\"name_cn\":\"软件工程师\"}]},{\"code\":\"0008\",\"name_cn\":\"硬件开发部经理\",\"children\":[{\"code\":\"0010\",\"name_cn\":\"硬件工程师\"}]}]}]},{\"code\":\"0003\",\"name_cn\":\"CFO\"},{\"code\":\"0004\",\"name_cn\":\"人力资源总监\"}]}]";
+        testCommon.test(params, 0, result);
     }
 
 }

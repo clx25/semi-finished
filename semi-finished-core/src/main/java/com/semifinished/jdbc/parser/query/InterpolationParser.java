@@ -52,7 +52,7 @@ public class InterpolationParser implements ParamsParser {
                 return interpolation.value(table, key, interpolatedKey, sqlDefinition);
             }
         }
-        throw new ParamsException("未找到" + interpolatedKey + "对应的值");
+        throw new ParamsException("插值规则未找到对应的值：" + interpolatedKey);
     }
 
     @Override

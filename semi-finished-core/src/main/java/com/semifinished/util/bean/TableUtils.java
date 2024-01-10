@@ -78,7 +78,7 @@ public class TableUtils {
             Assert.hasNotText(column, () -> new ParamsException("字段名不能为空"));
             boolean flag = columnsName.stream()
                     .anyMatch(col -> col.equals(column));
-            Assert.isFalse(flag, () -> new ParamsException(column + "参数错误" + (finSub ? ",子查询外层应该使用内层返回的字段名" : "")));
+            Assert.isFalse(flag, () -> new ParamsException("参数错误" + (finSub ? ",子查询外层应该使用内层返回的字段名" : "") + "：" + column));
         }
 
 

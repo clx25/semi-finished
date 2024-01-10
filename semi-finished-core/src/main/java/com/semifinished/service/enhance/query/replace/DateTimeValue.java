@@ -34,7 +34,7 @@ public class DateTimeValue implements ValueReplacer {
                     .format(DateTimeFormatter.ofPattern(pattern));
             return TextNode.valueOf(date);
         } catch (Exception e) {
-            throw new ParamsException("格式化规则错误：" + key, e);
+            throw new ParamsException("时间格式化规则错误：" + key, e);
         }
     }
 }

@@ -36,7 +36,7 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
         desensitizeMap.keySet().forEach(k -> {
             for (ObjectNode record : records) {
                 if (record.has(k)) {
-                    record.put(k, desensitizeMap.get(k).apply(record.path(k).asText()));
+                    record.put(k, desensitizeMap.get(k).apply(record.path(k).asText(null)));
                 }
             }
         });
