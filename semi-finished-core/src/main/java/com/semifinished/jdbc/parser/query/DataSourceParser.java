@@ -39,7 +39,8 @@ public class DataSourceParser implements ParamsParser {
 
         String dataSource = "";
         if (db != null) {
-            dataSource = db.asText();
+            dataSource = db.asText(null);
+            Assert.hasNotText(dataSource, () -> new ParamsException("数据源规则不能为空"));
             dataSource = ParamsUtils.hasText(dataSource, configProperties.getDataSource());
         } else {
             if (StringUtils.hasText(sqlDefinition.getDataSource())) {

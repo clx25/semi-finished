@@ -1,5 +1,6 @@
 package com.semifinished.pojo;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,7 +23,7 @@ public class Desensitization {
     /**
      * 自定义脱敏器
      */
-    private Function<String, String> desensitize;
+    private Function<JsonNode, JsonNode> desensitize;
 
     /**
      * 左侧保留长度

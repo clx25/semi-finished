@@ -18,7 +18,7 @@ public interface Interpolation {
      * @param interpolatedKey 插值key
      * @return true表示使用该类获取实际值，false表示不使用
      */
-    boolean match(String key, String interpolatedKey);
+    boolean match(String key, JsonNode interpolatedKey);
 
     /**
      * 获取变量对应的实际值
@@ -29,5 +29,5 @@ public interface Interpolation {
      * @param sqlDefinition   SQL定义信息
      * @return 变量对应的实际值
      */
-    JsonNode value(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition);
+    JsonNode value(String table, String key, JsonNode interpolatedKey, SqlDefinition sqlDefinition);
 }

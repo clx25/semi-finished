@@ -39,7 +39,8 @@ public class RowNumParser implements SelectParamsParser {
 
 
         Assert.isTrue(sqlDefinition.isPage(), () -> new ParamsException("@row规则与分页规则冲突"));
-        String text = value.asText();
+        String text = value.asText(null);
+        Assert.hasNotText(text, () -> new ParamsException("@row规则值不能为空：" + key));
         String[] values = text.split(",");
         Assert.isTrue(values.length > 2, () -> new ParamsException("@row参数错误，最多只能有两个值"));
 

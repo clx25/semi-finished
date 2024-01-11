@@ -2,10 +2,12 @@ package com.semifinished.jdbc.parser.query.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.annontation.Where;
+import com.semifinished.exception.ParamsException;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.pojo.ValueCondition;
+import com.semifinished.util.Assert;
 import com.semifinished.util.ParserUtils;
 import com.semifinished.util.bean.TableUtils;
 import lombok.AllArgsConstructor;
@@ -34,6 +36,7 @@ public class LikeParamsParser implements SelectParamsParser {
 
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
+
         ValueCondition valueCondition = ParserUtils.columnValue(table, key);
         char[] chars = valueCondition.getColumn().toCharArray();
         char symbol = '%';
@@ -42,12 +45,12 @@ public class LikeParamsParser implements SelectParamsParser {
             return false;
         }
         value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
-
+        String argsValue = value.asText();
+        Assert.hasNotText(argsValue, () -> new ParamsException("like规则值不能为空：" + key));
 
         int offset = 0;
         int count = chars.length - 1;
 
-        String argsValue = value.asText();
 
         if (chars[offset] == symbol) {
             offset = 1;

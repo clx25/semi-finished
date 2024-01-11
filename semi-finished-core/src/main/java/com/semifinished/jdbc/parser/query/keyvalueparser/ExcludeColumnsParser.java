@@ -44,7 +44,9 @@ public class ExcludeColumnsParser implements SelectParamsParser {
                 ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("排除规则位置错误"));
 
 
-        String[] fields = value.asText().split(",");
+        String text = value.asText();
+        Assert.hasNotText(text, () -> new ParamsException("排除规则字段不能为空：" + key));
+        String[] fields = text.split(",");
 
         for (int i = 0; i < fields.length; i++) {
             fields[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, fields[i].trim());

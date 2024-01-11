@@ -11,12 +11,12 @@ import java.util.Random;
 @Component
 public class RandomInterpolation implements Interpolation {
     @Override
-    public boolean match(String key, String interpolatedKey) {
-        return "random".equals(interpolatedKey);
+    public boolean match(String key, JsonNode interpolatedKey) {
+        return "random".equals(interpolatedKey.asText());
     }
 
     @Override
-    public JsonNode value(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition) {
+    public JsonNode value(String table, String key, JsonNode interpolatedKey, SqlDefinition sqlDefinition) {
         return JsonNodeFactory.instance.numberNode(new Random().nextInt(50)+1);
     }
 }

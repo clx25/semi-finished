@@ -35,6 +35,7 @@ public class GroupByParser implements SelectParamsParser {
         Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN), () -> new ParamsException("@group规则位置错误"));
 
         String columns = value.asText();
+        Assert.hasNotText(columns, () -> new ParamsException("group规则字段不能为空：" + key));
         String[] columnArray = columns.split(",");
         for (int i = 0; i < columnArray.length; i++) {
             columnArray[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, columnArray[i]);

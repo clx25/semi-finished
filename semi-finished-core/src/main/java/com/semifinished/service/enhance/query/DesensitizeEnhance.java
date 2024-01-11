@@ -1,6 +1,8 @@
 package com.semifinished.service.enhance.query;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.semifinished.jdbc.SqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
@@ -32,11 +34,11 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
         if (records.isEmpty()) {
             return;
         }
-        Map<String, Function<String, String>> desensitizeMap = getDesensitizeMap(sqlDefinition);
+        Map<String, Function<JsonNode, JsonNode>> desensitizeMap = getDesensitizeMap(sqlDefinition);
         desensitizeMap.keySet().forEach(k -> {
             for (ObjectNode record : records) {
                 if (record.has(k)) {
-                    record.put(k, desensitizeMap.get(k).apply(record.path(k).asText(null)));
+                    record.set(k, desensitizeMap.get(k).apply(record.path(k)));
                 }
             }
         });
@@ -49,11 +51,11 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
      * @param sqlDefinition SQL定义信息
      * @return 查询字段与脱敏方法的映射
      */
-    private Map<String, Function<String, String>> getDesensitizeMap(SqlDefinition sqlDefinition) {
+    private Map<String, Function<JsonNode, JsonNode>> getDesensitizeMap(SqlDefinition sqlDefinition) {
 
         List<Column> columns = SqlCombiner.columnAggregationAll(sqlDefinition);
 
-        Map<String, Function<String, String>> desensitizeMap = new HashMap<>();
+        Map<String, Function<JsonNode, JsonNode>> desensitizeMap = new HashMap<>();
 
         desensitizes.forEach(d -> {
             columns.stream()
@@ -62,7 +64,7 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
                     .filter(col -> col.getColumn().equals(d.getColumn()))
                     .map(col -> ParamsUtils.hasText(col.getAlias(), col.getColumn()))
                     .forEach(column -> {
-                        Function<String, String> desensitize = d.getDesensitize();
+                        Function<JsonNode, JsonNode> desensitize = d.getDesensitize();
                         if (desensitize == null) {
                             desensitize = value -> desensitize(value, d.getLeft(), d.getRight());
                         }
@@ -76,14 +78,15 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
     /**
      * 数据脱敏
      *
-     * @param value 需要脱敏的数据
-     * @param left  保留数据的前几个字符
-     * @param right 保留数据的后几个字符
+     * @param valueNode 需要脱敏的数据
+     * @param left      保留数据的前几个字符
+     * @param right     保留数据的后几个字符
      * @return 脱敏后的数据
      */
-    private String desensitize(String value, double left, double right) {
+    private JsonNode desensitize(JsonNode valueNode, double left, double right) {
+        String value = valueNode.asText(null);
         if (!StringUtils.hasText(value)) {
-            return value;
+            return valueNode;
         }
 
         if (left > 0 && left < 1 || (right > 0 && right < 1)) {
@@ -96,7 +99,7 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
             chars[(int) i] = '*';
         }
 
-        return new String(chars);
+        return TextNode.valueOf(new String(chars));
 
     }
 

@@ -1,11 +1,12 @@
 # SEMI-FINISHED
 
-是一个封装了常用操作的项目，更多的功能还在开发中
+是一个封装了常用操作的项目，更多的功能还在开发中。
+
+semi-finished可以使用一个查询接口，通过传递不同的json参数，实现基础的查询功能，并且可以通过扩展接口实现查询规则与查询结果处理的自定义。
 
 # 数据源配置
 
-semi-finished支持多数据源，如下配置中，`master`与`test`
-是数据源的名称，配置数据源的同时可配置[表名字段名映射](#表名，字段名映射配置)
+semi-finished支持多数据源，如下配置中，`master`与`test`是数据源的名称，配置数据源的同时可配置[表名字段名映射](#表名，字段名映射，排除字段配置)，master数据源必须存在，如不存在则会提示异常。
 
 ```yml
 spring:
@@ -24,7 +25,7 @@ spring:
 
 # API文档
 
-## 一些符号的灵感来源与释义
+## 一些查询规则符号的灵感来源与释义
 
 > `@`:论坛或聊天工具中代表指定
 > 
@@ -42,7 +43,7 @@ spring:
 > 
 > `/`:排序二叉树中左边为从大到小
 > 
-> `\\`:排序二叉树中从小到大
+> `\\`:排序二叉树中右边为从小到大
 > 
 > `^`:树结构
 > 
@@ -56,14 +57,14 @@ spring:
 
 **完整的查询示例**:
 
-```json
+```js
 {
     "@tb":"user",
-    "@":"name,sex,age",
-    "sex:":{
-        "@tb":"user_sex",
+    "@":"name,gender,age",
+    "gender:":{
+        "@tb":"user_gender",
         "@on":"id",
-        "@":"sex",
+        "@":"name:genderName",
         "@row":1
     }
 }
@@ -71,21 +72,24 @@ spring:
 
 **返回结果**：
 
-```json
+```js
 {
     "msg": "操作成功",
     "code": 200,
     "result": [
         {
-            "xx": "xx",
-            "xxx": "xxx"
+            "name": "xx",
+            "gender": "xxx",
+            "age":26,
+            "genderName":"xxx"
         },
         {
-            "xx": "xx",
-            "xxx": "xxx"
+            "name": "aaa",
+            "gender": "aaa",
+            "age":23,
+            "genderName":"aa"
         }
-
-    ]
+    ]
 }
 ```
 
@@ -95,9 +99,9 @@ spring:
 
 `@ds`为固定写法，后面的`master`是数据源名称，关于数据源名称可查看[数据源配置](#数据源配置)
 
-```json
+```js
 {
-    "@ds":"master"
+    "@source":"master"
 }
 ```
 
@@ -105,9 +109,9 @@ spring:
 
 **所有请求都需要指定表名**
 
-`@tb`为固定写法，表示指定表名。查询该表的所有未排除字段，如果没有指定分页参数，默认查询前200条，该限制和未排除字段可配置
+`@tb`为固定写法，表示指定表名。查询该表的所有未[排除字段](表名，字段名映射，排除字段配置)，这样可能导致一次性返回过多数据，可以在[yaml配置](yaml配置)中配置没有分页参数的情况下最大返回行数。
 
-```json
+```js
 {
     "@tb":"表名"
 }
@@ -115,9 +119,9 @@ spring:
 
 ### 指定查询字段
 
-当没有`@`参数时，默认查询指定表的所有未排除字段
+当没有`@`参数时，默认查询指定表的所有未[排除字段](表名，字段名映射，排除字段配置)
 
-```json
+```js
 {
     "@":"字段1,字段2,..."
 }
@@ -125,7 +129,7 @@ spring:
 
 可在指定字段的同时设置别名，格式为 `字段:别名`
 
-```json
+```js
 {
     "@":"字段1:别名1,字段2:别名2,..."
 }
@@ -135,7 +139,7 @@ spring:
 
 在SQL层面排除这个查询字段
 
-```json
+```js
 {
     "~":"字段1，字段2,..."
 }
@@ -143,11 +147,11 @@ spring:
 
 ### 别名
 
-如果指定字段，排除，别名三个规则有重复或冲突，优先级：排除>别名>指定字段
+如果指定字段，排除，别名三个规则有重复，优先级：排除>别名>指定字段
 
 如果别名是特殊字符（非英文字母开头，后续为英文字母，数字，下划线），那么会先使用系统生成的别名查询，再通过修改查询结果字段的方式实现别名
 
-```json
+```js
 {
     ":":"字段1:别名1,字段2:别名2,..."
 }
@@ -157,7 +161,7 @@ spring:
 
 生成 `字段=内容` 查询
 
-```json
+```js
 {
     "字段":"内容"
 }
@@ -167,7 +171,7 @@ spring:
 
 在字段的前后加上`%`符号表示查询内容的对应位置添加`%`符号
 
-```json
+```js
 {
     "%字段":"内容",//生成 【%内容】 查询
     "字段%":"内容",//生成 【内容%】 查询
@@ -179,9 +183,26 @@ spring:
 
 使用`[]`包裹字段，生成 `字段 in (1,2,3)`查询
 
-```json
+```js
 {
     "[字段]":"1,2,3"
+}
+```
+
+可以使用数组的方式
+
+```js
+{
+    "[字段]":[1,2,3]
+}
+```
+
+多个字段的in查询，同样可以使用数组的方式
+
+```js
+{
+    "[col1,col2]":"(value1,value2),(value3,value4)",
+    "[col1,col2]":["value1,value2","value3,value4"]
 }
 ```
 
@@ -189,9 +210,9 @@ spring:
 
 在字段前添加`!`符号，生成 `字段!=内容`查询
 
-```json
+```js
 {
-    "!字段":"内容" //生成 【字段 != 内容】 查询
+    "!字段":"内容"
 }
 ```
 
@@ -199,7 +220,7 @@ spring:
 
 在字段前后添加`<`或`>`符号，表示在查询中在对应位置添加对应符号，当冲突时抛出异常。
 
-```json
+```js
 {
     "<字段":"内容",// 内容<字段
     ">字段":"内容",// 内容>字段
@@ -214,7 +235,7 @@ spring:
 
 由于json中的`\`表示转义符，所以使用`\\`表示从小到大排序
 
-```json
+```js
 {
     "/":"字段名",//根据字段名内容从大到小排序
     "\\":"字段名"//根据字段名内容从小到大排序
@@ -223,12 +244,11 @@ spring:
 
 ### 括号、或
 
-使用`|`作为前缀就表示或查询，可以在任何查询条件中添加，一般与括号查询一起使用。字段后使用`{}`
-表示与该字段括号在一起查询，`{}`内的`value`参数表示外层字段的查询内容，`value`字段可以配置
+使用`|`作为前缀就表示或查询，可以在任何查询条件中添加，一般与括号查询一起使用。字段后使用`{}`表示与该字段括号在一起查询，`{}`内的`value`参数表示外层字段的查询内容，`value`字段可以[配置](yaml配置)
 
-如下查询解析结果为: where （ 字段1=字段2 or 字段2=字段3）and 字段3=内容3
+如下查询解析结果为: where （ 字段1=内容1 or 字段2=内容2）and 字段3=内容3
 
-```json
+```js
 {
     "@tb":"表名",
     "字段1":{
@@ -243,7 +263,7 @@ spring:
 
 把查询结果作为一张表再进行查询
 
-```json
+```js
 {
     "@tb":{
         "@tb":"表名",
@@ -256,10 +276,10 @@ spring:
 
 ### JOIN查询
 
-与表字典查询类似，只是把`:`改为了`&`，`&`在字段右方时表示`left join`，在右方时表示`inner join`
-。该查询解析结果为`user inner join order on user.id=order.user_id`。支持深度`join`，就是`oder`表的查询也可以使用`join`规则
+使用`&`符号表示join查询，`&`在字段左方时表示`left join`，在右方时表示`inner join`
+。如下方的查询参数，`id`是`user`表的关联字段，`@on`指定的`user_id`表示`order`表的关联字段，解析结果为`user inner join order on user.id=order.user_id`。支持深度`join`，就是`oder`表的查询也可以使用`join`规则
 
-```json
+```js
 {
     "@tb":"user",
     "id&":{
@@ -282,7 +302,7 @@ spring:
 
 暂不支持复杂情况下的group查询
 
-```json
+```js
 {
     "@tb":"表名",
     "@":"字段1,count(*),max(字段3),字段4"
@@ -292,9 +312,9 @@ spring:
 
 ### 分页
 
-只要参数中存在pageNum或pageSize，那么返回值会携带分页信息，分页参数字段可以在yaml文件中配置
+只要参数中存在pageNum或pageSize其中一个，那么返回值会携带分页信息，缺少的`pageNum`默认为1，缺少的`pageSize`默认为10，分页参数字段可以在yaml文件中[配置](yaml配置)
 
-```json
+```js
 {
     "pageNum":1,//第几页
     "pageSize":10 //每页行数
@@ -305,9 +325,9 @@ spring:
 
 插值规则是查询规则中第一个执行的规则，用于对参数值进行替换。在key的末尾添加`$`符号表示这是一个插值规则
 
-如现在想创建一个规则，某个值等于一个随机数，那么可以这样设计
+如现在想创建一个规则，某个字段等于一个随机数，那么可以这样设计一个规则
 
-```json
+```js
 {
     "id$":"random"
 }
@@ -329,8 +349,8 @@ public class RandomInterpolation implements Interpolation {
      * @return true表示使用该类获取实际值，false表示不使用
      */
     @Override
-    public boolean match(String key, String interpolatedKey) {
-        return "random".equals(interpolatedKey);
+    public boolean match(String key, JsonNode interpolatedKey) {
+        return "random".equals(interpolatedKey.asText());
     }
 
     /**
@@ -343,7 +363,7 @@ public class RandomInterpolation implements Interpolation {
      * @return 变量对应的实际值
      */
     @Override
-    public JsonNode value(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition) {
+    public JsonNode value(String table, String key, JsonNode interpolatedKey, SqlDefinition sqlDefinition) {
         return JsonNodeFactory.instance.numberNode(new Random().nextInt());
     }
 }
@@ -351,7 +371,7 @@ public class RandomInterpolation implements Interpolation {
 
 如果`value`方法返回的随机数是5，那么在该规则执行后请求的参数会被替换为
 
-```json
+```js
 {
     "id":"5"
 }
@@ -359,11 +379,12 @@ public class RandomInterpolation implements Interpolation {
 
 ### 表字典查询
 
-`:`表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`
-就是两个表的关联关系`user.id=order.user_id`。该查询会先查询`user`表，获取`id`后用`in`查询去查`order`
+与join规则基本相同，只是把`&`改为`:`，表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`也与`join`规则相同，是两个表的关联关系`user.id=order.user_id`。
+
+该查询会先查询`user`表，获取`id`后用`in`查询去查`order`
 表，最后合并。由于id名称重复，所以使用别名规则修改`order.id`的返回字段名。暂不支持深度映射和一个字段对应多个表映射。
 
-```json
+```js
 {
     "@tb":"user",
     "id:":{
@@ -380,7 +401,7 @@ public class RandomInterpolation implements Interpolation {
 
 返回查询结果中指定范围的行，行号从1开始，包含指定行。如果只有一个参数，那么表示返回指定的那一行，并且返回格式是一个对象。
 
-```json
+```js
 {
     "@row":"1,5"
 }
@@ -392,10 +413,9 @@ public class RandomInterpolation implements Interpolation {
 
 ### 数字格式化
 
-`num0.00`是规则内容，由不同的实现类自定义。`num`表示这是一个数字的替换规则，`0.00`是格式化规则，该规则由`DecimalFormat`
-实现，所以可以使用`DecimalFormat`的所有规则。如果`DecimalFormat`无法解析该规则，那么会抛出异常。
+`num0.00`是规则内容，由不同的实现类自定义。`num`表示这是一个数字的替换规则，`0.00`是格式化规则，该规则由`DecimalFormat`实现，所以可以使用`DecimalFormat`支持的所有规则。如果`DecimalFormat`无法解析该规则，那么会抛出异常。
 
-```json
+```js
 {
     "#num0.00":"字段1,字段2..."//把指定字段的数字格式化为四舍五入保留两位小数
 }
@@ -405,7 +425,7 @@ public class RandomInterpolation implements Interpolation {
 
 把指定字段的值转为json格式，如果无法转为json，则抛出异常
 
-```json
+```js
 {
     "#json":"字段1,字段2..."
 }
@@ -415,7 +435,7 @@ public class RandomInterpolation implements Interpolation {
 
 `def`表示默认规则，后面的字符表示当指定字段结果为`null`时，替换的字符。
 
-```json
+```js
 {
     "#def123":"字段1,字段2..."//表示指定字段如果为null，那么返回123
 }
@@ -423,12 +443,11 @@ public class RandomInterpolation implements Interpolation {
 
 ### 日期时间格式化
 
-`time`表示时间规则，后面的字符串表示指定字段的时间格式化规则。该规则使用`DateTimeFormatter`实现，所以`time`
-后面能使用`DateTimeFormatter`支持的所有规则。
+`time`表示时间规则，后面的字符串表示指定字段的时间格式化规则。该规则使用`DateTimeFormatter`实现，所以`time`后面能使用`DateTimeFormatter`支持的所有规则。
 
 对于数据的日期格式，目前只支持`yyyy-MM-dd HH:mm:ss`与`yyyy-MM-dd`两种。
 
-```json
+```js
 {
     "#timeyyyy-MM":"字段1,字段2..."//把指定字段的日期字符串转为yyyy-MM格式
 }
@@ -436,18 +455,83 @@ public class RandomInterpolation implements Interpolation {
 
 ### Booean格式
 
-空集合，空字符串(去除空格)，字符串"false"返回`false`，其他返回`true`
+空字符串(去除空格)，字符串"false"返回`false`，其他返回`true`，如果是集合，则会深度获取数据再转换。
 
-```json
+```js
 {
     "#boolean":"字段1,字段2..."
 }
 ```
 
+### 脱敏规则
+
+脱敏规则也是结果替换规则的一部分，脱敏规则需要通过接口配置
+
+```java
+/**
+ * 扩展配置
+ */
+public interface CoreConfigurer {
+
+
+    /**
+     * 添加脱敏规则，如果添加了自定义脱敏器，那么就不需要设置left，right
+     */
+    default void addDesensitize(List<Desensitization> desensitize) {
+    }
+
+
+}
+```
+
+脱敏规则有多种配置方式
+
+1. 配置左右保留字符串的数量，如左边保留3个字符，右边保留4个字符
+   
+   ```java
+   @Component
+   public class TestCoreConfigurer implements CoreConfigurer {
+   
+       @Override
+       public void addDesensitize(List<Desensitization> desensitize) {
+           Desensitization build = Desensitization.builder().table("info")
+                   .column("title")
+                   .left(3)
+                   .right(4)
+                   .build();
+           desensitize.add(build);
+       }
+   }
+   
+   ```
+
+2. 配置左右保留字符的百分比，如左边保留20%，右边保留30%
+   
+   ```java
+    Desensitization build = Desensitization.builder().table("info")
+                   .column("title")
+                   .left(0.2)
+                   .right(0.3)
+                   .build();
+           desensitize.add(build);
+   ```
+
+3. 使用自定义方法自行处理
+   
+   ```java
+    Desensitization build = Desensitization.builder().table("info")
+                   .column("title")
+                   .desensitize((title) -> "a" + title + "c")
+                   .build(););
+       }
+   }
+   ```
+
+    2. 配置左右保留字符的百分比
+
 # 自定义查询规则
 
-有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`两个接口，可供不同情况下选择使用。这两个接口的本质都是在实现类中对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`
-中。这两个接口都继承了`Ordered`接口，所以需要指定解析类的顺序。
+有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`两个接口，可供不同情况下选择使用。这两个接口的功能都是对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`中。这两个接口都继承了`Ordered`接口，所以需要指定解析类的顺序。
 
 ## 实现ParamsParser接口
 
@@ -554,8 +638,7 @@ public interface AfterQueryEnhance extends ServiceEnhance {
 
 # 自定义结果替换规则
 
-结果替换规则由增强类`ValueReplaceEnhance`实现，这也是一个增强规则，在这个增强类中定义了`#`规则和使用`ValueReplace`
-接口作为替换规则的实现方式。
+结果替换规则由增强类`ValueReplaceEnhance`实现，这也是一个增强规则，在这个增强类中定义了`#`符号作为替换规则标识和使用`ValueReplace`接口作为替换规则的实现方式。
 
 #### 实现ValueReplace接口
 
@@ -563,7 +646,7 @@ replace方法第一个参数是前端参数解析后的SQL定义信息
 
 第二个参数是规则去掉#后的字符串，如前端参数传递了一个数字格式化规则
 
-```json
+```js
 {
     "#num0.00":"score"
 }
@@ -593,32 +676,24 @@ public interface ValueReplace {
 实现`ExtendConfigurer`接口
 
 ```java
-@Component
-public class Demo implements ExtendConfigurer {
-    @Override
-    public void setTableRelations(List<TableRelation> tableRelations) {
-        //配置表的关联关系，有两种方式，如test1.id=test2.test1_id
-        tableRelations.add(new TableRelation("test1.id","test2.test1_id"));
-        tableRelations.add(new TableRelation("test1","id","test2","test1_id"));
+/**
+ * 扩展配置
+ */
+public interface CoreConfigurer {
+
+
+    /**
+     * 添加脱敏规则，如果添加了自定义脱敏器，那么就不需要设置left，right
+     */
+    default void addDesensitize(List<Desensitization> desensitize) {
     }
 
 
-    @Override
-    public void setExcludeColumns(List<Table> excludeColumns) {
-        //配置排除的字段，使该字段无法被前端查询。如果前端指定了该字段，那么会抛出异常
-        excludeColumns.add(new Table("user","password"));
-    }
-
-
-    @Override
-    public void setSkipAuth(List<ApiMatch> apiMatches) {
-        //配置跳过认证的接口，使用ant风格，可以匹配一种或多种请求方式，*表示匹配所有请求方式
-        apiMatches.add(new ApiMatch("/test/**","get,post"));
-    }
 }
+
 ```
 
-# ymal配置
+# yaml配置
 
 ```yml
 semi-finished:
@@ -662,7 +737,7 @@ spring:
           - password   # 把user表的password字段排除 
 ```
 
-```json
+```js
 {
     "@tb":"person",
     "@":"password,age,name",

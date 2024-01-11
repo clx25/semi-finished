@@ -47,7 +47,8 @@ public class AliasKeyValueParser implements SelectParamsParser {
         if (value instanceof ArrayNode) {
             values = new String[value.size()];
             for (int i = 0; i < value.size(); i++) {
-                values[i] = value.get(i).asText();
+                values[i] = value.get(i).asText(null);
+                Assert.hasNotText(values[i], () -> new ParamsException("别名不能为空：" + key));
             }
         } else {
             values = value.asText().split(",");

@@ -81,7 +81,7 @@ public class ParamsExceptionTest {
     @DisplayName("插值规则错误")
     public void testInterpolation() {
         String params = "{\"@tb\":\"menu\",\"id\":\"4\",\"id$\":\"abc\"}";
-        testCommon.testException(params, "插值规则未找到对应的值：abc");
+        testCommon.testException(params, "插值规则未找到对应的值：id$");
     }
 
 

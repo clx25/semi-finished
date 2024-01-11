@@ -13,7 +13,7 @@
 
     <groupId>com.semifinished</groupId>
     <artifactId>semi-finished</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>semi-finished-core</module>
@@ -76,18 +76,6 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.8.1</version> <!-- 检查最新的版本 -->
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite-api</artifactId>
-            <version>1.8.2</version>
             <scope>test</scope>
         </dependency>
 

@@ -37,7 +37,7 @@ public class InterpolationParser implements ParamsParser {
                     //如果是$结尾，表示使用插值规则，需要获取实际值
                     if (k.endsWith("$")) {
                         k = k.substring(0, k.length() - 1);
-                        v = interpolation(table, k, v.asText(), sqlDefinition);
+                        v = interpolation(table, k, v, sqlDefinition);
                     }
                     params.remove(e.getKey());
                     params.set(k, v);
@@ -46,13 +46,14 @@ public class InterpolationParser implements ParamsParser {
     }
 
 
-    private JsonNode interpolation(String table, String key, String interpolatedKey, SqlDefinition sqlDefinition) {
+    private JsonNode interpolation(String table, String key, JsonNode interpolatedKey, SqlDefinition sqlDefinition) {
+
         for (Interpolation interpolation : interpolations) {
             if (interpolation.match(key, interpolatedKey)) {
                 return interpolation.value(table, key, interpolatedKey, sqlDefinition);
             }
         }
-        throw new ParamsException("插值规则未找到对应的值：" + interpolatedKey);
+        throw new ParamsException("插值规则未找到对应的值：" + key + "$");
     }
 
     @Override

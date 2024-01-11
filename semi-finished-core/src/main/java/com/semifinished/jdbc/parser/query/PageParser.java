@@ -35,14 +35,16 @@ public class PageParser implements ParamsParser {
 
         JsonNode pageSizeNode = params.remove(configProperties.getPageSizeKey());
 
-        if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE)) {
-            Assert.isTrue(pageNumNode != null || pageSizeNode != null, () -> new ParamsException("分页规则位置错误"));
-            return;
-        }
+
         if (pageNumNode == null && pageSizeNode == null) {
-            sqlDefinition.setMaxPageSize(configProperties.getMaxPageSize());
+            if (sqlDefinition.getStatus() == ParserStatus.NORMAL.getStatus()) {
+                sqlDefinition.setMaxPageSize(configProperties.getMaxPageSize());
+            }
             return;
         }
+
+        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE), () -> new ParamsException("分页规则位置错误"));
+
 
         if (pageNumNode != null) {
             sqlDefinition.setPageNum(pageNumNode.asInt(10));

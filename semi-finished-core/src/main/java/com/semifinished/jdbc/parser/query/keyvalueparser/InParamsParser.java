@@ -75,7 +75,7 @@ public class InParamsParser implements SelectParamsParser {
             column = getColumn(sqlDefinition, table, column.trim());
         }
 
-        List<Object> values = parseValues(value, inColumns.length);
+        List<Object> values = parseValues(value, inColumns.length,key);
 
         populateValueCondition(sqlDefinition, table, key, valueCondition, values, column);
         return true;
@@ -86,9 +86,10 @@ public class InParamsParser implements SelectParamsParser {
      *
      * @param value  前端传入的in查询的数据
      * @param length 查询字段数量
+     * @param key
      * @return 解析后的数据集合
      */
-    private static List<Object> parseValues(JsonNode value, int length) {
+    private static List<Object> parseValues(JsonNode value, int length, String key) {
         List<Object> values = new ArrayList<>();
         if (value instanceof ArrayNode) {
             List<String> nodes = new ArrayList<>();
@@ -104,7 +105,8 @@ public class InParamsParser implements SelectParamsParser {
             });
             return values;
         }
-        String text = value.asText();
+        String text = value.asText(null);
+        Assert.hasNotText(text, () -> new ParamsException("in规则字段不能为空：" + key));
         if (length == 1) {
             values.addAll(Arrays.asList(text.split(",")));
             return values;

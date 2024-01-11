@@ -64,16 +64,20 @@ public class RangeParamsParser implements SelectParamsParser {
             operator = (char) (62 ^ 60 ^ chars[0]);
             count -= offset;
             if ((lastIndex = hasLast(chars)) > 0) {
+                String text = value.asText(null);
+                Assert.hasNotText(text, () -> new ParamsException("范围规则值不能为空：" + key));
                 Assert.isFalse(chars[0] == chars[lastIndex], () -> new ParamsException(key + "参数错误"));
                 String column = new String(chars, offset, lastIndex - offset);
                 column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
                 tableUtils.validColumnsName(sqlDefinition, table, column);
                 valueCondition.setColumn(column);
-                String[] values = value.asText().split(",");
+
+                String[] values = text.split(",");
 
                 JsonNode finalValue = value;
                 Assert.isFalse(values.length == 2, () -> new ParamsException(key + "与" + finalValue.asText() + "不匹配"));
                 String argsKey = table + "_" + column;
+
                 populateSqlDefinition(valueCondition,
                         (char) (62 ^ 60 ^ chars[0]) + (offset == 2 ? "=" : ""),
                         argsKey + "_prefix",
@@ -102,11 +106,11 @@ public class RangeParamsParser implements SelectParamsParser {
             count = lastIndex;
             value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
         }
-
         if (operator == 0) {
             return false;
         }
-
+        String text = value.asText(null);
+        Assert.hasNotText(text, () -> new ParamsException("范围规则值不能为空：" + key));
         String column = new String(chars, offset, count);
 
         column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
@@ -116,7 +120,7 @@ public class RangeParamsParser implements SelectParamsParser {
         populateSqlDefinition(valueCondition,
                 operator + ((length - count) == 2 ? "=" : ""),
                 "range_" + table + "_" + column,
-                value.asText(),
+                text,
                 sqlDefinition);
 
 

@@ -6,7 +6,7 @@ import com.semifinished.pojo.Desensitization;
 import java.util.List;
 
 /**
- * 使用代码的方式配置
+ * 扩展配置
  */
 public interface CoreConfigurer {
 
