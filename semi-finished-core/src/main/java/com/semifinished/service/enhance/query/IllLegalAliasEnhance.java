@@ -1,7 +1,7 @@
 package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
@@ -21,7 +21,7 @@ public class IllLegalAliasEnhance implements AfterQueryEnhance {
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {
         List<ObjectNode> records = page.getRecords();
-        List<Column> illegalAlias = SqlCombiner.illegalAlias(sqlDefinition);
+        List<Column> illegalAlias = QuerySqlCombiner.illegalAlias(sqlDefinition);
         if (illegalAlias.isEmpty()) {
             return;
         }

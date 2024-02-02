@@ -1,7 +1,7 @@
 package com.semifinished.service.enhance.query;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.SqlExecutorHolder;
 import com.semifinished.jdbc.parser.ParserExecutor;
@@ -105,8 +105,8 @@ public class GroupByEnhance implements AfterQueryEnhance {
     @Override
     public void afterParse(SqlDefinition sqlDefinition) {
 
-        List<Column> columnsAll = SqlCombiner.queryColumns(sqlDefinition);
-        List<Column> groupByAll = SqlCombiner.groupByAll(sqlDefinition);
+        List<Column> columnsAll = QuerySqlCombiner.queryColumns(sqlDefinition);
+        List<Column> groupByAll = QuerySqlCombiner.groupByAll(sqlDefinition);
 
         completion(sqlDefinition, groupByAll, columnsAll);
 
@@ -156,8 +156,8 @@ public class GroupByEnhance implements AfterQueryEnhance {
     }
 
     private void combine(SqlDefinition sqlDefinition, List<ObjectNode> records) {
-        List<Column> columns = SqlCombiner.queryColumns(sqlDefinition);
-        List<Column> groupBy = SqlCombiner.groupByAll(sqlDefinition);
+        List<Column> columns = QuerySqlCombiner.queryColumns(sqlDefinition);
+        List<Column> groupBy = QuerySqlCombiner.groupByAll(sqlDefinition);
 
         //获取合并字段
         List<String> mergeColumns = getMergeColumns(columns, groupBy);
@@ -175,10 +175,10 @@ public class GroupByEnhance implements AfterQueryEnhance {
         SqlDefinition sqlDef = buildSecondSqlSqlDefinition(sqlDefinition, secondQueryColumns, groupBy, argValue);
 
         //获取查询SQL
-        String sql = SqlCombiner.creatorSqlWithoutLimit(sqlDef);
+        String sql = QuerySqlCombiner.creatorSqlWithoutLimit(sqlDef);
 
         //执行查询
-        List<ObjectNode> noGroupRecords = sqlExecutorHolder.dataSource(sqlDef.getDataSource()).list(sql, SqlCombiner.getArgs(sqlDef));
+        List<ObjectNode> noGroupRecords = sqlExecutorHolder.dataSource(sqlDef.getDataSource()).list(sql, QuerySqlCombiner.getArgs(sqlDef));
 
         //合并数据
         merge(records, groupBy, mergeColumns, matchColumns, noGroupRecords);

@@ -58,5 +58,10 @@ public class ConfigProperties {
      */
     private String bracketsKey = "value";
 
+    /**
+     * 主键字段
+     */
+    private String idKey="id";
+
 
 }

@@ -4,7 +4,7 @@ package com.semifinished.util.bean;
 import com.semifinished.cache.CoreCacheKey;
 import com.semifinished.cache.SemiCache;
 import com.semifinished.exception.ParamsException;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
@@ -66,7 +66,7 @@ public class TableUtils {
             //如果是子查询，校验字段名称应该判断是否是子查询返回的字段
             SqlDefinition subTable = sqlDefinition.getSubTable();
             if (subTable != null) {
-                tableColumnsName = SqlCombiner.queryColumns(subTable);
+                tableColumnsName = QuerySqlCombiner.queryColumns(subTable);
                 sub = true;
             }
         }

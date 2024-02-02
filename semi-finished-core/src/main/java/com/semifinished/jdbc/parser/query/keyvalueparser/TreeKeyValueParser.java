@@ -3,7 +3,7 @@ package com.semifinished.jdbc.parser.query.keyvalueparser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.ParamsException;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.SelectParamsParser;
 import com.semifinished.jdbc.parser.query.CommonParser;
@@ -38,7 +38,7 @@ public class TreeKeyValueParser implements SelectParamsParser {
         }
         ObjectNode expand = sqlDefinition.getExpand();
         expand = expand.with("^");
-        List<Column> columns = SqlCombiner.queryColumns(sqlDefinition);
+        List<Column> columns = QuerySqlCombiner.queryColumns(sqlDefinition);
 
         Set<String> columnsSet = columns.stream().filter(column -> !column.isDisabled()).filter(column -> table.equals(column.getTable())).map(Column::getColumn).collect(Collectors.toSet());
 

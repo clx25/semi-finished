@@ -21,10 +21,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * 把{@link SqlDefinition}中的数据组合成sql的接口
+ * 把{@link SqlDefinition}中的数据组合成查询SQL
  */
 
-public class SqlCombiner {
+public class QuerySqlCombiner {
 
 
     /**
@@ -179,7 +179,7 @@ public class SqlCombiner {
 
         //构建查询字段SQL片段
         String queryColumns = Stream.concat(columnsStream, aggregationColumns.stream())
-                .map(SqlCombiner::columnItem)
+                .map(QuerySqlCombiner::columnItem)
                 .collect(Collectors.joining(","));
 
         return (sqlDefinition.isDistinct() ? " distinct " : "") + queryColumns;

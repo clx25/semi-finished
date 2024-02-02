@@ -3,7 +3,7 @@ package com.semifinished.service.enhance.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Page;
@@ -30,7 +30,7 @@ public class ExcludeEnhance implements AfterQueryEnhance {
             return;
         }
 
-        List<String> excludeColumns = SqlCombiner.excludeColumns(sqlDefinition).stream()
+        List<String> excludeColumns = QuerySqlCombiner.excludeColumns(sqlDefinition).stream()
                 .map(Column::getColumn).collect(Collectors.toList());
 
         for (ObjectNode record : records) {

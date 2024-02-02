@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.CodeException;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.SqlExecutorHolder;
 import com.semifinished.jdbc.parser.ParserExecutor;
@@ -45,7 +45,7 @@ public class DictEnhance implements AfterQueryEnhance {
 
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {
-        List<SqlDefinition> dictList = SqlCombiner.dicts(sqlDefinition);
+        List<SqlDefinition> dictList = QuerySqlCombiner.dicts(sqlDefinition);
         List<ObjectNode> records = page.getRecords();
 
         for (SqlDefinition definition : dictList) {
@@ -61,10 +61,10 @@ public class DictEnhance implements AfterQueryEnhance {
             buildQuery(definition, args, inCol);
 
             //获取查询SQL
-            String sql = SqlCombiner.creatorSqlWithoutLimit(definition);
+            String sql = QuerySqlCombiner.creatorSqlWithoutLimit(definition);
 
             //查询数据
-            List<ObjectNode> secondRecords = sqlExecutorHolder.dataSource(definition.getDataSource()).list(sql, SqlCombiner.getArgs(definition));
+            List<ObjectNode> secondRecords = sqlExecutorHolder.dataSource(definition.getDataSource()).list(sql, QuerySqlCombiner.getArgs(definition));
 
             //合并数据
             combine(definition, records, secondRecords, definition.getRowStart(), definition.getRowEnd());

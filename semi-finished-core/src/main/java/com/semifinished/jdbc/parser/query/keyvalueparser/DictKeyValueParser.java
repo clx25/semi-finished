@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.ParserExecutor;
 import com.semifinished.jdbc.parser.SelectParamsParser;
@@ -92,7 +92,7 @@ public class DictKeyValueParser implements SelectParamsParser {
      */
     private String complete(SqlDefinition sqlDefinition, SqlDefinition dict, String column, String alias) {
         String table = sqlDefinition.getTable();
-        return SqlCombiner.queryColumns(sqlDefinition).stream()
+        return QuerySqlCombiner.queryColumns(sqlDefinition).stream()
                 .filter(col -> table.equals(col.getTable()) && column.equals(col.getColumn()))
                 .findFirst()
                 .map(col -> ParamsUtils.hasText(col.getAlias(), column))

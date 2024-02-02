@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.ParamsException;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.parser.query.CommonParser;
 import com.semifinished.pojo.Column;
@@ -39,7 +39,7 @@ public class ValueReplaceEnhance implements AfterQueryEnhance {
             return;
         }
 
-        List<ValueReplace> valueReplaces = SqlCombiner.valueReplacesAll(sqlDefinition);
+        List<ValueReplace> valueReplaces = QuerySqlCombiner.valueReplacesAll(sqlDefinition);
         if (valueReplaces.isEmpty()) {
             return;
         }
@@ -58,7 +58,7 @@ public class ValueReplaceEnhance implements AfterQueryEnhance {
      */
     private void replaceValue(SqlDefinition sqlDefinition, ValueReplace valueReplace, List<ObjectNode> objectNodes) {
         String table = valueReplace.getTable();
-        List<Column> columns = SqlCombiner.columnsAll(sqlDefinition);
+        List<Column> columns = QuerySqlCombiner.columnsAll(sqlDefinition);
 
         List<String> recodeKeys = new ArrayList<>();
         for (String field : valueReplace.getColumn().split(",")) {

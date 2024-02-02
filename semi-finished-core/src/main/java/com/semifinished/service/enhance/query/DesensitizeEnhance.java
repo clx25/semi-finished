@@ -3,7 +3,7 @@ package com.semifinished.service.enhance.query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
 import com.semifinished.pojo.Desensitization;
@@ -53,7 +53,7 @@ public class DesensitizeEnhance implements AfterQueryEnhance {
      */
     private Map<String, Function<JsonNode, JsonNode>> getDesensitizeMap(SqlDefinition sqlDefinition) {
 
-        List<Column> columns = SqlCombiner.columnAggregationAll(sqlDefinition);
+        List<Column> columns = QuerySqlCombiner.columnAggregationAll(sqlDefinition);
 
         Map<String, Function<JsonNode, JsonNode>> desensitizeMap = new HashMap<>();
 

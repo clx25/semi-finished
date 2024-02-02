@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.exception.ParamsException;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Page;
 import com.semifinished.util.Assert;
@@ -42,7 +42,7 @@ public class TreeEnhance implements AfterQueryEnhance {
 
     @Override
     public void afterParse(SqlDefinition sqlDefinition) {
-        List<ObjectNode> expandAll = SqlCombiner.expandAll(sqlDefinition);
+        List<ObjectNode> expandAll = QuerySqlCombiner.expandAll(sqlDefinition);
         Set<String> repeat = new HashSet<>();
         StringJoiner sj = new StringJoiner(",");
         boolean needToTree = false;
@@ -75,7 +75,7 @@ public class TreeEnhance implements AfterQueryEnhance {
         }
 
 
-        List<ObjectNode> expandAll = SqlCombiner.expandAll(sqlDefinition);
+        List<ObjectNode> expandAll = QuerySqlCombiner.expandAll(sqlDefinition);
         ObjectNode treeConfig = JsonNodeFactory.instance.objectNode();
         boolean needToTree = false;
         for (ObjectNode expand : expandAll) {

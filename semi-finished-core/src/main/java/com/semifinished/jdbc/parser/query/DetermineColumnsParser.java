@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.constant.ParserStatus;
 import com.semifinished.exception.ParamsException;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.pojo.Column;
 import com.semifinished.util.Assert;
@@ -148,7 +148,7 @@ public class DetermineColumnsParser implements ParamsParser {
             //如果是子查询，外层查询的字段就是内层返回的字段
             SqlDefinition subTable = sqlDefinition.getSubTable();
             if (subTable != null) {
-                columns = SqlCombiner.queryColumns(subTable);
+                columns = QuerySqlCombiner.queryColumns(subTable);
                 Assert.isEmpty(columns, () -> new ParamsException("请求字段为空"));
             }
         }

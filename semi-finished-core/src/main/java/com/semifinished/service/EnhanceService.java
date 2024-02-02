@@ -3,7 +3,7 @@ package com.semifinished.service;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.config.ConfigProperties;
-import com.semifinished.jdbc.SqlCombiner;
+import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.SqlExecutorHolder;
 import com.semifinished.jdbc.parser.ParserExecutor;
@@ -143,11 +143,11 @@ public class EnhanceService {
         Page page = createPage(sqlDefinition);
 
         //组装查询SQL并获取
-        String sql = SqlCombiner.select(sqlDefinition);
+        String sql = QuerySqlCombiner.select(sqlDefinition);
 
         //执行查询
         List<ObjectNode> objectNodes = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-                .list(sql, SqlCombiner.getArgs(sqlDefinition));
+                .list(sql, QuerySqlCombiner.getArgs(sqlDefinition));
 
         page.setRecords(objectNodes);
         page.setSize(objectNodes.size());
@@ -170,7 +170,7 @@ public class EnhanceService {
         int pageSize = sqlDefinition.getPageSize();
 
         int total = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-                .total(SqlCombiner.creatorSqlWithoutLimit(sqlDefinition), SqlCombiner.getArgs(sqlDefinition));
+                .total(QuerySqlCombiner.creatorSqlWithoutLimit(sqlDefinition), QuerySqlCombiner.getArgs(sqlDefinition));
 
         //参数合理化
         if (configProperties.isPageNormalized() && total != 0 && (pageNum - 1) * pageSize >= total) {
