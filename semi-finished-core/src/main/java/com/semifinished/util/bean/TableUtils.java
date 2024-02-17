@@ -8,6 +8,7 @@ import com.semifinished.jdbc.QuerySqlCombiner;
 import com.semifinished.jdbc.SqlDefinition;
 import com.semifinished.jdbc.util.IdGenerator;
 import com.semifinished.pojo.Column;
+import com.semifinished.pojo.ValueCondition;
 import com.semifinished.util.Assert;
 import com.semifinished.util.ParamsUtils;
 import lombok.AllArgsConstructor;
@@ -141,5 +142,12 @@ public class TableUtils {
                 .collect(Collectors.toList());
     }
 
+    public void validType(List<ValueCondition> valueConditions,SqlDefinition sqlDefinition){
+        List<Column> columns = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + sqlDefinition.getDataSource());
+        columns.stream().collect(Collectors.toMap(column->column.getTable(),column -> column))
+        for (ValueCondition condition : valueConditions) {
+
+        }
+    }
 
 }

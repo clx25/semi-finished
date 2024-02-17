@@ -30,7 +30,7 @@ public class DataSourceParser implements ParamsParser {
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
 
-        JsonNode db = params.remove("@ds");
+        JsonNode db = params.remove("@db");
 
         if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.JOIN, ParserStatus.SUB_TABLE, ParserStatus.DICTIONARY)) {
             Assert.isTrue(db != null, () -> new ParamsException("数据源规则位置错误"));

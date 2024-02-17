@@ -35,16 +35,6 @@ public class EnhanceService {
 
 
     /**
-     * 不解析参数的查询
-     *
-     * @param sqlDefinition SQL定义信息
-     * @return 查询结果
-     */
-    public Object selectNoParse(SqlDefinition sqlDefinition) {
-        return select(sqlDefinition, false);
-    }
-
-    /**
      * 包含参数解析的查询
      *
      * @param params 被解析的参数
@@ -56,7 +46,7 @@ public class EnhanceService {
         }
         //解析后的sql定义信息类
         SqlDefinition sqlDefinition = new SqlDefinition(params);
-        return select(sqlDefinition, true);
+        return select(sqlDefinition);
     }
 
     /**
@@ -64,10 +54,9 @@ public class EnhanceService {
      * support，beforeParse，afterParse，afterPage，afterQuery方法。
      *
      * @param sqlDefinition SQL定义信息
-     * @param parse         是否执行请求参数解析,true执行，false不执行
      * @return 包含查询的结果和根据前端参数解析出的sql定义信息。
      */
-    public Object select(SqlDefinition sqlDefinition, boolean parse) {
+    public Object select(SqlDefinition sqlDefinition) {
 
         //判断此次请求使用的增强
         List<AfterQueryEnhance> enhances = supportEnhances(sqlDefinition);
@@ -76,10 +65,10 @@ public class EnhanceService {
         //执行增强中的beforeParse方法
         enhances.forEach(enhance -> enhance.beforeParse(sqlDefinition));
 
-        if (parse) {
-            //执行参数解析器
-            parserExecutor.parse(sqlDefinition);
-        }
+
+        //执行参数解析器
+        parserExecutor.parse(sqlDefinition);
+
 
         //执行增强中的afterParse方法
         enhances.forEach(enhance -> enhance.afterParse(sqlDefinition));

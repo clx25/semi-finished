@@ -24,20 +24,32 @@ public class UpdateSqlCombiner {
     public static String updateSQL(SqlDefinition sqlDefinition, String idKey) {
 
         List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
-        boolean match = valueConditions.stream().anyMatch(v -> idKey.equals(v.getColumn()));
-        Assert.isFalse(match, () -> new ParamsException("参数缺少主键字段：" + idKey));
-        //todo 校验类型和是否为空
 
+        Optional<ValueCondition> first = valueConditions.stream().filter(v -> idKey.equals(v.getColumn())).findFirst();
+        ValueCondition valueCondition = first.orElseThrow(() -> new ParamsException("参数缺少主键字段：" + idKey));
+
+        Assert.isFalse(valueConditions.size() > 1, () -> new ParamsException("缺少修改数据内容"));
+
+        //todo 校验类型和是否为空
         StringBuilder sql = new StringBuilder(" update ")
                 .append(sqlDefinition.getTable())
                 .append(" set ");
 
-        for (ValueCondition valueCondition : valueConditions) {
-            sql.append(valueCondition.getColumn())
-                    .append(" = ")
-                    .append(valueCondition.getValue());
+        valueConditions = valueConditions.stream().filter(v -> !idKey.equals(v.getColumn())).collect(Collectors.toList());
+        for (ValueCondition condition : valueConditions) {
+            sql.append(condition.getColumn())
+                    .append(" = '")
+                    .append(condition.getValue())
+                    .append("' ");
         }
-        return sql.toString();
+
+        return sql.append(" where ")
+                .append(idKey)
+                .append("='")
+                .append(valueCondition.getValue())
+                .append("'")
+                .toString();
+
     }
 
 
@@ -50,18 +62,19 @@ public class UpdateSqlCombiner {
      */
     public static String addSQLExcludeId(SqlDefinition sqlDefinition, String idKey) {
         List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
-        valueConditions = valueConditions.stream().filter(v -> !idKey.equals(v.getColumn())).collect(Collectors.toList());
 
+        valueConditions = valueConditions.stream().filter(v -> !idKey.equals(v.getColumn())).collect(Collectors.toList());
+        Assert.isEmpty(valueConditions, () -> new ParamsException("缺少新增数据内容"));
 
         StringJoiner columns = new StringJoiner(",", "(", ")");
         StringJoiner values = new StringJoiner(",", "(", ")");
         for (ValueCondition valueCondition : valueConditions) {
             columns.add(valueCondition.getColumn());
             Object value = valueCondition.getValue();
-            values.add(value == null ? null : String.valueOf(value));
+            values.add(value == null ? null : ("'" + value) + "'");
         }
 
-        return " insert into " + sqlDefinition.getTable() + columns + " " + values;
+        return " insert into " + sqlDefinition.getTable() + columns + " values" + values;
     }
 
     /**
@@ -80,7 +93,7 @@ public class UpdateSqlCombiner {
 
         Assert.hasNotText(value == null ? null : String.valueOf(value), () -> new ParamsException("删除的值不能为空"));
 
-        return " delete from " + sqlDefinition.getTable() + " where " + idKey + "=" + value;
+        return " delete from " + sqlDefinition.getTable() + " where " + idKey + "='" + value + "'";
 
     }
 }

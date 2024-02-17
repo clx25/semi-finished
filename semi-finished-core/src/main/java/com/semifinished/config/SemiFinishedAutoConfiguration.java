@@ -134,6 +134,8 @@ public class SemiFinishedAutoConfiguration implements InitializingBean {
             //注册SQLExecutor
             springBeanUtils.registerBean(SqlExecutor.class, () -> new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate), "sqlExecutor" + name);
         }
+
+
     }
 
 

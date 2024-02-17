@@ -2,13 +2,10 @@ package com.semifinished;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @SpringBootApplication
-public class TestApp {
+public class UpdateTest {
     public static void main(String[] args) {
-        SpringApplication.run(TestApp.class, args);
+        SpringApplication.run(UpdateTest.class, args);
     }
-
-
 }

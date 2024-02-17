@@ -65,7 +65,7 @@ public class RequestNodeResolver extends AbstractNamedValueMethodArgumentResolve
      */
     @Override
     protected void handleMissingValue(@NonNull String name, @NonNull MethodParameter parameter, @NonNull NativeWebRequest request) {
-        throw new ParamsException("缺少参数：" + name);
+        throw new ParamsException("缺少参数");
     }
 
     @Override
