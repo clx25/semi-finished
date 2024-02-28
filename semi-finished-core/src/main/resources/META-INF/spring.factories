@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.semifinished.config.SemiFinishedAutoConfiguration
+  com.semifinished.core.config.SemiFinishedAutoConfiguration

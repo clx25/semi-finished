@@ -1,0 +1,29 @@
+package com.semifinished.core.controller;
+
+import com.semifinished.core.pojo.Result;
+import com.semifinished.core.service.EnhanceService;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+
+@RestController
+@AllArgsConstructor
+public class EnhanceController {
+
+    private final EnhanceService enhanceService;
+
+    /**
+     * 根据条件获取所有数据
+     *
+     * @param params 查询条件
+     * @return 查询出的结果列表
+     */
+    @PostMapping(value = "enhance")
+    public Object selectPostMapping(@RequestBody(required = false) ObjectNode params) {
+        return Result.success(enhanceService.select(params));
+    }
+
+}

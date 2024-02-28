@@ -382,7 +382,7 @@ public class RandomInterpolation implements Interpolation {
 与join规则基本相同，只是把`&`改为`:`，表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`也与`join`规则相同，是两个表的关联关系`user.id=order.user_id`。
 
 该查询会先查询`user`表，获取`id`后用`in`查询去查`order`
-表，最后合并。由于id名称重复，所以使用别名规则修改`order.id`的返回字段名。暂不支持深度映射和一个字段对应多个表映射。
+表，最后合并。由于id名称重复，所以使用别名规则修改`order.id`的返回字段名。
 
 ```js
 {
@@ -392,6 +392,33 @@ public class RandomInterpolation implements Interpolation {
         "@on":"user_id",
         ":":"id:orderId"
     }
+}
+```
+
+支持深度映射和一个字段对应多个表映射。
+
+如下查询,获取用户的角色名称和部门id：根据`user`表的`id`匹配`user_role`表和`user_dept`表的`user_id`获取`role_id`和`dept_id`，再根据`role_id`获取`role`表中的`name`
+
+```js
+{
+    "@tb": "user",
+    "id:": [
+        {
+            "@tb": "user_role",
+            "@on": "user_id",
+            "@": "",
+            "role_id:":{
+                "@tb":"role",
+                "@on":"id",
+                "@":"name"
+            }
+        },
+        {
+            "@tb": "user_dept",
+            "@on": "user_id",
+            "@": "dept_id"
+        }
+    ]
 }
 ```
 
@@ -502,7 +529,6 @@ public interface CoreConfigurer {
            desensitize.add(build);
        }
    }
-   
    ```
 
 2. 配置左右保留字符的百分比，如左边保留20%，右边保留30%
@@ -690,7 +716,6 @@ public interface CoreConfigurer {
 
 
 }
-
 ```
 
 # yaml配置
