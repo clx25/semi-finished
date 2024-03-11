@@ -1,6 +1,8 @@
 package com.semifinished.core.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ProjectRuntimeException;
 import org.springframework.util.StringUtils;
 
@@ -44,7 +46,8 @@ public class Assert {
         }
     }
 
-    public static void isEmpty(JsonNode jsonNode, Supplier<ProjectRuntimeException> supplier) {
+
+    public static void isEmpty(ContainerNode<?> jsonNode, Supplier<ProjectRuntimeException> supplier) {
         if (jsonNode == null || jsonNode.isEmpty()) {
             throw supplier.get();
         }
@@ -58,6 +61,12 @@ public class Assert {
 
     public static void isEmpty(Object[] array, Supplier<ProjectRuntimeException> supplier) {
         if (array == null || array.length == 0) {
+            throw supplier.get();
+        }
+    }
+
+    public static void isMissNode(JsonNode jsonNode, Supplier<ProjectRuntimeException> supplier) {
+        if (jsonNode == null || jsonNode.isMissingNode()) {
             throw supplier.get();
         }
     }

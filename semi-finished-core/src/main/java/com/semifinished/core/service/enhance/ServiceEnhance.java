@@ -3,6 +3,10 @@ package com.semifinished.core.service.enhance;
 
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.parser.query.ParamsParser;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.util.Objects;
 
 /**
  * 对查询结果进行增强
@@ -24,6 +28,37 @@ public interface ServiceEnhance {
         return true;
     }
 
+    /**
+     * 判断请求参数中@bean的值是否等于实现类的beanName
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return 如果请求参数中@bean的值等于实现类的beanName那么返回true，不想等则返回false
+     */
+    default boolean supportForBeanName(SqlDefinition sqlDefinition) {
+        String beans = sqlDefinition.getParams().path("@bean").asText(null);
+        if (!StringUtils.hasText(beans)) {
+            return false;
+        }
+
+        String name = name();
+        for (String bean : beans.split(",")) {
+            if (name != null && Objects.equals(name, bean)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    default String name() {
+        Component component = this.getClass().getAnnotation(Component.class);
+        if (component != null) {
+            String value = component.value();
+            if (StringUtils.hasText(value)) {
+                return value;
+            }
+        }
+        return StringUtils.uncapitalize(this.getClass().getSimpleName());
+    }
 
     /**
      * 在参数解析参数之前执行

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.constant.ParserStatus;
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
+import com.semifinished.core.jdbc.parser.query.keyvalueparser.KeyValueParamsParser;
 import com.semifinished.core.pojo.AggregationFun;
 import com.semifinished.core.pojo.Column;
 import com.semifinished.core.pojo.ValueCondition;
@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * sql的定义文件，所有解析出来的数据保存到里面，根据这些数据生成sql
  *
- * @see SelectParamsParser
+ * @see KeyValueParamsParser
  */
 @Getter
 @Setter
@@ -63,7 +63,7 @@ public class SqlDefinition {
     /**
      * 当前登录用户的信息
      */
-    private ObjectNode user;
+//    private ObjectNode user;
 
     /**
      * 查询的主表

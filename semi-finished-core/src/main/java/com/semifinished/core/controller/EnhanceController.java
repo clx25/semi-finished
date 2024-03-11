@@ -1,9 +1,11 @@
 package com.semifinished.core.controller;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.core.annontation.RequestParamNode;
 import com.semifinished.core.pojo.Result;
 import com.semifinished.core.service.EnhanceService;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,9 +23,19 @@ public class EnhanceController {
      * @param params 查询条件
      * @return 查询出的结果列表
      */
-    @PostMapping(value = "enhance")
-    public Object selectPostMapping(@RequestBody(required = false) ObjectNode params) {
-        return Result.success(enhanceService.select(params));
+    @PostMapping(value = "enhance",name = "SEMI-JSON-API-QUERY")
+    public Object queryPostMapping(@RequestBody(required = false) ObjectNode params) {
+        return Result.success(enhanceService.query(params));
     }
 
+    /**
+     * 配置接口GET请求的调用方法
+     *
+     * @param params 请求参数
+     * @return 结果列表
+     */
+    @GetMapping(value = "enhance",name = "SEMI-JSON-API")
+    public Object queryGetMapping(@RequestParamNode(required = false) ObjectNode params) {
+        return Result.success(enhanceService.query(params));
+    }
 }

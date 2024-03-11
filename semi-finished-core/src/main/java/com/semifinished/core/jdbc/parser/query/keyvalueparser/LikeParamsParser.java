@@ -1,6 +1,5 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
 import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.annontation.Where;
@@ -29,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Where
 @Component
 @AllArgsConstructor
-public class LikeParamsParser implements SelectParamsParser {
+public class LikeParamsParser implements KeyValueParamsParser {
 
     private final CommonParser commonParser;
     private final TableUtils tableUtils;

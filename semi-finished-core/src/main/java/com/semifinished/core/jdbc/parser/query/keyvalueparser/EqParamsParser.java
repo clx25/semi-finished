@@ -4,7 +4,6 @@ import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.annontation.Where;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.ParamsUtils;
 import com.semifinished.core.utils.ParserUtils;
@@ -27,7 +26,7 @@ import org.springframework.stereotype.Component;
 @Where
 @Component
 @RequiredArgsConstructor
-public class EqParamsParser implements SelectParamsParser {
+public class EqParamsParser implements KeyValueParamsParser {
 
     private final CommonParser commonParser;
     private final TableUtils tableUtils;
@@ -69,7 +68,7 @@ public class EqParamsParser implements SelectParamsParser {
         }
         valueCondition.setCondition((conditionBoolean ? "" : "!") + "=:" + argName);
 
-        valueCondition.setValue(value.isBoolean() ? value.asBoolean() : value.asText());
+        valueCondition.setValue(value.isBoolean() ? value.asBoolean() : value.asText(null));
         if (log.isDebugEnabled()) {
             log.debug("表" + table + "添加查询条件" + key + (conditionBoolean ? "" : "!") + "=" + value.asText());
         }

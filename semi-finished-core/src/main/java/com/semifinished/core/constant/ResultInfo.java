@@ -1,5 +1,6 @@
 package com.semifinished.core.constant;
 
+import com.semifinished.core.pojo.Result;
 import lombok.Getter;
 
 /**
@@ -7,10 +8,7 @@ import lombok.Getter;
  */
 @Getter
 public enum ResultInfo {
-    UNAUTHORIZED("未认证", 401),
     DATA_NOT_FIND("数据未找到", 4001),
-    AUTHENTICATION("账号或密码错误", 4002),
-    CAPTCHA_ERROR("验证码错误", 4003),
     PAYLOAD_ERROR("请求参数错误", 4005),
     METHOD_ERROR("请求方式错误", 4006),
     PAYLOAD_NOT_EMPTY("参数不能为空", 4007),

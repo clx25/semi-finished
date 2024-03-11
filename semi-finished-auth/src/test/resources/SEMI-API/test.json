@@ -1,0 +1,27 @@
+{
+  "/userInfo": {
+    "method": "get",
+    "params": {
+      "@tb": "semi_user",
+      "@": "username",
+      "username$": "username",
+      "id:": [
+        {
+          "@tb": "semi_user_role",
+          "@on": "user_id",
+          "@": "",
+          "role_id:": {
+            "@tb": "semi_role",
+            "@on": "id",
+            "@": "name"
+          }
+        },
+        {
+          "@tb": "semi_user_dept",
+          "@on": "user_id",
+          "@": "dept_id"
+        }
+      ]
+    }
+  }
+}

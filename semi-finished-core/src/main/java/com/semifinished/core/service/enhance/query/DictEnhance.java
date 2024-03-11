@@ -53,7 +53,9 @@ public class DictEnhance implements AfterQueryEnhance {
 
             //获取关联字段的数据集合
             List<String> args = getArgs(records, joinOn.getFirst());
-
+            if (args.isEmpty()) {
+                continue;
+            }
             //获取查询的where字段
             String inCol = getColumn(definition, joinOn.getSecond());
 

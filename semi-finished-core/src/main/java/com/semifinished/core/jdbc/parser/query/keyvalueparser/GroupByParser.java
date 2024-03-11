@@ -1,11 +1,10 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
-import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.constant.ParserStatus;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
+import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.semifinished.core.pojo.Column;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParserUtils;
@@ -21,7 +20,7 @@ import java.util.List;
  */
 @Component
 @AllArgsConstructor
-public class GroupByParser implements SelectParamsParser {
+public class GroupByParser implements KeyValueParamsParser {
     private final TableUtils tableUtils;
     private final CommonParser commonParser;
 

@@ -1,6 +1,6 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class JoinOnKeyValueParser implements SelectParamsParser {
+public class JoinOnKeyValueParser implements KeyValueParamsParser {
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
 

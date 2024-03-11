@@ -2,7 +2,6 @@ package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
 import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.semifinished.core.pojo.Column;
 import com.semifinished.core.utils.Assert;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @AllArgsConstructor
-public class TreeKeyValueParser implements SelectParamsParser {
+public class TreeKeyValueParser implements KeyValueParamsParser {
 
     private final CommonParser commonParser;
     private final TableUtils tableUtils;

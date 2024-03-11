@@ -1,7 +1,5 @@
 package com.semifinished.core.config;
 
-import com.semifinished.core.exception.ConfigException;
-import com.semifinished.core.utils.Assert;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -10,8 +8,10 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.semifinished.core.cache.CaffeineSemiCache;
 import com.semifinished.core.cache.SemiCache;
+import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.jdbc.SqlExecutor;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
+import com.semifinished.core.utils.Assert;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -22,6 +22,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.sql.DataSource;
@@ -103,7 +104,7 @@ public class SemiFinishedAutoConfiguration {
                                                ConfigProperties configProperties) {
 
         Map<String, SqlExecutor> sqlExecutorMap = new HashMap<>();
-        sqlExecutorMap.put("sqlExecutor" + configProperties.getDataSource(), new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate));
+        sqlExecutorMap.put(configProperties.getDataSource(), new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate));
 
 
         Map<String, ? extends HikariDataSource> dataSourceMap = dataSourceProperties.getDataSource();
@@ -119,9 +120,9 @@ public class SemiFinishedAutoConfiguration {
 
             transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
 
-            sqlExecutorMap.put("sqlExecutor" + name, new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate));
+            sqlExecutorMap.put(name, new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate));
         }
-        return new SqlExecutorHolder(sqlExecutorMap);
+        return new SqlExecutorHolder(sqlExecutorMap, configProperties);
     }
 
 

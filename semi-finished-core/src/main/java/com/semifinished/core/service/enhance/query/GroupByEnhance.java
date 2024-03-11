@@ -170,7 +170,10 @@ public class GroupByEnhance implements AfterQueryEnhance {
 
         //获取第二次查询的值
         List<Object[]> argValue = argsValue(records, matchColumns);
-
+        //todo Object[]可能为空
+        if (argValue.isEmpty()) {
+            return;
+        }
         //构建查询条件
         SqlDefinition sqlDef = buildSecondSqlSqlDefinition(sqlDefinition, secondQueryColumns, groupBy, argValue);
 

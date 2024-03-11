@@ -61,7 +61,16 @@ public class ConfigProperties {
     /**
      * 主键字段
      */
-    private String idKey="id";
+    private String idKey = "id";
 
 
+    /**
+     * 通用查询开关，true表示启用，false表示关闭
+     */
+    private boolean commonApiEnable = true;
+
+    /**
+     * 包外的api文件夹与jar包所在目录的的相对路径
+     */
+    private String apiFolder = "semi-api";
 }

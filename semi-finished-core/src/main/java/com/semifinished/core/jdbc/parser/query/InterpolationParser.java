@@ -28,21 +28,18 @@ public class InterpolationParser implements ParamsParser {
 
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
-        ObjectNode copyNode = params.deepCopy();
-        String table = sqlDefinition.getTable();
-        copyNode.fields().forEachRemaining(e -> {
-                    String k = e.getKey();
-                    JsonNode v = e.getValue();
+        params.deepCopy().fields().forEachRemaining(e -> {
+            String k = e.getKey();
+            JsonNode v = e.getValue();
 
-                    //如果是$结尾，表示使用插值规则，需要获取实际值
-                    if (k.endsWith("$")) {
-                        k = k.substring(0, k.length() - 1);
-                        v = interpolation(table, k, v, sqlDefinition);
-                    }
-                    params.remove(e.getKey());
-                    params.set(k, v);
-                }
-        );
+            //如果是$结尾，表示使用插值规则，需要获取实际值
+            if (k.endsWith("$")) {
+                k = k.substring(0, k.length() - 1);
+                v = interpolation(sqlDefinition.getTable(), k, v, sqlDefinition);
+            }
+            params.remove(e.getKey());
+            params.set(k, v);
+        });
     }
 
 

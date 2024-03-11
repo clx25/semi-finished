@@ -1,6 +1,6 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
+
 import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -44,7 +44,7 @@ import java.util.StringJoiner;
 @Where
 @Component
 @AllArgsConstructor
-public class InParamsParser implements SelectParamsParser {
+public class InParamsParser implements KeyValueParamsParser {
     private final TableUtils tableUtils;
     private final CommonParser commonParser;
 

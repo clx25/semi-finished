@@ -1,0 +1,51 @@
+spring:
+  datasource:
+    master:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://192.168.2.3:3306/semifinished?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true
+      username: root
+      password: XYvw#P5f$tc
+      excludes:
+        semi_user:
+          - password
+    test:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://192.168.2.3:3306/javdb?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+      username: root
+      password: XYvw#P5f$tc
+      mapping:
+        enable: true
+        table:
+          info: iifo
+        column:
+          info:
+            evaluate: xxx
+      excludes:
+        info:
+          - comment
+
+
+
+
+server:
+  port: 4200
+
+semi-finished:
+  core:
+    page-size-key: pageSize
+    page-num-key: pageNUm
+    data-source: master
+    page-normalized: true
+    brackets-key: value
+    datacenter-id: 1
+    machine-id: 1
+  auth:
+    signup-captcha: false
+    login-captcha: false
+    skip:
+      /userInfo: get
+
+
+logging:
+  level:
+    root: DEBUG

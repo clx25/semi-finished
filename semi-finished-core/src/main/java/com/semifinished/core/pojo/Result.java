@@ -25,7 +25,7 @@ public class Result {
     private Object result;
 
     public static Result success() {
-        return info(ResultInfo.SUCCESS);
+        return info(ResultInfo.SUCCESS.getCode(),ResultInfo.SUCCESS.getMsg());
     }
 
     public static Result success(Object o) {
@@ -34,14 +34,14 @@ public class Result {
         return result;
     }
 
-    public static Result info(ResultInfo resultInfo) {
-        Result result = new Result();
-        result.setCode(resultInfo.getCode());
-        result.setMsg(resultInfo.getMsg());
-        return result;
-    }
+//    public static Result info(ResultInfo resultInfo) {
+//        Result result = new Result();
+//        result.setCode(resultInfo.getCode());
+//        result.setMsg(resultInfo.getMsg());
+//        return result;
+//    }
 
-    public static Result error(int code, String msg) {
+    public static Result info(int code, String msg) {
         Result result = new Result();
         result.setCode(code);
         result.setMsg(msg);

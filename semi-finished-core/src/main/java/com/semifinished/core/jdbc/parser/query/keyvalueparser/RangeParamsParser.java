@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.annontation.Where;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
 import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.Assert;
@@ -32,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Where
 @Component
 @AllArgsConstructor
-public class RangeParamsParser implements SelectParamsParser {
+public class RangeParamsParser implements KeyValueParamsParser {
 
     private final TableUtils tableUtils;
     private final CommonParser commonParser;
@@ -78,25 +77,12 @@ public class RangeParamsParser implements SelectParamsParser {
                 Assert.isFalse(values.length == 2, () -> new ParamsException(key + "与" + finalValue.asText() + "不匹配"));
                 String argsKey = table + "_" + column;
 
-                populateSqlDefinition(valueCondition,
-                        (char) (62 ^ 60 ^ chars[0]) + (offset == 2 ? "=" : ""),
-                        argsKey + "_prefix",
-                        values[0],
-                        sqlDefinition);
+                populateSqlDefinition(valueCondition, (char) (62 ^ 60 ^ chars[0]) + (offset == 2 ? "=" : ""), argsKey + "_prefix", values[0], sqlDefinition);
 
 
-                ValueCondition suffix = ValueCondition.builder()
-                        .table(table)
-                        .column(valueCondition.getColumn())
-                        .combination(valueCondition.getCombination())
-                        .conditionBoolean(valueCondition.isConditionBoolean())
-                        .build();
+                ValueCondition suffix = ValueCondition.builder().table(table).column(valueCondition.getColumn()).combination(valueCondition.getCombination()).conditionBoolean(valueCondition.isConditionBoolean()).build();
 
-                populateSqlDefinition(suffix,
-                        chars[lastIndex] + ((length - lastIndex) == 2 ? "=" : ""),
-                        argsKey + "_suffix",
-                        values[1],
-                        sqlDefinition);
+                populateSqlDefinition(suffix, chars[lastIndex] + ((length - lastIndex) == 2 ? "=" : ""), argsKey + "_suffix", values[1], sqlDefinition);
 
                 return true;
             }
@@ -117,11 +103,7 @@ public class RangeParamsParser implements SelectParamsParser {
 
         tableUtils.validColumnsName(sqlDefinition, table, column);
         valueCondition.setColumn(column);
-        populateSqlDefinition(valueCondition,
-                operator + ((length - count) == 2 ? "=" : ""),
-                "range_" + table + "_" + column,
-                text,
-                sqlDefinition);
+        populateSqlDefinition(valueCondition, operator + ((length - count) == 2 ? "=" : ""), "range_" + table + "_" + column, text, sqlDefinition);
 
 
         return true;

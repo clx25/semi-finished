@@ -1,6 +1,6 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.constant.ParserStatus;
 import com.semifinished.core.exception.ParamsException;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
-public class ValueReplaceKeyValueParser implements SelectParamsParser {
+public class ValueReplaceKeyValueParser implements KeyValueParamsParser {
 
 
     @Override

@@ -1,6 +1,6 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
+
 import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class AliasKeyValueParser implements SelectParamsParser {
+public class AliasKeyValueParser implements KeyValueParamsParser {
 
     private final TableUtils tableUtils;
 

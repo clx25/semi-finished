@@ -15,6 +15,11 @@ public class ProjectRuntimeException extends RuntimeException {
         this.code = resultInfo.getCode();
     }
 
+    public ProjectRuntimeException(int code, String message) {
+        this(message);
+        this.code = code;
+
+    }
 
     public ProjectRuntimeException(String message) {
         super(message);

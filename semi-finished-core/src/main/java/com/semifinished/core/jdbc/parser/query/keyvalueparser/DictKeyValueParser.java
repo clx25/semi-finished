@@ -8,7 +8,6 @@ import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.parser.ParserExecutor;
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
 import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParamsUtils;
@@ -32,7 +31,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DictKeyValueParser implements SelectParamsParser {
+public class DictKeyValueParser implements KeyValueParamsParser {
 
     private final ParserExecutor parserExecutor;
     private final CommonParser commonParser;

@@ -1,7 +1,8 @@
 package com.semifinished.core.jdbc;
 
-import lombok.AllArgsConstructor;
+import com.semifinished.core.config.ConfigProperties;
 import lombok.Getter;
+import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
@@ -10,14 +11,21 @@ import java.util.Map;
  */
 
 @Getter
-@AllArgsConstructor
 public class SqlExecutorHolder {
 
     private final Map<String, SqlExecutor> sqlExecutorMap;
+    private final ConfigProperties configProperties;
 
+    public SqlExecutorHolder(Map<String, SqlExecutor> sqlExecutorMap, ConfigProperties configProperties) {
+        this.sqlExecutorMap = sqlExecutorMap;
+        this.configProperties = configProperties;
+    }
 
     public SqlExecutor dataSource(String name) {
-        return sqlExecutorMap.get("sqlExecutor" + (name == null ? "" : name));
+        if (!StringUtils.hasText(name)) {
+            name = configProperties.getDataSource();
+        }
+        return sqlExecutorMap.get(name);
     }
 
 

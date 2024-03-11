@@ -1,6 +1,5 @@
 package com.semifinished.core.jdbc.parser.query;
 
-import com.semifinished.core.utils.MapUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.config.ConfigProperties;
@@ -11,10 +10,12 @@ import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.Assert;
+import com.semifinished.core.utils.MapUtils;
 import com.semifinished.core.utils.ParamsUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -41,7 +42,7 @@ public class CommonParser {
      * @return 实际的值
      */
     private static String actual(Map<String, String> mapping, String key) {
-        if (MapUtils.isEmpty(mapping)) {
+        if (CollectionUtils.isEmpty(mapping)) {
             return key;
         }
 
@@ -151,12 +152,12 @@ public class CommonParser {
         }
 
         Map<String, Map<String, String>> columnMapping = mapping.getColumn();
-        if (MapUtils.isEmpty(columnMapping)) {
+        if (CollectionUtils.isEmpty(columnMapping)) {
             return Collections.emptyMap();
         }
 
         Map<String, String> columns = columnMapping.get(table);
-        if (MapUtils.isEmpty(columns)) {
+        if (CollectionUtils.isEmpty(columns)) {
             return Collections.emptyMap();
         }
         return columns;

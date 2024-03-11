@@ -24,7 +24,6 @@ public class TestCommon {
 
 
 
-
     public void test(String params, int size, String resultEquals) {
 
         ObjectNode jsonNodes = request(params);
@@ -45,7 +44,7 @@ public class TestCommon {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        Object o = enhanceController.selectPostMapping(paramsNode);
+        Object o = enhanceController.queryPostMapping(paramsNode);
         ObjectNode jsonNodes = objectMapper.convertValue(o, ObjectNode.class);
         System.out.println(jsonNodes.toPrettyString());
         return jsonNodes;

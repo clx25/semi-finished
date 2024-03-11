@@ -1,7 +1,10 @@
 package com.semifinished.core.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.core.cache.CoreCacheKey;
+import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
@@ -9,15 +12,18 @@ import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.jdbc.parser.ParserExecutor;
 import com.semifinished.core.pojo.Page;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
-import com.semifinished.core.service.enhance.query.SelectFinallyEnhance;
+import com.semifinished.core.service.enhance.query.QueryFinallyEnhance;
 import com.semifinished.core.utils.ParamsUtils;
+import com.semifinished.core.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,12 +32,10 @@ public class EnhanceService {
     private final ParserExecutor parserExecutor;
     private final SqlExecutorHolder sqlExecutorHolder;
     private final ConfigProperties configProperties;
-
-    @Resource
-    private List<AfterQueryEnhance> afterQueryEnhances;
+    private final List<AfterQueryEnhance> afterQueryEnhances;
 
     @Autowired(required = false)
-    private SelectFinallyEnhance selectFinallyEnhance;
+    private QueryFinallyEnhance queryFinallyEnhance;
 
 
     /**
@@ -40,13 +44,13 @@ public class EnhanceService {
      * @param params 被解析的参数
      * @return 查询结果
      */
-    public Object select(ObjectNode params) {
+    public Object query(ObjectNode params) {
         if (ParamsUtils.isEmpty(params)) {
             params = JsonNodeFactory.instance.objectNode();
         }
         //解析后的sql定义信息类
         SqlDefinition sqlDefinition = new SqlDefinition(params);
-        return select(sqlDefinition);
+        return query(sqlDefinition);
     }
 
     /**
@@ -56,7 +60,7 @@ public class EnhanceService {
      * @param sqlDefinition SQL定义信息
      * @return 包含查询的结果和根据前端参数解析出的sql定义信息。
      */
-    public Object select(SqlDefinition sqlDefinition) {
+    public Object query(SqlDefinition sqlDefinition) {
 
         //判断此次请求使用的增强
         List<AfterQueryEnhance> enhances = supportEnhances(sqlDefinition);
@@ -85,8 +89,8 @@ public class EnhanceService {
 
 
         //执行最终增强
-        return selectFinallyEnhance != null ?
-                selectFinallyEnhance.beforeReturn(result, sqlDefinition) : result;
+        return queryFinallyEnhance != null ?
+                queryFinallyEnhance.beforeReturn(result, sqlDefinition) : result;
     }
 
     private Object resultRow(Page page, SqlDefinition sqlDefinition) {
@@ -132,7 +136,7 @@ public class EnhanceService {
         Page page = createPage(sqlDefinition);
 
         //组装查询SQL并获取
-        String sql = QuerySqlCombiner.select(sqlDefinition);
+        String sql = QuerySqlCombiner.query(sqlDefinition);
 
         //执行查询
         List<ObjectNode> objectNodes = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())

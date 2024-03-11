@@ -1,13 +1,15 @@
 package com.semifinished.core.jdbc.parser.query;
 
-import com.semifinished.core.jdbc.parser.query.keyvalueparser.KeyValueParamsParser;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.jdbc.SqlDefinition;
+import com.semifinished.core.jdbc.parser.query.keyvalueparser.KeyValueParamsParser;
 import org.springframework.core.Ordered;
 
 
 /**
  * 请求参数解析器
+ * 适用于匹配一个确定的key
+ * 如果需要匹配一个需要解析的key,可以使用{@link KeyValueParamsParser}
  */
 public interface ParamsParser extends Ordered {
     /**

@@ -17,6 +17,16 @@ public interface SemiCache {
      */
     <T> T getValue(String key);
 
+    /**
+     * 根据key和hashKey获取数据
+     *
+     * @param key     缓存的键
+     * @param hashKey 缓存的哈希键
+     * @param <T>     数据类型
+     * @return 根据key和hashKey获取的数据
+     */
+    <T> T getValue(String key, String hashKey);
+
 
     /**
      * 从缓存中获取key对应的值,如果没有数据，那么从supplier中获取

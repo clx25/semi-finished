@@ -34,9 +34,6 @@ public class MapUtils {
         return map;
     }
 
-    public static boolean isEmpty(Map<?, ?> map) {
-        return map == null || map.isEmpty();
-    }
 
 
 }

@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 
 /**
  * 对semi_column表数据进行初始化
- * todo 多数据源支持
  */
 @Component
 @Order(-1000)

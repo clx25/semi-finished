@@ -6,7 +6,6 @@ import com.semifinished.core.constant.ParserStatus;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.parser.ParserExecutor;
-import com.semifinished.core.jdbc.parser.SelectParamsParser;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParserUtils;
 import com.semifinished.core.utils.bean.TableUtils;
@@ -33,7 +32,7 @@ import javax.annotation.Resource;
  */
 @Component
 @RequiredArgsConstructor
-public class JoinParser implements SelectParamsParser {
+public class JoinParser implements KeyValueParamsParser {
 
     private final TableUtils tableUtils;
     @Resource

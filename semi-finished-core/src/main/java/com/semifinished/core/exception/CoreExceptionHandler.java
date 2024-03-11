@@ -1,13 +1,14 @@
 package com.semifinished.core.exception;
 
 
-
-import com.semifinished.core.pojo.Result;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.semifinished.core.pojo.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -34,35 +36,35 @@ public class CoreExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result exception(Exception e) {
         log.error("未知错误", e);
-        return Result.error(500, "未知错误");
+        return Result.info(500, "未知错误");
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result projectRuntimeException(ProjectRuntimeException e) {
         log.error("未知错误", e);
-        return Result.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        return Result.info(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result JsonParseException(JsonParseException e) {
-        log.debug("json序列化错误",e);
-        return Result.error(HttpStatus.BAD_REQUEST.value(), "请求参数错误");
+        log.debug("json序列化错误", e);
+        return Result.info(HttpStatus.BAD_REQUEST.value(), "请求参数错误");
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result badSqlGrammarException(BadSqlGrammarException e) {
         log.error("sql执行错误", e);
-        return Result.error(HttpStatus.BAD_REQUEST.value(),"请求参数错误");
+        return Result.info(HttpStatus.BAD_REQUEST.value(), "请求参数错误");
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result constraintViolationException(ConstraintViolationException e) {
         log.debug("参数校验异常", e);
-        return Result.error(HttpStatus.BAD_REQUEST.value(), splitMessage(e.getConstraintViolations()));
+        return Result.info(HttpStatus.BAD_REQUEST.value(), splitMessage(e.getConstraintViolations()));
     }
 
     public String splitMessage(Set<ConstraintViolation<?>> set) {
@@ -83,7 +85,7 @@ public class CoreExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result configException(ConfigException e) {
         log.error(e.getMessage());
-        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "网络异常");
+        return Result.info(HttpStatus.INTERNAL_SERVER_ERROR.value(), "网络异常");
     }
 
     @ExceptionHandler
@@ -98,7 +100,7 @@ public class CoreExceptionHandler {
             }
             message.append(fieldError.getDefaultMessage()).append(" ");
         }
-        return Result.error(HttpStatus.BAD_REQUEST.value(), message.toString());
+        return Result.info(HttpStatus.BAD_REQUEST.value(), message.toString());
 
     }
 
@@ -108,8 +110,8 @@ public class CoreExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result sqlDataException(SqlDataException e) {
-        log.debug("sql执行错误",e);
-        return Result.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+        log.debug("sql执行错误", e);
+        return Result.info(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
     }
 
     /**
@@ -118,8 +120,8 @@ public class CoreExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result paramsException(ParamsException e) {
-        log.debug("参数错误",e);
-        return Result.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        log.debug("参数错误", e);
+        return Result.info(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
 
     /**
@@ -134,27 +136,63 @@ public class CoreExceptionHandler {
         if (throwable instanceof ParamsException) {
             msg = throwable.getMessage();
         }
-        return Result.error(HttpStatus.BAD_REQUEST.value(), msg);
+        return Result.info(HttpStatus.BAD_REQUEST.value(), msg);
     }
 
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result httpMessageConversionException(HttpMessageConversionException e) {
-        log.debug("参数错误",e);
-        return Result.error(HttpStatus.BAD_REQUEST.value(),"请求参数错误");
+        log.debug("参数错误", e);
+        return Result.info(HttpStatus.BAD_REQUEST.value(), "请求参数错误");
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     public Result httpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
-        log.debug("请求方式错误",e);
-        return Result.error(HttpStatus.METHOD_NOT_ALLOWED.value(),"请求方式错误");
+        log.debug("请求方式错误", e);
+        return Result.info(HttpStatus.METHOD_NOT_ALLOWED.value(), "请求方式错误");
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result missingServletRequestParameterException(MissingServletRequestParameterException e) {
-        return Result.error(HttpStatus.BAD_REQUEST.value(), e.getParameterName() + "参数不能为空");
+        return Result.info(HttpStatus.BAD_REQUEST.value(), e.getParameterName() + "参数不能为空");
+    }
+
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result dataIntegrityViolationException(DataIntegrityViolationException e) {
+        return result(e);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result uncategorizedSQLException(UncategorizedSQLException e) {
+        return result(e);
+    }
+
+    private Result result(Exception e) {
+        return Result.info(HttpStatus.BAD_REQUEST.value(), msg(e));
+    }
+
+    private String msg(Exception e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof SQLException) {
+            String errorCode = String.valueOf(((SQLException) cause).getErrorCode());
+            String message = cause.getMessage();
+            message = message.substring(message.indexOf("column '") + 8);
+            message = message.substring(0, message.indexOf("'"));
+            switch (errorCode) {
+                case "1292":
+                    return "字段" + message + "日期或时间格式错误";
+                case "1366":
+                    return "字段" + message + "数据类型不匹配";
+                case "1048":
+                    return "字段" + message + "不能为null";
+            }
+        }
+        return "参数错误";
     }
 }

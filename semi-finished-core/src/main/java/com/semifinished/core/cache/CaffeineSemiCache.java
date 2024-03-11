@@ -3,6 +3,7 @@ package com.semifinished.core.cache;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -15,6 +16,16 @@ public class CaffeineSemiCache implements SemiCache {
     @Override
     public <T> T getValue(String key) {
         return (T) cache.getIfPresent(key);
+    }
+
+
+    @Override
+    public <T> T getValue(String key, String hashKey) {
+        Map<String, T> hashValue = (Map<String, T>) cache.getIfPresent(key);
+        if (hashValue == null) {
+            return null;
+        }
+        return hashValue.get(hashKey);
     }
 
     /**

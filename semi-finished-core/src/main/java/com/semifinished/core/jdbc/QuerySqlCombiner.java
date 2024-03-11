@@ -32,7 +32,7 @@ public class QuerySqlCombiner {
      *
      * @return 组装完整的sql, 这个sql会直接进行执行
      */
-    public static String select(SqlDefinition sqlDefinition) {
+    public static String query(SqlDefinition sqlDefinition) {
         StringBuilder sql = new StringBuilder(creatorSqlWithoutLimit(sqlDefinition));
 
         int pageNum = sqlDefinition.getPageNum();
@@ -131,7 +131,7 @@ public class QuerySqlCombiner {
     public static String table(SqlDefinition sqlDefinition) {
         SqlDefinition innerTable = sqlDefinition.getSubTable();
         if (innerTable != null) {
-            return " ( " + select(innerTable) + " ) " + sqlDefinition.getTable();
+            return " ( " + query(innerTable) + " ) " + sqlDefinition.getTable();
         }
         return sqlDefinition.getTable();
     }

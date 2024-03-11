@@ -56,7 +56,7 @@ public class SqlExecutor {
         return getOne(sql, args) != null;
     }
 
-    public ObjectNode selectById(String table, String id) {
+    public ObjectNode queryById(String table, String id) {
         List<ObjectNode> list = list(table, MapUtils.of("id", id));
         return list.size() == 0 ? null : list.get(0);
     }
