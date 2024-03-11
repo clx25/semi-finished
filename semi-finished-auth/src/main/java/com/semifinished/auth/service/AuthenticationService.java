@@ -1,15 +1,20 @@
 package com.semifinished.auth.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.auth.cache.AuthCacheKey;
+import com.semifinished.auth.utils.AuthUtils;
 import com.semifinished.auth.utils.CaptchaCreator;
 import com.semifinished.auth.utils.JwtUtils;
 import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.ConfigProperties;
+import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.jdbc.util.SnowFlake;
 import com.semifinished.core.pojo.Result;
+import com.semifinished.core.service.EnhanceService;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.MapUtils;
 import com.semifinished.core.utils.RequestUtils;
@@ -28,7 +33,8 @@ public class AuthenticationService {
     private final SnowFlake snowFlake;
     private final SqlExecutorHolder sqlExecutorHolder;
     private final ConfigProperties configProperties;
-
+    private final ObjectMapper objectMapper;
+    private final EnhanceService enhanceService;
 
     /**
      * 创建验证码图片
@@ -64,7 +70,21 @@ public class AuthenticationService {
     public Object currentUser() {
         Map<String, ObjectNode> users = semiCache.getValue(AuthCacheKey.USER.getKey());
         Object userId = RequestUtils.getRequestAttributes(configProperties.getIdKey());
-        return users.get((String) userId);
+        if (users != null) {
+            return users.get((String) userId);
+
+        }
+
+        String paramsStr = "{\"@tb\":\"semi_user\",\"@row\":1,\"id\":\"" + userId + "\",\"id:\":[{\"@tb\":\"semi_user_role\",\"@on\":\"user_id\",\"@\":\"role_id\"},{\"@tb\":\"semi_user_dept\",\"@on\":\"user_id\",\"@\":\"dept_id\"}]}";
+        try {
+            ObjectNode params = objectMapper.readValue(paramsStr, ObjectNode.class);
+            Object user = enhanceService.query(params);
+            AuthUtils.addUser(semiCache, (String) userId, (ObjectNode) user);
+            return user;
+        } catch (JsonProcessingException e) {
+            throw new ConfigException("ObjectNode转换错误", e);
+        }
+
     }
 
 

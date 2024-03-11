@@ -14,7 +14,6 @@ import org.springframework.boot.system.ApplicationHome;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -96,11 +95,9 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
             json.fields().forEachRemaining(entry -> {
                 JsonNode configs = entry.getValue();
                 Assert.isFalse(configs instanceof ObjectNode, () -> new ConfigException("api文件格式错误"));
-                String api = entry.getKey();
-                if (!api.startsWith("/")) {
-                    api = "/" + api;
-                }
-                populateMap(api, (ObjectNode) configs, apiMap);
+                String method = entry.getKey().toUpperCase();
+
+                populateMap(method, (ObjectNode) configs, apiMap);
             });
         }
 
@@ -109,23 +106,26 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
     /**
      * 转map
      *
-     * @param api     请求api
+     * @param method  请求方式
      * @param configs api配置信息
      * @param apiMap  json数据的填充目标
      */
-    private void populateMap(String api, ObjectNode configs, Map<String, Map<String, ObjectNode>> apiMap) {
+    private void populateMap(String method, ObjectNode configs, Map<String, Map<String, ObjectNode>> apiMap) {
 
-        String method = configs.path("method").asText("").toUpperCase();
-        Assert.hasNotText(method, () -> new ParamsException("接口" + api + "缺少method"));
+        configs.fields().forEachRemaining(entry -> {
+            String api = entry.getKey();
+            if (!api.startsWith("/")) {
+                api = "/" + api;
+            }
+            Assert.isFalse(apiMap.containsKey(method), () -> new ParamsException("请求方式%s配置错误", method));
+            Map<String, ObjectNode> apiConfigs = apiMap.get(method);
+            String finalApi = api;
+            Assert.isTrue(apiConfigs.containsKey(api),()->new ParamsException("接口%s重复", finalApi));
+            JsonNode value = entry.getValue();
+            Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("接口%s配置错误",value));
+            apiConfigs.put(api, (ObjectNode) value);
+        });
 
-        Assert.isFalse(apiMap.containsKey(method), () -> new ParamsException("接口" + api + " method配置错误"));
-        JsonNode params = configs.get("params");
-        Assert.isFalse(params instanceof ObjectNode, () -> new ParamsException("接口" + api + " params错误"));
-
-        Map<String, ObjectNode> paramsMap = apiMap.get(method);
-        Assert.isTrue(paramsMap.containsKey(api), () -> new ParamsException("接口重复：" + api));
-
-        paramsMap.put(api, configs);
     }
 
 

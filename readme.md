@@ -724,7 +724,7 @@ public interface CoreConfigurer {
 semi-finished:
   core:
     page-size-key: pageSize  # 分页参数每页多少行的key
-    page-num-key: pageNUm    # 分页参数第几页的key
+    page-num-key: pageNum    # 分页参数第几页的key
     data-source: master      # 默认数据源名称
     max-page-size: 200       # 当没有分页参数时的最大获取行数
     page-normalized: true    # 分页参数合理化

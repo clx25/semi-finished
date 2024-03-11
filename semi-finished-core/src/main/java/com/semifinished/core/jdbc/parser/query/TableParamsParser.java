@@ -35,6 +35,10 @@ public class TableParamsParser implements ParamsParser {
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
 
         JsonNode tbNode = params.remove("@tb");
+        if (tbNode == null) {
+            tbNode = params.remove("@tb1");
+            sqlDefinition.setDistinct(true);
+        }
 
         if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY)) {
             Assert.isTrue(tbNode != null, () -> new ParamsException("表名规则位置错误"));

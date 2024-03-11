@@ -32,9 +32,6 @@ server:
 
 semi-finished:
   core:
-    page-size-key: pageSize
-    page-num-key: pageNUm
-    data-source: master
     page-normalized: true
     brackets-key: value
     datacenter-id: 1

@@ -1,0 +1,81 @@
+{
+  "get": {
+    "/menu": {
+      "summary": "获取菜单",
+      "params": {
+        "@tb1": "semi_menu",
+        "\\": "sort",
+        "#json": "icon",
+        "id&": {
+          "@tb": "semi_role_access",
+          "@on": "resource_id",
+          "@": "",
+          "resource_type": 2
+        }
+      }
+    },
+    "/resource": {
+      "summary": "获取资源",
+      "params": {
+        "@tb1": "semi_component",
+        "id&": {
+          "@tb1": "semi_role_access",
+          "@on": "resource_id",
+          "@": "",
+          "resource_type$$": "type"
+        }
+      }
+    },
+    "/role": {
+      "summary": "角色信息",
+      "params": {
+        "@tb": "semi_role"
+      }
+    },
+    "/dataAccess": {
+      "summary": "获取数据权限",
+      "params": {
+        "@tb": "semi_data_access"
+      }
+    },
+    "/component": {
+      "summary": "获取组件信息",
+      "params": {
+        "@tb": "semi_component",
+        "pageNum$$": "pageNum",
+        "pageSize$$": "pageSize"
+      }
+    },
+    "/user": {
+      "summary": "获取用户列表",
+      "params": {
+        "@tb": "semi_user",
+        "pageNum$$": "pageNum",
+        "pageSize$$": "pageSize"
+      }
+    },
+    "/department": {
+      "summary": "获取组织信息",
+      "params": {
+        "@tb": "semi_department",
+        "^": {
+          "children": "children",
+          "id": "id",
+          "parent": "parent"
+        }
+      }
+    },
+    "/column": {
+      "summary": "获取字段",
+      "params": {
+        "@tb": "semi_column"
+      }
+    },
+    "/api": {
+      "summary": "获取api",
+      "params": {
+        "@tb": "semi_api"
+      }
+    }
+  }
+}

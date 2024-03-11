@@ -1,4 +1,4 @@
-package com.semifinished.core.jdbc.parser.query;
+package com.semifinished.core.service.enhance;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -6,44 +6,39 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
-import com.semifinished.core.constant.ParserStatus;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.utils.ParserUtils;
+import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
+import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
 import com.semifinished.core.utils.RequestUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-/**
- * 获取自定义jsonapi请求对应的参数，并解析和替换参数
- */
+
 @Component
 @AllArgsConstructor
-public class JsonApiParser implements ParamsParser {
-
+@Order(Integer.MIN_VALUE+500)
+public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
     private final SemiCache semiCache;
 
-
     @Override
-    public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
-        if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL)) {
-            return;
-        }
+    public boolean support(SqlDefinition sqlDefinition) {
         HttpServletRequest request = RequestUtils.getRequest();
-
+        ObjectNode params = sqlDefinition.getParams();
         Map<String, Map<String, ObjectNode>> apiMap = semiCache.getValue(CoreCacheKey.CUSTOM_API.getKey());
         String servletPath = request.getServletPath();
         String method = request.getMethod();
         Map<String, ObjectNode> apiMaps = apiMap.get(method);
         if (apiMaps == null) {
-            return;
+            return false;
         }
         ObjectNode apiInfos = apiMaps.get(servletPath);
 
         if (apiInfos == null || apiInfos.isEmpty()) {
-            return;
+            return false;
         }
 
 
@@ -51,7 +46,7 @@ public class JsonApiParser implements ParamsParser {
 
         params.removeAll();
         params.setAll(mergeParams);
-
+        return false;
     }
 
 
@@ -109,10 +104,7 @@ public class JsonApiParser implements ParamsParser {
         });
         return jsonNode;
     }
-
-
-    @Override
-    public int getOrder() {
-        return -2500;
-    }
 }
+
+
+

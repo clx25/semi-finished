@@ -33,6 +33,7 @@ public class AuthListener implements ApplicationListener<RefreshCacheApplication
         skip.put("/login", "post");
         skip.put("/signup", "post");
         skip.put("/captcha", "get");
+        skip.put("/error", "*");
         semiCache.setValue(AuthCacheKey.SKIP_AUTH.getKey(), skip);
 
     }
