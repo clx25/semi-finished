@@ -18,7 +18,9 @@ public interface Interpolation {
      * @param interpolatedKey 插值key
      * @return true表示使用该类获取实际值，false表示不使用
      */
-    boolean match(String key, JsonNode interpolatedKey);
+    default boolean match(String key, JsonNode interpolatedKey) {
+        return true;
+    }
 
     /**
      * 获取变量对应的实际值

@@ -6,7 +6,8 @@ semi-finished可以使用一个查询接口，通过传递不同的json参数，
 
 # 数据源配置
 
-semi-finished支持多数据源，如下配置中，`master`与`test`是数据源的名称，配置数据源的同时可配置[表名字段名映射](#映射与排除配置)，master数据源必须存在，如不存在则会提示异常。
+semi-finished支持多数据源，如下配置中，`master`与`test`
+是数据源的名称，配置数据源的同时可配置[表名字段名映射](#映射与排除配置)，master数据源必须存在，如不存在则会提示异常。
 
 ```yml
 spring:
@@ -28,25 +29,25 @@ spring:
 ## 一些查询规则符号的灵感来源与释义
 
 > `@`:论坛或聊天工具中代表指定
-> 
+>
 > `~`:位运算中的“取反”操作
-> 
+>
 > `:`:表示key-value的对应关系，映射
-> 
+>
 > `%`:sql中的模糊查询匹配符
-> 
+>
 > `!`:在判断式中代表“非”
-> 
+>
 > `&`:位运算中的“与”操作
-> 
+>
 > `#`:代表规则
-> 
+>
 > `/`:排序二叉树中左边为从大到小
-> 
+>
 > `\\`:排序二叉树中右边为从小到大
-> 
+>
 > `^`:树结构
-> 
+>
 > `$`:在一些语言中使用`${字段}`的方式表示引用字段的值
 
 ## 查询规则
@@ -109,7 +110,8 @@ spring:
 
 **所有请求都需要指定表名**
 
-`@tb`为固定写法，表示指定表名。查询该表的所有未[排除字段](#映射与排除配置)，这样可能导致一次性返回过多数据，可以在[yaml配置](#yaml配置)中配置没有分页参数的情况下最大返回行数。
+`@tb`为固定写法，表示指定表名。查询该表的所有未[排除字段](#映射与排除配置)
+，这样可能导致一次性返回过多数据，可以在[yaml配置](#yaml配置)中配置没有分页参数的情况下最大返回行数。
 
 ```js
 {
@@ -244,7 +246,8 @@ spring:
 
 ### 括号、或
 
-使用`|`作为前缀就表示或查询，可以在任何查询条件中添加，一般与括号查询一起使用。字段后使用`{}`表示与该字段括号在一起查询，`{}`内的`value`参数表示外层字段的查询内容，`value`字段可以[配置](#yaml配置)
+使用`|`作为前缀就表示或查询，可以在任何查询条件中添加，一般与括号查询一起使用。字段后使用`{}`
+表示与该字段括号在一起查询，`{}`内的`value`参数表示外层字段的查询内容，`value`字段可以[配置](#yaml配置)
 
 如下查询解析结果为: where （ 字段1=内容1 or 字段2=内容2）and 字段3=内容3
 
@@ -277,7 +280,9 @@ spring:
 ### JOIN查询
 
 使用`&`符号表示join查询，`&`在字段左方时表示`left join`，在右方时表示`inner join`
-。如下方的查询参数，`id`是`user`表的关联字段，`@on`指定的`user_id`表示`order`表的关联字段，解析结果为`user inner join order on user.id=order.user_id`。支持深度`join`，就是`oder`表的查询也可以使用`join`规则
+。如下方的查询参数，`id`是`user`表的关联字段，`@on`指定的`user_id`表示`order`
+表的关联字段，解析结果为`user inner join order on user.id=order.user_id`。支持深度`join`，就是`oder`
+表的查询也可以使用`join`规则
 
 ```js
 {
@@ -312,7 +317,8 @@ spring:
 
 ### 分页
 
-只要参数中存在pageNum或pageSize其中一个，那么返回值会携带分页信息，缺少的`pageNum`默认为1，缺少的`pageSize`默认为10，分页参数字段可以在yaml文件中[配置](#yaml配置)
+只要参数中存在pageNum或pageSize其中一个，那么返回值会携带分页信息，缺少的`pageNum`默认为1，缺少的`pageSize`
+默认为10，分页参数字段可以在yaml文件中[配置](#yaml配置)
 
 ```js
 {
@@ -379,7 +385,8 @@ public class RandomInterpolation implements Interpolation {
 
 ### 表字典查询
 
-与join规则基本相同，只是把`&`改为`:`，表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`对应，那么可以使用以下查询，`@on`也与`join`规则相同，是两个表的关联关系`user.id=order.user_id`。
+与join规则基本相同，只是把`&`改为`:`，表示把一个字段映射为其他字段的值。如用户表的`id`字段与订单表的`user_id`
+对应，那么可以使用以下查询，`@on`也与`join`规则相同，是两个表的关联关系`user.id=order.user_id`。
 
 该查询会先查询`user`表，获取`id`后用`in`查询去查`order`
 表，最后合并。由于id名称重复，所以使用别名规则修改`order.id`的返回字段名。
@@ -397,7 +404,8 @@ public class RandomInterpolation implements Interpolation {
 
 支持深度映射和一个字段对应多个表映射。
 
-如下查询,获取用户的角色名称和部门id：根据`user`表的`id`匹配`user_role`表和`user_dept`表的`user_id`获取`role_id`和`dept_id`，再根据`role_id`获取`role`表中的`name`
+如下查询,获取用户的角色名称和部门id：根据`user`表的`id`匹配`user_role`表和`user_dept`表的`user_id`获取`role_id`
+和`dept_id`，再根据`role_id`获取`role`表中的`name`
 
 ```js
 {
@@ -440,7 +448,8 @@ public class RandomInterpolation implements Interpolation {
 
 ### 数字格式化
 
-`num0.00`是规则内容，由不同的实现类自定义。`num`表示这是一个数字的替换规则，`0.00`是格式化规则，该规则由`DecimalFormat`实现，所以可以使用`DecimalFormat`支持的所有规则。如果`DecimalFormat`无法解析该规则，那么会抛出异常。
+`num0.00`是规则内容，由不同的实现类自定义。`num`表示这是一个数字的替换规则，`0.00`是格式化规则，该规则由`DecimalFormat`
+实现，所以可以使用`DecimalFormat`支持的所有规则。如果`DecimalFormat`无法解析该规则，那么会抛出异常。
 
 ```js
 {
@@ -470,7 +479,8 @@ public class RandomInterpolation implements Interpolation {
 
 ### 日期时间格式化
 
-`time`表示时间规则，后面的字符串表示指定字段的时间格式化规则。该规则使用`DateTimeFormatter`实现，所以`time`后面能使用`DateTimeFormatter`支持的所有规则。
+`time`表示时间规则，后面的字符串表示指定字段的时间格式化规则。该规则使用`DateTimeFormatter`实现，所以`time`
+后面能使用`DateTimeFormatter`支持的所有规则。
 
 对于数据的日期格式，目前只支持`yyyy-MM-dd HH:mm:ss`与`yyyy-MM-dd`两种。
 
@@ -514,7 +524,7 @@ public interface CoreConfigurer {
 脱敏规则有多种配置方式
 
 1. 配置左右保留字符串的数量，如左边保留3个字符，右边保留4个字符
-   
+
    ```java
    @Component
    public class TestCoreConfigurer implements CoreConfigurer {
@@ -532,7 +542,7 @@ public interface CoreConfigurer {
    ```
 
 2. 配置左右保留字符的百分比，如左边保留20%，右边保留30%
-   
+
    ```java
     Desensitization build = Desensitization.builder().table("info")
                    .column("title")
@@ -543,7 +553,7 @@ public interface CoreConfigurer {
    ```
 
 3. 使用自定义方法自行处理
-   
+
    ```java
     Desensitization build = Desensitization.builder().table("info")
                    .column("title")
@@ -553,11 +563,13 @@ public interface CoreConfigurer {
    }
    ```
 
-    2. 配置左右保留字符的百分比
+2. 配置左右保留字符的百分比
 
 # 自定义查询规则
 
-有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`两个接口，可供不同情况下选择使用。这两个接口的功能都是对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`中。这两个接口都继承了`Ordered`接口，所以需要指定解析类的顺序。
+有两种方式可以实现自定义查询规则，`semi-finished`提供了`ParamsParser`和`KeyValueParamsParser`
+两个接口，可供不同情况下选择使用。这两个接口的功能都是对前端传入的参数进行解析，并把解析结果存入`SqlDefinition`
+中。这两个接口都继承了`Ordered`接口，所以需要指定解析类的顺序。
 
 ## 实现ParamsParser接口
 
@@ -583,7 +595,8 @@ public interface ParamsParser extends Ordered {
 
 `KeyValueParamsParser`接口适用于需要对key进行解析的规则，如模糊查询规则，范围查询规则等。该方法把请求参数进行了遍历，将每一项的key和value传入进行解析。
 
-`KeyValueParamsParser`接口的执行类也是`ParamsParser`接口的实现类，所以如果想相对于`ParamsParser`接口的某个实现类排序，那么只能实现`ParamsParser`接口。
+`KeyValueParamsParser`接口的执行类也是`ParamsParser`接口的实现类，所以如果想相对于`ParamsParser`
+接口的某个实现类排序，那么只能实现`ParamsParser`接口。
 
 ```java
 public interface KeyValueParamsParser extends Ordered {
@@ -664,7 +677,8 @@ public interface AfterQueryEnhance extends ServiceEnhance {
 
 # 自定义结果替换规则
 
-结果替换规则由增强类`ValueReplaceEnhance`实现，这也是一个增强规则，在这个增强类中定义了`#`符号作为替换规则标识和使用`ValueReplace`接口作为替换规则的实现方式。
+结果替换规则由增强类`ValueReplaceEnhance`实现，这也是一个增强规则，在这个增强类中定义了`#`
+符号作为替换规则标识和使用`ValueReplace`接口作为替换规则的实现方式。
 
 #### 实现ValueReplace接口
 
@@ -770,4 +784,5 @@ spring:
 }
 ```
 
-上方的请求参数会无视`password`查询字段，把`uid`字段解析为`id`，并把表名`person`解析为`user`表，最终结果为查询`user`表id=1的age,name字段
+上方的请求参数会无视`password`查询字段，把`uid`字段解析为`id`，并把表名`person`解析为`user`表，最终结果为查询`user`
+表id=1的age,name字段

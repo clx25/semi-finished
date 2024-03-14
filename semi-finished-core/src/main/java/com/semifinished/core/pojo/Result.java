@@ -1,8 +1,8 @@
 package com.semifinished.core.pojo;
 
 
-import com.semifinished.core.constant.ResultInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.semifinished.core.constant.ResultInfo;
 import lombok.Data;
 
 /**
@@ -25,7 +25,7 @@ public class Result {
     private Object result;
 
     public static Result success() {
-        return info(ResultInfo.SUCCESS.getCode(),ResultInfo.SUCCESS.getMsg());
+        return info(ResultInfo.SUCCESS.getCode(), ResultInfo.SUCCESS.getMsg());
     }
 
     public static Result success(Object o) {

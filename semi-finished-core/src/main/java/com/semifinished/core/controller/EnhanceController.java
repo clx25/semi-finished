@@ -23,7 +23,7 @@ public class EnhanceController {
      * @param params 查询条件
      * @return 查询出的结果列表
      */
-    @PostMapping(value = "enhance",name = "SEMI-JSON-API-QUERY")
+    @PostMapping(value = "enhance", name = "SEMI-JSON-API-QUERY")
     public Object queryPostMapping(@RequestBody(required = false) ObjectNode params) {
         return Result.success(enhanceService.query(params));
     }
@@ -34,7 +34,7 @@ public class EnhanceController {
      * @param params 请求参数
      * @return 结果列表
      */
-    @GetMapping(value = "enhance",name = "SEMI-JSON-API")
+    @GetMapping(value = "enhance", name = "SEMI-JSON-API")
     public Object queryGetMapping(@RequestParamNode(required = false) ObjectNode params) {
         return Result.success(enhanceService.query(params));
     }

@@ -1,10 +1,10 @@
 package com.semifinished.core.service.enhance.query.replace;
 
-import com.semifinished.core.exception.ParamsException;
-import com.semifinished.core.utils.Assert;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
+import com.semifinished.core.utils.Assert;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 

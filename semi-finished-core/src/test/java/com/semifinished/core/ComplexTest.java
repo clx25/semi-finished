@@ -22,15 +22,15 @@ public class ComplexTest {
     }
 
     @Test
-    public void test2(){
-        String params="{\"@tb\":\"users\",\"~\":\"id\",\"id:\":{\"@tb\":\"user_role\",\"@on\":\"user_id\",\"@\":\"\",\"role_id:\":{\"@tb\":\"role\",\"@on\":\"id\",\"@\":\"code,name_cn\",\"@row\":1}}}";
-        testCommon.test(params,50,"{\"name\":\"Alice\",\"gender\":\"23\",\"code\":\"0001\",\"name_cn\":\"CEO\"}");
+    public void test2() {
+        String params = "{\"@tb\":\"users\",\"~\":\"id\",\"id:\":{\"@tb\":\"user_role\",\"@on\":\"user_id\",\"@\":\"\",\"role_id:\":{\"@tb\":\"role\",\"@on\":\"id\",\"@\":\"code,name_cn\",\"@row\":1}}}";
+        testCommon.test(params, 50, "{\"name\":\"Alice\",\"gender\":\"23\",\"code\":\"0001\",\"name_cn\":\"CEO\"}");
     }
 
 
     @Test
-    public void test3(){
-        String params="{\"@tb\":\"users\",\"~\":\"id\",\"id:\":{\"@tb\":\"user_role\",\"@on\":\"user_id\",\"@\":\"\",\"role_id:\":{\"@tb\":\"role\",\"@on\":\"id\",\"@row\":1,\"^\":{\"id\":\"id\",\"parent\":\"parent_id\"}}}}";
+    public void test3() {
+        String params = "{\"@tb\":\"users\",\"~\":\"id\",\"id:\":{\"@tb\":\"user_role\",\"@on\":\"user_id\",\"@\":\"\",\"role_id:\":{\"@tb\":\"role\",\"@on\":\"id\",\"@row\":1,\"^\":{\"id\":\"id\",\"parent\":\"parent_id\"}}}}";
         testCommon.request(params);
     }
 }

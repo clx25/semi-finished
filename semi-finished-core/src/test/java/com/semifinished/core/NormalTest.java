@@ -1,12 +1,12 @@
 package com.semifinished.core;
 
-import com.semifinished.core.config.ConfigProperties;
-import com.semifinished.core.config.DataSourceConfig;
-import com.semifinished.core.service.enhance.query.DesensitizeEnhance;
-import com.semifinished.core.utils.MapUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.core.config.ConfigProperties;
+import com.semifinished.core.config.DataSourceConfig;
 import com.semifinished.core.pojo.Desensitization;
+import com.semifinished.core.service.enhance.query.DesensitizeEnhance;
+import com.semifinished.core.utils.MapUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -342,7 +342,7 @@ public class NormalTest {
 
     @Test
     @DisplayName("测试json数据格式化")
-    public void testJsonReplace(){
+    public void testJsonReplace() {
         String params = "{\"@tb\":\"menu\",\"id\":\"1\",\"#json\":\"icon\"}";
         String result = "[{\"id\":\"1\",\"label\":\"Home\",\"icon\":{\"type\":\"chart-graph\",\"size\":24,\"strokeWidth\":2,\"theme\":\"outline\",\"fill\":[\"#0045f1\"]},\"route\":true}]";
         testCommon.test(params, 0, result);
@@ -380,8 +380,8 @@ public class NormalTest {
         Desensitization nullValue = Desensitization.builder().table("menu").column("icon").left(1).right(1).build();
         desensitizes.clear();
         desensitizes.add(nullValue);
-        String param2="{\"@tb\":\"menu\",\"id\":\"4\"}";
-        testCommon.test(param2,0,"[{\"id\":\"4\",\"label\":\"Role\",\"icon\":null,\"route\":false}]");
+        String param2 = "{\"@tb\":\"menu\",\"id\":\"4\"}";
+        testCommon.test(param2, 0, "[{\"id\":\"4\",\"label\":\"Role\",\"icon\":null,\"route\":false}]");
 
     }
 

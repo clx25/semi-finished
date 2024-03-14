@@ -1,21 +1,22 @@
 package com.semifinished.core.utils.bean;
 
 
-import com.semifinished.core.exception.ParamsException;
-import com.semifinished.core.jdbc.QuerySqlCombiner;
-import com.semifinished.core.jdbc.util.IdGenerator;
-import com.semifinished.core.pojo.Column;
-import com.semifinished.core.pojo.ValueCondition;
-import com.semifinished.core.utils.Assert;
-import com.semifinished.core.utils.ParamsUtils;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
+import com.semifinished.core.exception.ParamsException;
+import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
+import com.semifinished.core.jdbc.util.IdGenerator;
+import com.semifinished.core.pojo.Column;
+import com.semifinished.core.utils.Assert;
+import com.semifinished.core.utils.ParamsUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -140,27 +141,5 @@ public class TableUtils {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 校验数据类型是否匹配数据库
-     *
-     * @param valueConditions 条件数据
-     * @param sqlDefinition   SQL定义信息
-     */
-    public void validType(List<ValueCondition> valueConditions, SqlDefinition sqlDefinition) {
-        List<Column> columns = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + sqlDefinition.getDataSource());
-
-        for (ValueCondition condition : valueConditions) {
-            for (Column column : columns) {
-                if (!column.getTable().equals(condition.getTable())) {
-                    continue;
-                }
-                if (!column.getColumn().equals(condition.getColumn())) {
-                    continue;
-                }
-                Assert.isTrue(!column.isNullAble() && condition.getValue() == null, () -> new ParamsException("值不能为空："+column.getColumn()));
-               //todo
-            }
-        }
-    }
 
 }

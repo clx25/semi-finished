@@ -1,9 +1,9 @@
 package com.semifinished.core.config;
 
 
+import com.semifinished.core.annontation.Semi;
 import com.semifinished.core.exception.CodeException;
 import com.semifinished.core.utils.Assert;
-import com.semifinished.core.annontation.Semi;
 import org.apache.commons.math3.util.Pair;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.context.ApplicationContext;

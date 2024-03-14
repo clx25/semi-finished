@@ -73,7 +73,7 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
         unique(requestMappingInfos);
 
-        semiCache.setValue(CoreCacheKey.CUSTOM_API.getKey(), apiMap);
+        semiCache.addValue(CoreCacheKey.CUSTOM_API.getKey(), apiMap);
     }
 
     /**
@@ -120,9 +120,9 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
             Assert.isFalse(apiMap.containsKey(method), () -> new ParamsException("请求方式%s配置错误", method));
             Map<String, ObjectNode> apiConfigs = apiMap.get(method);
             String finalApi = api;
-            Assert.isTrue(apiConfigs.containsKey(api),()->new ParamsException("接口%s重复", finalApi));
+            Assert.isTrue(apiConfigs.containsKey(api), () -> new ParamsException("接口%s重复", finalApi));
             JsonNode value = entry.getValue();
-            Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("接口%s配置错误",value));
+            Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("接口%s配置错误", value));
             apiConfigs.put(api, (ObjectNode) value);
         });
 

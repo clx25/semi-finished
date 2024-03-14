@@ -6,6 +6,10 @@ package com.semifinished.core.exception;
  */
 public class ParamsException extends ProjectRuntimeException {
 
+    public ParamsException(String format) {
+        super(format);
+    }
+
     public ParamsException(String format, Object... args) {
         super(String.format(format, args));
     }

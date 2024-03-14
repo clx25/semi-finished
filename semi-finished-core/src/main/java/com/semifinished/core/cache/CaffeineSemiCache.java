@@ -3,6 +3,7 @@ package com.semifinished.core.cache;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -28,6 +29,16 @@ public class CaffeineSemiCache implements SemiCache {
         return hashValue.get(hashKey);
     }
 
+    @Override
+    public <T> void addValue(String key, String hashKey, T value) {
+        Map<String, T> hashValue = (Map<String, T>) cache.getIfPresent(key);
+        if (hashValue == null) {
+            hashValue = new HashMap<>();
+        }
+        hashValue.put(hashKey, value);
+        cache.put(key, hashValue);
+    }
+
     /**
      * 从缓存中获取key对应的值，如果数据为<code>null</code>，那么从supplier中获取
      * 并且会把supplier中获取的数据添加到缓存中
@@ -50,8 +61,16 @@ public class CaffeineSemiCache implements SemiCache {
 
 
     @Override
-    public void setValue(String key, Object value) {
+    public void addValue(String key, Object value) {
         cache.put(key, value);
+    }
+
+    @Override
+    public void removeValue(String key, String hashKey) {
+        Map<Object, Object> map = (Map<Object, Object>) cache.getIfPresent(key);
+        if (map != null) {
+            map.remove(hashKey);
+        }
     }
 
     @Override

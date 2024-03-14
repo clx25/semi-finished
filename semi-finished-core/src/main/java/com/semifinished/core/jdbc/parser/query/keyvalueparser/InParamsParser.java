@@ -1,12 +1,12 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
 
-import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.semifinished.core.annontation.Where;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
+import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParserUtils;
@@ -75,7 +75,7 @@ public class InParamsParser implements KeyValueParamsParser {
             column = getColumn(sqlDefinition, table, column.trim());
         }
 
-        List<Object> values = parseValues(value, inColumns.length,key);
+        List<Object> values = parseValues(value, inColumns.length, key);
 
         populateValueCondition(sqlDefinition, table, key, valueCondition, values, column);
         return true;

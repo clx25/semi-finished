@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * 排除字段
  */
-@Order(1000)
+@Order(400)
 @Component
 public class ExcludeEnhance implements AfterQueryEnhance {
 

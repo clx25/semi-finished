@@ -15,7 +15,7 @@ import java.util.List;
  * 通过替换查询结果的key，能处理各种奇怪的别名
  */
 @Component
-@Order(-1000)
+@Order(-600)
 public class IllLegalAliasEnhance implements AfterQueryEnhance {
 
     @Override

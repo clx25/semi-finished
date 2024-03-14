@@ -21,15 +21,11 @@ public class AuthProperties {
      */
     private boolean authEnable = true;
 
-    /**
-     * 是否开启登录的验证码
-     */
-    private boolean loginCaptcha;
 
     /**
-     * 是否开启注册的验证码
+     * 是否开启验证码
      */
-    private boolean signupCaptcha;
+    private boolean captcha;
 
     /**
      * token在header中的key

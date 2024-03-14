@@ -8,7 +8,7 @@ public class ConfigException extends ProjectRuntimeException {
         super(message);
     }
 
-    public ConfigException(String message,Exception e) {
-        super(message,e);
+    public ConfigException(String message, Exception e) {
+        super(message, e);
     }
 }

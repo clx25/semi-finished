@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
+import com.semifinished.core.exception.CodeException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
+import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.RequestUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.core.annotation.Order;
@@ -20,7 +22,7 @@ import java.util.Map;
 
 @Component
 @AllArgsConstructor
-@Order(Integer.MIN_VALUE+500)
+@Order(Integer.MIN_VALUE + 500)
 public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
     private final SemiCache semiCache;
 
@@ -28,10 +30,9 @@ public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
     public boolean support(SqlDefinition sqlDefinition) {
         HttpServletRequest request = RequestUtils.getRequest();
         ObjectNode params = sqlDefinition.getParams();
-        Map<String, Map<String, ObjectNode>> apiMap = semiCache.getValue(CoreCacheKey.CUSTOM_API.getKey());
-        String servletPath = request.getServletPath();
         String method = request.getMethod();
-        Map<String, ObjectNode> apiMaps = apiMap.get(method);
+        Map<String, ObjectNode> apiMaps = semiCache.getValue(CoreCacheKey.CUSTOM_API.getKey(), method);
+        String servletPath = request.getServletPath();
         if (apiMaps == null) {
             return false;
         }
@@ -80,12 +81,17 @@ public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
         }
         ObjectNode jsonNode = JsonNodeFactory.instance.objectNode();
         template.fields().forEachRemaining(entry -> {
+            //包含$$的参数键
             String key = entry.getKey();
+            //参数值或者$$规则的替换关联字段
             JsonNode value = entry.getValue();
             if (value instanceof ArrayNode) {
+                ArrayNode jsonNodes = JsonNodeFactory.instance.arrayNode();
                 for (JsonNode node : value) {
-                    value = deepMerge(node, params);
+                    jsonNodes.add(deepMerge(node, params));
                 }
+                value = jsonNodes;
+
             } else if (value instanceof ObjectNode) {
                 value = deepMerge(value, params);
             } else {
@@ -94,9 +100,13 @@ public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
                     jsonNode.set(key, value);
                     return;
                 }
-                key = key.substring(0, key.length() - 2);
                 //替换数据的key
                 String name = value.asText("");
+                Assert.hasNotText(name, () -> new CodeException("$$规则关联字段不能为空：" + entry.getKey()));
+                key = key.substring(0, key.length() - 2);
+                if (!params.has(name)) {
+                    return;
+                }
                 value = params.get(name);
             }
 

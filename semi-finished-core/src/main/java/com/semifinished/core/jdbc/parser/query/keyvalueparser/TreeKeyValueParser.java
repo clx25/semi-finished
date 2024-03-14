@@ -1,13 +1,13 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
+import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.semifinished.core.pojo.Column;
 import com.semifinished.core.utils.Assert;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.utils.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,10 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * 树结构规则解析
- * todo 暂不支持多表数据转树结构
- * 如果parent，id字段没有存在于查询字段中，如何处理？
- * 1. 抛出异常，提示需要这两个字段（是否合理？）
- * 2. 添加到查询字段中，返回前端前删除（多表数据时如何确定字段对应的表？）
+ * todo 处理当转换字段不存在时添加到查询字段，并在转换后删除
  */
 @Component
 @AllArgsConstructor

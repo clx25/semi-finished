@@ -1,8 +1,6 @@
 package com.semifinished.core.service.enhance.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
@@ -24,7 +22,7 @@ import java.util.List;
 /**
  * 对返回数据进行替换
  */
-@Order(200)
+@Order(0)
 @Component
 @RequiredArgsConstructor
 public class ValueReplaceEnhance implements AfterQueryEnhance {
@@ -90,38 +88,11 @@ public class ValueReplaceEnhance implements AfterQueryEnhance {
         for (String recodeKey : recodeKeys) {
 
             JsonNode value = objectNode.get(recodeKey);
-            if (value == null) {
-                continue;
-            }
-            if (!(value instanceof ArrayNode)) {
-                value = executeReplacer(sqlDefinition, pattern, value);
-                objectNode.set(recodeKey, value == null ? NullNode.instance : value);
-                return;
-            }
 
-            for (int i = 0; i < value.size(); i++) {
-                replaceArray(sqlDefinition, pattern, recodeKeys, (ArrayNode) value, i);
-            }
+            value = executeReplacer(sqlDefinition, pattern, value);
+            objectNode.set(recodeKey, value);
 
         }
-    }
-
-    private void replaceArray(SqlDefinition sqlDefinition, String pattern, List<String> recodeKeys, ArrayNode parent, int index) {
-        JsonNode value = parent.get(index);
-        if (value instanceof ArrayNode) {
-            for (int i = 0; i < value.size(); i++) {
-                replaceArray(sqlDefinition, pattern, recodeKeys, (ArrayNode) value, i);
-            }
-            return;
-        }
-        if (value instanceof ObjectNode) {
-            replaceObject(sqlDefinition, pattern, recodeKeys, (ObjectNode) value);
-            return;
-        }
-
-        value = executeReplacer(sqlDefinition, pattern, value);
-        parent.set(index, value);
-
     }
 
 

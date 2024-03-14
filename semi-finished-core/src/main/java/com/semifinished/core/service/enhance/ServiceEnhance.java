@@ -6,7 +6,7 @@ import com.semifinished.core.jdbc.parser.query.ParamsParser;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 /**
  * 对查询结果进行增强
@@ -41,12 +41,11 @@ public interface ServiceEnhance {
         }
 
         String name = name();
-        for (String bean : beans.split(",")) {
-            if (name != null && Objects.equals(name, bean)) {
-                return true;
-            }
+
+        if (!StringUtils.hasText(name)) {
+            return false;
         }
-        return false;
+        return Arrays.asList(beans.split(",")).contains(name);
     }
 
     default String name() {

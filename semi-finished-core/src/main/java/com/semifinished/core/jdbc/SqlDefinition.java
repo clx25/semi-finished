@@ -50,10 +50,6 @@ public class SqlDefinition {
      * 原始的请求参数,不应该对这个数据进行修改
      */
     private JsonNode rawParams;
-    /**
-     * sql类型
-     */
-    private int type;
 
     /**
      * 数据源名称，是在配置中的名称，不是数据库的名称

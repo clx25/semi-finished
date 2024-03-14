@@ -1,12 +1,6 @@
 package com.semifinished.core.cache;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.semifinished.core.pojo.Column;
 import lombok.Getter;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * 缓存数据的key

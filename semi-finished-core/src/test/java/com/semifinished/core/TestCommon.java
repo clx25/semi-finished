@@ -1,11 +1,11 @@
 package com.semifinished.core;
 
-import com.semifinished.core.controller.EnhanceController;
-import com.semifinished.core.exception.ParamsException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.core.controller.EnhanceController;
+import com.semifinished.core.exception.ParamsException;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,6 @@ public class TestCommon {
     private EnhanceController enhanceController;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
 
 
     public void test(String params, int size, String resultEquals) {

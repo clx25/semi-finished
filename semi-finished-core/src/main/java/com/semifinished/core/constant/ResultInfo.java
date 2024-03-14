@@ -1,6 +1,5 @@
 package com.semifinished.core.constant;
 
-import com.semifinished.core.pojo.Result;
 import lombok.Getter;
 
 /**

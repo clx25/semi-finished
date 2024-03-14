@@ -34,8 +34,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        //测试使用
-//        request.setAttribute("id", "1");
+
 
         //如果关闭了验证，直接跳过验证
         if (!authProperties.isAuthEnable()) {
@@ -56,15 +55,15 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         try {
             //获取token信息放入attribute中方便在其他地方使用
             DecodedJWT decodedJWT = JwtUtils.parseToken(token);
-
-            request.setAttribute("username", decodedJWT.getSubject());
             String idKey = configProperties.getIdKey();
-            request.setAttribute(idKey, decodedJWT.getClaim(idKey).asString());
-            request.setAttribute("roleId", decodedJWT.getClaim("roleId").asString());
-            request.setAttribute("deptId", decodedJWT.getClaim("deptId").asString());
+            request.setAttribute(idKey, decodedJWT.getSubject());
+
+            decodedJWT.getClaims().forEach((k, v) -> {
+                request.setAttribute(k, v.toString());
+            });
 
             //刷新token，放入响应头
-            String newToken = JwtUtils.refreshToken(configProperties, token, decodedJWT);
+            String newToken = JwtUtils.refreshToken(token, decodedJWT);
             response.setHeader(authProperties.getTokenKey(), newToken);
 
         } catch (Exception e) {

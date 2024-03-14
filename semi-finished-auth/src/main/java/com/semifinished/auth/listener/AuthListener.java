@@ -30,11 +30,12 @@ public class AuthListener implements ApplicationListener<RefreshCacheApplication
         if (CollectionUtils.isEmpty(skip)) {
             skip = new HashMap<>();
         }
+        //内置的跳过登录验证的接口
         skip.put("/login", "post");
         skip.put("/signup", "post");
         skip.put("/captcha", "get");
         skip.put("/error", "*");
-        semiCache.setValue(AuthCacheKey.SKIP_AUTH.getKey(), skip);
+        semiCache.addValue(AuthCacheKey.SKIP_AUTH.getKey(), skip);
 
     }
 }

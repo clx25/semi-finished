@@ -49,7 +49,7 @@ public class JoinParser implements KeyValueParamsParser {
             return false;
         }
         Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
-                ParserStatus.JOIN), () -> new ParamsException("join规则位置错误"));
+                ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("join规则位置错误"));
 
 
         Assert.isTrue(left && inner, () -> new ParamsException("join规则错误：" + key));

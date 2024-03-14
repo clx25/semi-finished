@@ -1,11 +1,10 @@
 package com.semifinished.core.jdbc;
 
-import com.semifinished.core.exception.ProjectRuntimeException;
-import com.semifinished.core.exception.SqlDataException;
-import com.semifinished.core.utils.MapUtils;
-import com.semifinished.core.utils.ParamsUtils;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.core.exception.ProjectRuntimeException;
+import com.semifinished.core.utils.MapUtils;
+import com.semifinished.core.utils.ParamsUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -39,18 +38,6 @@ public class SqlExecutor {
         transactionManager.executeWithoutResult(transactionStatus -> resultConsumer.accept(this));
     }
 
-    /**
-     * 判断是否存在一条数据，如果超过一条，抛出异常
-     *
-     * @param sql  sql语句
-     * @param args sql中的数据
-     * @return true：有一条匹配，false：没有匹配
-     * @throws SqlDataException 超出一条匹配抛出该异常
-     */
-    public boolean oneMatch(String sql, Map<String, ?> args) throws SqlDataException {
-        ObjectNode objectNode = justOne(sql, args);
-        return objectNode != null;
-    }
 
     public boolean existMatch(String sql, Map<String, ?> args) {
         return getOne(sql, args) != null;
@@ -63,23 +50,6 @@ public class SqlExecutor {
 
     public ObjectNode getOne(String sql, Map<String, ?> args) {
         List<ObjectNode> list = list(sql, args);
-        return list.size() == 0 ? null : list.get(0);
-    }
-
-    /**
-     * 只查询一个数据，如果超过一个，抛出异常
-     *
-     * @param sql  sql语句
-     * @param args sql中的数据
-     * @return 查询出来的一条数据
-     * @throws SqlDataException 超出一条数据后抛出的异常
-     */
-    public ObjectNode justOne(String sql, Map<String, ?> args) throws SqlDataException {
-        List<ObjectNode> list = list(sql, args);
-
-        if (list.size() > 1) {
-            throw new SqlDataException("找到了" + list.size() + "条数据" + sql + args);
-        }
         return list.size() == 0 ? null : list.get(0);
     }
 

@@ -7,8 +7,6 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-
 
 /**
  * 测试规则在参数中的位置异常
@@ -140,9 +138,6 @@ public class LocationExceptionTest {
         String params = "{\"@tb\":\"users\",\"name\":{\"value\":\"Alice\",\"@tb\": \"users\"} }";
         testCommon.testException(params, "表名规则位置错误");
     }
-
-
-
 
 
 }

@@ -30,7 +30,6 @@ public class UpdateSqlCombiner {
 
         Assert.isFalse(valueConditions.size() > 1, () -> new ParamsException("缺少修改数据内容"));
 
-        //todo 校验类型和是否为空
         StringBuilder sql = new StringBuilder(" update ")
                 .append(sqlDefinition.getTable())
                 .append(" set ");

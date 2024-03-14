@@ -1,10 +1,10 @@
 package com.semifinished.core.jdbc.parser.query.keyvalueparser;
 
-import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.constant.ParserStatus;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
+import com.semifinished.core.jdbc.parser.query.CommonParser;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParserUtils;
 import com.semifinished.core.utils.bean.TableUtils;

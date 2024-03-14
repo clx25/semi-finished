@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * 第二次查询：从查询的列表取出group by字段的结果，作为IN查询的参数。把之前的查询字段与group by字段合并，去除group by规则，执行查询
  * 合并：根据group by字段进行合并，group by没有覆盖的查询字段是集合形式
  */
-@Order(-600)
+@Order(-400)
 @Component
 @RequiredArgsConstructor
 public class GroupByEnhance implements AfterQueryEnhance {

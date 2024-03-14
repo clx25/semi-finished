@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  *     children: 下一个层级的key
  * </pre>
  */
-@Order(0)
+@Order(200)
 @Component
 public class TreeEnhance implements AfterQueryEnhance {
 
@@ -62,9 +62,6 @@ public class TreeEnhance implements AfterQueryEnhance {
             return;
         }
         Assert.hasText(sj.toString(), () -> new ParamsException("树查询规则重复：" + sj));
-        Assert.isFalse(repeat.contains("id"), () -> new ParamsException("树查询缺少id配置"));
-        Assert.isFalse(repeat.contains("parent"), () -> new ParamsException("树查询缺少parent配置"));
-
     }
 
     @Override

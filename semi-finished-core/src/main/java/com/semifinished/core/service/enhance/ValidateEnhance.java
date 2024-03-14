@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.service.enhance.validator.Validator;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
+import com.semifinished.core.service.enhance.validator.Validator;
 import com.semifinished.core.utils.RequestUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.core.annotation.Order;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@Order(-2000)
+@Order(-800)
 @AllArgsConstructor
 public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
 
@@ -40,7 +40,7 @@ public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
         if (objectNode == null) {
             return;
         }
-        validate(sqlDefinition.getRawParams(),objectNode,sqlDefinition);
+        validate(sqlDefinition.getRawParams(), objectNode, sqlDefinition);
     }
 
 

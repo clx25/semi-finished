@@ -9,8 +9,6 @@ import com.semifinished.core.utils.MapUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.text.MessageFormat;
-
 @Component
 @AllArgsConstructor
 public class UniqueValidator implements Validator {
@@ -31,7 +29,7 @@ public class UniqueValidator implements Validator {
                 boolean match = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
                         .existMatch(sql, MapUtils.of(field, value));
 
-                Assert.isTrue(match,()->new ParamsException(msg));
+                Assert.isTrue(match, () -> new ParamsException(msg));
             }
         }
 

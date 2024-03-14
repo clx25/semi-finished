@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -96,6 +97,9 @@ public class UpdateService {
 
         SqlDefinition sqlDefinition = new SqlDefinition(params);
 
+
+        List<AfterUpdateEnhance> afterUpdateEnhances = supportEnhance(sqlDefinition);
+
         afterUpdateEnhances.forEach(enhance -> enhance.beforeParse(sqlDefinition));
 
         paramsParsers.forEach(parser -> parser.parse(params, sqlDefinition));
@@ -124,6 +128,19 @@ public class UpdateService {
                 });
 
         afterUpdateEnhances.forEach(enhance -> enhance.afterExecute(sqlDefinition));
+    }
+
+
+    /**
+     * 执行增强中的support方法，筛选支持此次请求的增强
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return 支持此次请求的增强方法
+     */
+    private List<AfterUpdateEnhance> supportEnhance(SqlDefinition sqlDefinition) {
+        return this.afterUpdateEnhances.stream()
+                .filter(enhance -> enhance.support(sqlDefinition))
+                .collect(Collectors.toList());
     }
 
 

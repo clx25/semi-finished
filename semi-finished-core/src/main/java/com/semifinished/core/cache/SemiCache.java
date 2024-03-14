@@ -27,6 +27,15 @@ public interface SemiCache {
      */
     <T> T getValue(String key, String hashKey);
 
+    /**
+     * 根据key和hashKey添加数据
+     *
+     * @param key     缓存的键
+     * @param hashKey 缓存的哈希键
+     * @param value   添加的数据
+     */
+    <T> void addValue(String key, String hashKey, T value);
+
 
     /**
      * 从缓存中获取key对应的值,如果没有数据，那么从supplier中获取
@@ -44,7 +53,7 @@ public interface SemiCache {
      * @param key   缓存的键
      * @param value 缓存的值
      */
-    void setValue(String key, Object value);
+    void addValue(String key, Object value);
 
 
     /**
@@ -54,6 +63,8 @@ public interface SemiCache {
      */
     void removeValue(String key);
 
+
+    void removeValue(String key, String hashKey);
 
     /**
      * 获取原始的缓存对象

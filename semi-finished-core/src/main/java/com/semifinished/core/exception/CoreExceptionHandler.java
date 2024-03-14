@@ -104,15 +104,6 @@ public class CoreExceptionHandler {
 
     }
 
-    /**
-     * 使用sql构造器时出现异常
-     */
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Result sqlDataException(SqlDataException e) {
-        log.debug("sql执行错误", e);
-        return Result.info(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
-    }
 
     /**
      * 请求参数错误

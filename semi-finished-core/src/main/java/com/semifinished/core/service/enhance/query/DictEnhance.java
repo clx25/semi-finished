@@ -35,7 +35,7 @@ import java.util.stream.StreamSupport;
  * </pre>
  */
 @Component
-@Order(-500)
+@Order(-200)
 @AllArgsConstructor
 public class DictEnhance implements AfterQueryEnhance {
 

@@ -1,15 +1,15 @@
 package com.semifinished.core.listener;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.core.cache.CoreCacheKey;
+import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.DataSourceConfig;
 import com.semifinished.core.config.DataSourceProperties;
 import com.semifinished.core.exception.CodeException;
 import com.semifinished.core.exception.ConfigException;
+import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.pojo.Column;
 import com.semifinished.core.utils.Assert;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.core.cache.CoreCacheKey;
-import com.semifinished.core.cache.SemiCache;
-import com.semifinished.core.jdbc.SqlExecutorHolder;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
@@ -59,7 +59,7 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
                 throw new CodeException("无法识别的数据库");
             }
             tableList.addAll(tables);
-            semiCache.setValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName, tableList);
+            semiCache.addValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName, tableList);
         });
         Map<String, DataSourceConfig> dataSource = dataSourceProperties.getDataSource();
         if (dataSource == null || dataSource.isEmpty()) {

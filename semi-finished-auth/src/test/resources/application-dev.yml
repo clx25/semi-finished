@@ -28,7 +28,7 @@ spring:
 
 
 server:
-  port: 4200
+  port: 4000
 
 semi-finished:
   core:
@@ -37,8 +37,7 @@ semi-finished:
     datacenter-id: 1
     machine-id: 1
   auth:
-    signup-captcha: false
-    login-captcha: false
+    captcha: true
     skip:
       /userInfo: get
 
