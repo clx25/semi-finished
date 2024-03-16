@@ -71,8 +71,7 @@ public class UpdateSqlCombiner {
         StringJoiner values = new StringJoiner(",", "(", ")");
         for (ValueCondition valueCondition : valueConditions) {
             columns.add(valueCondition.getColumn());
-            Object value = valueCondition.getValue();
-            values.add(value == null ? null : ("'" + value) + "'");
+            values.add(":" + valueCondition.getColumn());
         }
 
         return " insert into " + sqlDefinition.getTable() + columns + " values" + values;
@@ -97,4 +96,6 @@ public class UpdateSqlCombiner {
         return " delete from " + sqlDefinition.getTable() + " where " + idKey + "='" + value + "'";
 
     }
+
+
 }

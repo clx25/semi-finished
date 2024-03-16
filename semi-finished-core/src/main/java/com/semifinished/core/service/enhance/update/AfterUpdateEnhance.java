@@ -30,7 +30,7 @@ public interface AfterUpdateEnhance extends ServiceEnhance {
 
 
     @AllArgsConstructor
-    static class SqlAutoExecutor {
+    class SqlAutoExecutor {
         private final Consumer<SqlDefinition> consumer;
         private final SqlDefinition sqlDefinition;
         /**

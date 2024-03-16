@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.constant.ParserStatus;
-import com.semifinished.core.jdbc.parser.query.keyvalueparser.KeyValueParamsParser;
+import com.semifinished.core.jdbc.parser.paramsParser.keyvalueparser.KeyValueParamsParser;
 import com.semifinished.core.pojo.AggregationFun;
 import com.semifinished.core.pojo.Column;
 import com.semifinished.core.pojo.ValueCondition;
@@ -171,7 +171,12 @@ public class SqlDefinition {
     }
 
     public SqlDefinition(String table, ObjectNode params) {
-        setParams(params);
+        if (params == null) {
+            this.params = JsonNodeFactory.instance.objectNode();
+            return;
+        }
+        this.params = params;
+        this.rawParams = params.deepCopy();
         this.table = table;
     }
 
@@ -182,15 +187,6 @@ public class SqlDefinition {
      */
     public boolean isPage() {
         return (pageSize | pageNum) != 0;
-    }
-
-    public void setParams(ObjectNode params) {
-        if (params == null) {
-            this.params = JsonNodeFactory.instance.objectNode();
-            return;
-        }
-        this.params = params;
-        this.rawParams = params.deepCopy();
     }
 
 

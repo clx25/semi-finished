@@ -76,43 +76,69 @@ public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
      */
     private JsonNode deepMerge(JsonNode template, ObjectNode params) {
 
+        if (template instanceof ArrayNode) {
+            ArrayNode jsonNodes = JsonNodeFactory.instance.arrayNode();
+            template.forEach(node -> jsonNodes.add(deepMerge(node, params)));
+            return jsonNodes;
+        }
+
+
         if (!(template instanceof ObjectNode)) {
             return template;
         }
         ObjectNode jsonNode = JsonNodeFactory.instance.objectNode();
-        template.fields().forEachRemaining(entry -> {
-            //包含$$的参数键
-            String key = entry.getKey();
-            //参数值或者$$规则的替换关联字段
-            JsonNode value = entry.getValue();
-            if (value instanceof ArrayNode) {
-                ArrayNode jsonNodes = JsonNodeFactory.instance.arrayNode();
-                for (JsonNode node : value) {
-                    jsonNodes.add(deepMerge(node, params));
-                }
-                value = jsonNodes;
-
-            } else if (value instanceof ObjectNode) {
-                value = deepMerge(value, params);
-            } else {
-
-                if (!key.endsWith("$$")) {
-                    jsonNode.set(key, value);
-                    return;
-                }
-                //替换数据的key
-                String name = value.asText("");
-                Assert.hasNotText(name, () -> new CodeException("$$规则关联字段不能为空：" + entry.getKey()));
-                key = key.substring(0, key.length() - 2);
-                if (!params.has(name)) {
-                    return;
-                }
-                value = params.get(name);
-            }
-
-            jsonNode.set(key, value);
-        });
+        template.fields().forEachRemaining(entry -> populate(params, jsonNode, entry.getKey(), entry.getKey(), entry.getValue()));
         return jsonNode;
+    }
+
+    private void populate(ObjectNode params, ObjectNode jsonNode, String rawKey, String key, JsonNode value) {
+        if (key.endsWith("$$")) {
+            key = key.substring(0, key.length() - 2);
+            //替换数据的key
+            String name = value.asText("");
+
+            Assert.hasNotText(name, () -> new CodeException("$$规则关联字段不能为空：" + rawKey));
+            if (!params.has(name)) {
+                return;
+            }
+            value = params.get(name);
+            jsonNode.set(key, value);
+            return;
+        }
+
+        if ("@batch".equals(key)) {
+            value = parseBatch((ObjectNode) value, params);
+        } else if (value instanceof ArrayNode || value instanceof ObjectNode) {
+            value = deepMerge(value, params);
+        }
+
+        jsonNode.set(key, value);
+    }
+
+
+    private JsonNode parseBatch(ObjectNode template, ObjectNode params) {
+        JsonNode batchNodes = params.get("@batch");
+
+        ArrayNode jsonNodes = JsonNodeFactory.instance.arrayNode();
+
+        for (JsonNode node : batchNodes) {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            template.fields().forEachRemaining(entry -> {
+                String key = entry.getKey();
+                JsonNode value = entry.getValue();
+                if (!key.endsWith("$$")) {
+                    objectNode.set(key, value);
+                    return;
+                }
+                key = key.substring(0, key.length() - 2);
+                String name = value.asText();
+                objectNode.set(key, node.get(name));
+            });
+            jsonNodes.add(objectNode);
+        }
+
+
+        return jsonNodes;
     }
 }
 

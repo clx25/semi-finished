@@ -3,7 +3,6 @@ package com.semifinished.auth.controller;
 import com.semifinished.auth.config.AuthProperties;
 import com.semifinished.auth.exception.AuthException;
 import com.semifinished.auth.service.AuthenticationService;
-import com.semifinished.auth.service.UserService;
 import com.semifinished.core.pojo.Result;
 import com.semifinished.core.utils.Assert;
 import lombok.AllArgsConstructor;
@@ -16,7 +15,7 @@ import java.io.IOException;
 @AllArgsConstructor
 public class SemiAuthenticationController {
 
-    private final UserService userService;
+
     private final AuthProperties authProperties;
     private final AuthenticationService authenticationService;
 
@@ -26,7 +25,7 @@ public class SemiAuthenticationController {
     @GetMapping("current")
     public Result currentUser() {
         Assert.isFalse(authProperties.isAuthEnable(), () -> new AuthException("需要开启登录验证并登录"));
-        return Result.success(userService.getCurrent());
+        return Result.success(authenticationService.getCurrent());
     }
 
 

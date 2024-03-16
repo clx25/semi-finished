@@ -1,6 +1,7 @@
 package com.semifinished.core.service.enhance.query.replace;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
@@ -18,6 +19,9 @@ public class NumberValue implements ValueReplacer {
         if (!key.startsWith("num")) {
             return value;
         }
+        if (value == null) {
+            return IntNode.valueOf(0);
+        }
 
         String pattern = key.substring(3);
         Assert.hasNotText(pattern, () -> new ParamsException("缺少数字格式化规则：" + key));
@@ -30,6 +34,7 @@ public class NumberValue implements ValueReplacer {
         }
 
         return TextNode.valueOf(decimalFormat.format(d));
-
     }
+
+
 }

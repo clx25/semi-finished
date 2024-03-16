@@ -2,7 +2,7 @@ package com.semifinished.core.service.enhance;
 
 
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.jdbc.parser.query.ParamsParser;
+import com.semifinished.core.jdbc.parser.paramsParser.ParamsParser;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 

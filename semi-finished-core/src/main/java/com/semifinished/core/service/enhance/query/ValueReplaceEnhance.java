@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.jdbc.parser.query.CommonParser;
+import com.semifinished.core.jdbc.parser.paramsParser.CommonParser;
 import com.semifinished.core.pojo.Column;
 import com.semifinished.core.pojo.Page;
 import com.semifinished.core.pojo.ValueReplace;

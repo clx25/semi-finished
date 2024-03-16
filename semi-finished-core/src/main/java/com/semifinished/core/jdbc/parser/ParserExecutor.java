@@ -2,7 +2,7 @@ package com.semifinished.core.jdbc.parser;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.jdbc.parser.query.ParamsParser;
+import com.semifinished.core.jdbc.parser.paramsParser.ParamsParser;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;

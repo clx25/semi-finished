@@ -1,6 +1,7 @@
 package com.semifinished.core.service.enhance;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
@@ -36,43 +37,48 @@ public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
             return;
         }
 
-        ObjectNode objectNode = apiMap.get(servletPath);
-        if (objectNode == null) {
+        ObjectNode apiConfigs = apiMap.get(servletPath);
+        if (apiConfigs == null) {
             return;
         }
-        validate(sqlDefinition.getRawParams(), objectNode, sqlDefinition);
+        JsonNode ruler = apiConfigs.get("ruler");
+        if (ruler == null) {
+            return;
+        }
+
+        ruler.fields().forEachRemaining(entry -> validate(entry.getKey(), entry.getValue(), sqlDefinition.getRawParams(), sqlDefinition));
     }
 
 
     /**
      * 参数校验
      *
+     * @param field         规则字段
+     * @param value         规则值
      * @param params        请求参数
-     * @param apiConfigs    配置信息
      * @param sqlDefinition SQL定义信息
      */
-    private void validate(JsonNode params, ObjectNode apiConfigs, SqlDefinition sqlDefinition) {
+    private void validate(String field, JsonNode value, JsonNode params, SqlDefinition sqlDefinition) {
 
-        JsonNode ruler = apiConfigs.get("ruler");
-        if (ruler == null) {
+        if (params instanceof ArrayNode) {
+            for (JsonNode param : params) {
+                validate(field, value, param, sqlDefinition);
+            }
             return;
         }
 
-        ruler.fields().forEachRemaining(entry -> {
-            String field = entry.getKey();
-            String text = params.get(field).asText(null);
+        JsonNode jsonNode = params.get(field);
+        String text = jsonNode == null ? null : jsonNode.asText(null);
 
-            entry.getValue().fields().forEachRemaining(patternEntry -> {
-                for (Validator validator : validators) {
-                    String pattern = patternEntry.getKey().trim();
-                    String msg = patternEntry.getValue().asText("");
-                    boolean validate = validator.validate(field, text, pattern, msg, sqlDefinition);
-                    if (validate) {
-                        return;
-                    }
+        value.fields().forEachRemaining(entry -> {
+            for (Validator validator : validators) {
+                String pattern = entry.getKey().trim();
+                String msg = entry.getValue().asText("");
+                boolean validate = validator.validate(field, text, pattern, msg, sqlDefinition);
+                if (validate) {
+                    return;
                 }
-            });
-
+            }
         });
 
 

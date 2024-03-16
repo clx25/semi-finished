@@ -170,7 +170,7 @@ public class GroupByEnhance implements AfterQueryEnhance {
 
         //获取第二次查询的值
         List<Object[]> argValue = argsValue(records, matchColumns);
-        //todo Object[]可能为空
+
         if (argValue.isEmpty()) {
             return;
         }
@@ -205,7 +205,9 @@ public class GroupByEnhance implements AfterQueryEnhance {
             for (int i = 0; i < matchColumns.size(); i++) {
                 arg[i] = record.path(matchColumns.get(i)).asText();
             }
-            argsValue.add(arg);
+            if (arg.length > 0) {
+                argsValue.add(arg);
+            }
         }
         return argsValue;
     }

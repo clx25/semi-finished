@@ -19,6 +19,7 @@
         <module>semi-finished-core</module>
         <module>semi-finished-auth</module>
         <module>semi-finished-web</module>
+        <module>semi-finished-excel</module>
     </modules>
 
     <properties>

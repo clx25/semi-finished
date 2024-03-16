@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ValueNode;
 import com.semifinished.auth.config.AuthProperties;
 import com.semifinished.core.exception.CodeException;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.jdbc.parser.query.ParamsParser;
+import com.semifinished.core.jdbc.parser.paramsParser.ParamsParser;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.RequestUtils;
 import lombok.AllArgsConstructor;

@@ -1,9 +1,7 @@
 package com.semifinished.core.service.enhance.query.replace;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
+import com.fasterxml.jackson.databind.node.*;
 import com.semifinished.core.jdbc.SqlDefinition;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -21,7 +19,7 @@ public class StringValue implements ValueReplacer {
             return value;
         }
         if (value == null) {
-            return null;
+            return TextNode.valueOf("");
         }
         StringJoiner sj = new StringJoiner(",");
         for (JsonNode jsonNode : value) {
@@ -30,6 +28,7 @@ public class StringValue implements ValueReplacer {
                 sj.add(text);
             }
         }
-        return JsonNodeFactory.instance.textNode(sj.toString());
+
+        return TextNode.valueOf(sj.toString());
     }
 }

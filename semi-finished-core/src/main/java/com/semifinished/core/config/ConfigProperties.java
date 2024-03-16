@@ -72,5 +72,5 @@ public class ConfigProperties {
     /**
      * 包外的api文件夹与jar包所在目录的的相对路径
      */
-    private String apiFolder = "semi-api";
+    private String apiFolder = "SEMI-CONFIG";
 }

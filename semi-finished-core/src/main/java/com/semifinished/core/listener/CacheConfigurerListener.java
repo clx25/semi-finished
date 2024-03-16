@@ -22,7 +22,7 @@ public class CacheConfigurerListener implements ApplicationListener<ContextRefre
 
     private final List<CoreConfigurer> coreConfigurers;
     private final DesensitizeEnhance desensitizeEnhance;
-
+    private final ApiInit apiInit;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -33,7 +33,9 @@ public class CacheConfigurerListener implements ApplicationListener<ContextRefre
 
         for (CoreConfigurer coreConfigurer : coreConfigurers) {
             coreConfigurer.addDesensitize(desensitizeEnhance.getDesensitizes());
+            coreConfigurer.addJsonConfig(apiInit.getJsonConfig());
         }
+
     }
 
 }

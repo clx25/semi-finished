@@ -1,5 +1,9 @@
 package com.semifinished.core.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.config.ConfigProperties;
@@ -8,7 +12,7 @@ import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.jdbc.UpdateSqlCombiner;
-import com.semifinished.core.jdbc.parser.query.ParamsParser;
+import com.semifinished.core.jdbc.parser.paramsParser.ParamsParser;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
 import com.semifinished.core.utils.Assert;
@@ -16,6 +20,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -27,19 +32,8 @@ public class UpdateService {
     private final List<AfterUpdateEnhance> afterUpdateEnhances;
     private final SqlExecutorHolder sqlExecutorHolder;
     private final ConfigProperties configProperties;
+    private final ObjectMapper objectMapper;
 
-    /**
-     * 修改数据
-     *
-     * @param params 请求参数
-     */
-    public void update(ObjectNode params) {
-        execute(params, (sqlDefinition) -> {
-            String sql = UpdateSqlCombiner.updateSQL(sqlDefinition, configProperties.getIdKey());
-            sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-                    .update(sql, QuerySqlCombiner.getArgs(sqlDefinition));
-        });
-    }
 
     /**
      * 根据id删除数据
@@ -59,18 +53,6 @@ public class UpdateService {
         });
     }
 
-    /**
-     * 根据id删除数据
-     *
-     * @param params 请求参数
-     */
-    public void delete(ObjectNode params) {
-        execute(params, (sqlDefinition) -> {
-            String sql = UpdateSqlCombiner.deleteSQL(sqlDefinition, configProperties.getIdKey());
-            sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-                    .update(sql, QuerySqlCombiner.getArgs(sqlDefinition));
-        });
-    }
 
     /**
      * 新增数据
@@ -87,16 +69,69 @@ public class UpdateService {
     }
 
     /**
+     * 修改数据
+     *
+     * @param params 请求参数
+     */
+    public void update(ObjectNode params) {
+        execute(params, (sqlDefinition) -> {
+            String sql = UpdateSqlCombiner.updateSQL(sqlDefinition, configProperties.getIdKey());
+            sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
+                    .update(sql, QuerySqlCombiner.getArgs(sqlDefinition));
+        });
+    }
+
+    public void batchAdd(JsonNode params) {
+
+//        if (params instanceof ArrayNode) {
+//            params = JsonNodeFactory.instance.objectNode().set("@batch", params);
+//        }
+
+        execute(params, (sqlDefinition) -> {
+            String sql = UpdateSqlCombiner.addSQLExcludeId(sqlDefinition, configProperties.getIdKey());
+            Map<String, Object>[] args = objectMapper.convertValue(sqlDefinition.getExpand().get("@batch"), new TypeReference<Map<String, Object>[]>() {
+            });
+            sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
+                    .batchUpdate(sql, args);
+        });
+    }
+
+
+    public void batchUpdate(JsonNode params) {
+//        if (params instanceof ArrayNode) {
+//            params = JsonNodeFactory.instance.objectNode().set("@batch", params);
+//        }
+        execute(params, (sqlDefinition) -> {
+            String sql = UpdateSqlCombiner.updateSQL(sqlDefinition, configProperties.getIdKey());
+            Map<String, Object>[] args = objectMapper.convertValue(sqlDefinition.getExpand().get("@batch"), new TypeReference<Map<String, Object>[]>() {
+            });
+            sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
+                    .batchUpdate(sql, args);
+        });
+    }
+
+
+    private void execute(JsonNode params, Consumer<SqlDefinition> consumer) {
+
+        SqlDefinition sqlDefinition = new SqlDefinition();
+        sqlDefinition.setRawParams(params);
+        if (params instanceof ArrayNode) {
+            params = JsonNodeFactory.instance.objectNode().set("@batch", params);
+        }
+        sqlDefinition.setParams((ObjectNode) params);
+
+        execute((ObjectNode) params, consumer, sqlDefinition);
+    }
+
+
+    /**
      * 解析请求参数并根据解析内容执行SQL
      *
      * @param params   请求参数
      * @param consumer 执行不同的SQL
      */
-    private void execute(ObjectNode params, Consumer<SqlDefinition> consumer) {
+    private void execute(ObjectNode params, Consumer<SqlDefinition> consumer, SqlDefinition sqlDefinition) {
         Assert.isEmpty(params, () -> new ParamsException("参数不能为空"));
-
-        SqlDefinition sqlDefinition = new SqlDefinition(params);
-
 
         List<AfterUpdateEnhance> afterUpdateEnhances = supportEnhance(sqlDefinition);
 

@@ -333,7 +333,7 @@ public class NormalTest {
 
 
         String params2 = "{\"@tb\":\"users\",\"id\":\"11\",\"@\":\"name\",\"id:\":{\"@tb\":\"user_order\",\"@on\":\"user_id\",\"@\":\"money\",\"#boolean\":\"money\"}}";
-        testCommon.test(params2, 0, "[{\"name\":\"Kate\",\"money\":[true,true,true,true,true]}]");
+        testCommon.test(params2, 0, "[{\"name\":\"Kate\",\"money\":false}]");
 
         String params3 = "{\"@tb\":\"menu\",\"id\":\"1\",\"@\":\"id,label,route\",\"#boolean\":\"route\"}\n";
         String result = "[{\"id\":\"1\",\"label\":\"Home\",\"route\":true}]";

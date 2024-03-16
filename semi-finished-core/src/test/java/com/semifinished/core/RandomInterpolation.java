@@ -1,7 +1,7 @@
 package com.semifinished.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.parser.interpolation.Interpolation;
 import org.springframework.stereotype.Component;
@@ -17,6 +17,6 @@ public class RandomInterpolation implements Interpolation {
 
     @Override
     public JsonNode value(String table, String key, JsonNode interpolatedKey, SqlDefinition sqlDefinition) {
-        return JsonNodeFactory.instance.numberNode(new Random().nextInt(50) + 1);
+        return IntNode.valueOf(new Random().nextInt(50) + 1);
     }
 }

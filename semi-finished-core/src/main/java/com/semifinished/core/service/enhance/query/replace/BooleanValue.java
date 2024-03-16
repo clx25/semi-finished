@@ -13,6 +13,9 @@ public class BooleanValue implements ValueReplacer {
         if (!"boolean".equals(pattern)) {
             return value;
         }
+        if (value == null) {
+            return BooleanNode.getFalse();
+        }
         if (value.isBoolean()) {
             return value;
         }

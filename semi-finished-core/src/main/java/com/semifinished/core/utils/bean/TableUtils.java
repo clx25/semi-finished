@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -55,7 +56,7 @@ public class TableUtils {
      * @param table         校验的表名
      * @param columns       校验的字段集合
      */
-    public void validColumnsName(SqlDefinition sqlDefinition, String table, List<String> columns) {
+    public void validColumnsName(SqlDefinition sqlDefinition, String table, Collection<String> columns) {
         if (columns == null || columns.isEmpty()) {
             Assert.isFalse(validTableName(sqlDefinition.getDataSource(), table), () -> new ParamsException(table + "参数错误"));
             return;

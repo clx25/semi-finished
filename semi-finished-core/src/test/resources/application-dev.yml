@@ -37,7 +37,6 @@ semi-finished:
     brackets-key: value
     datacenter-id: 1
     machine-id: 1
-    api-folder: /semi-api
 
 logging:
   level:

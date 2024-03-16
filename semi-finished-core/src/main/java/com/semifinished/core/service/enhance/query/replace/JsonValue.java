@@ -3,6 +3,7 @@ package com.semifinished.core.service.enhance.query.replace;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
@@ -19,6 +20,9 @@ public class JsonValue implements ValueReplacer {
     public JsonNode replace(SqlDefinition sqlDefinition, String pattern, JsonNode value) {
         if (!"json".equals(pattern)) {
             return value;
+        }
+        if (value == null) {
+            return JsonNodeFactory.instance.objectNode();
         }
 
         String text = value.asText(null);
