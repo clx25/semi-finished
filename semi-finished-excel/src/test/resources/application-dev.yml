@@ -38,7 +38,7 @@ semi-finished:
     datacenter-id: 1
     machine-id: 1
     common-api-enable: false
-    logic-delete: true
+
 logging:
   level:
     root: DEBUG

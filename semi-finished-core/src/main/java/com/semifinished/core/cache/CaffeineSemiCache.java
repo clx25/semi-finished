@@ -35,7 +35,7 @@ public class CaffeineSemiCache implements SemiCache {
         if (hashValue == null) {
             hashValue = new HashMap<>();
         }
-        hashValue.put(hashKey, value);
+        hashValue.putIfAbsent(hashKey, value);
         cache.put(key, hashValue);
     }
 
@@ -61,7 +61,7 @@ public class CaffeineSemiCache implements SemiCache {
 
 
     @Override
-    public void addValue(String key, Object value) {
+    public void setValue(String key, Object value) {
         cache.put(key, value);
     }
 

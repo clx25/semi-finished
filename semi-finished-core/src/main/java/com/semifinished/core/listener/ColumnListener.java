@@ -59,7 +59,7 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
                 throw new CodeException("无法识别的数据库");
             }
             tableList.addAll(tables);
-            semiCache.addValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName, tableList);
+            semiCache.setValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName, tableList);
         });
         Map<String, DataSourceConfig> dataSource = dataSourceProperties.getDataSource();
         if (dataSource == null || dataSource.isEmpty()) {

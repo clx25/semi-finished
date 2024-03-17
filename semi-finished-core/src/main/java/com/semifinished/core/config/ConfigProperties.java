@@ -73,4 +73,15 @@ public class ConfigProperties {
      * 包外的api文件夹与jar包所在目录的的相对路径
      */
     private String apiFolder = "SEMI-CONFIG";
+
+    /**
+     * 是否逻辑删除
+     */
+    private boolean logicDelete;
+
+    /**
+     * 逻辑删除字段，如果开启了逻辑删除又没有该字段，会提示错误
+     * todo 实现功能
+     */
+    private String logicDeleteColumn = "deleted";
 }

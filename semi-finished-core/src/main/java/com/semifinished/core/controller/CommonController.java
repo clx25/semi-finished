@@ -57,7 +57,7 @@ public class CommonController {
      * @param params 请求参数
      * @return 操作结果
      */
-    @PostMapping(value = "common/batch",name = "SEMI-JSON-API-POSTB")
+    @PostMapping(value = "common/batch",name = "SEMI-JSON-API-POST-BATCH")
     public Result batchAdd(@RequestBody JsonNode params) {
         updateService.batchAdd(params);
         return Result.success();
@@ -69,7 +69,7 @@ public class CommonController {
      * @param params 请求参数
      * @return 操作结果
      */
-    @PutMapping(value = "common/batch",name = "SEMI-JSON-API-PUTB")
+    @PutMapping(value = "common/batch",name = "SEMI-JSON-API-PUT-BATCH")
     public Result batchUpdate(@RequestBody JsonNode params) {
         updateService.batchUpdate(params);
         return Result.success();

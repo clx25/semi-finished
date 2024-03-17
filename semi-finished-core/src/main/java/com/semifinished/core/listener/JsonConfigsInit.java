@@ -11,6 +11,7 @@ import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.JsonFileUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
@@ -26,10 +27,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@Order(0)
+@Order(-400)
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
+public class JsonConfigsInit implements ApplicationListener<ContextRefreshedEvent> {
 
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
     private final ConfigProperties configProperties;
@@ -39,12 +41,12 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
     private final Map<String, String> jsonConfig = new HashMap<>();
 
     {
-        jsonConfig.put("SEMI-JSON-API-POSTQ", "POSTQ");
+        jsonConfig.put("SEMI-JSON-API-POST-QUERY", "POSTQ");
         jsonConfig.put("SEMI-JSON-API-POST", "POST");
         jsonConfig.put("SEMI-JSON-API-GET", "GET");
         jsonConfig.put("SEMI-JSON-API-PUT", "PUT");
-        jsonConfig.put("SEMI-JSON-API-POSTB", "POSTB");
-        jsonConfig.put("SEMI-JSON-API-PUTB", "PUTB");
+        jsonConfig.put("SEMI-JSON-API-POST-BATCH", "POSTB");
+        jsonConfig.put("SEMI-JSON-API-PUT-BATCH", "PUTB");
     }
 
     public Map<String, String> getJsonConfig() {
@@ -53,6 +55,9 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        if (configProperties.isCommonApiEnable()) {
+            return;
+        }
         Map<String, Map<String, ObjectNode>> apiMap = new HashMap<>();
 
 
@@ -73,7 +78,7 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
         unique(requestMappingInfos, apiMap);
 
-        semiCache.addValue(CoreCacheKey.CUSTOM_API.getKey(), apiMap);
+        semiCache.setValue(CoreCacheKey.JSON_CONFIGS.getKey(), apiMap);
     }
 
     /**
@@ -111,7 +116,7 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
             if (!api.startsWith("/")) {
                 api = "/" + api;
             }
-            Assert.isFalse(jsonConfig.containsValue(groupName), () -> new ConfigException("未配置该组名%s对应的方法", groupName));
+            log.debug("未配置该组名{}对应的方法", groupName);
 
             Map<String, ObjectNode> apiConfigs = apiMap.computeIfAbsent(groupName, k -> new HashMap<>());
 
@@ -178,7 +183,7 @@ public class ApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
                 String group = jsonConfig.get(requestMappingInfo.getName());
 
-                if (name.equals(group)||!apiMap.containsKey(group)) {
+                if (name.equals(group) || !apiMap.containsKey(group)) {
                     continue;
                 }
                 apiMap.computeIfAbsent(name, k -> new HashMap<>())

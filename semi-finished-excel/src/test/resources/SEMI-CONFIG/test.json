@@ -1,0 +1,25 @@
+{
+  "excel": {
+    "validte": {
+      "summary": "上传测试excel文件",
+      "header": {
+        "validate_table": "校验表名",
+        "validate_column": "校验字段名",
+        "pattern": "校验规则"
+      },
+      "params": {
+        "@tb": "semi_validate",
+        "@batch": {
+          "validate_table$$": "validate_table",
+          "validate_column$$": "validate_column",
+          "pattern$$": "pattern"
+        }
+      },
+      "ruler": {
+        "pattern": {
+          "text": "校验规则列不能为空"
+        }
+      }
+    }
+  }
+}

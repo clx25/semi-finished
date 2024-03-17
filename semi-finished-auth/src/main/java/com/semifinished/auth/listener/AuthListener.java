@@ -35,7 +35,7 @@ public class AuthListener implements ApplicationListener<RefreshCacheApplication
         skip.put("/signup", "post");
         skip.put("/captcha", "get");
         skip.put("/error", "*");
-        semiCache.addValue(AuthCacheKey.SKIP_AUTH.getKey(), skip);
+        semiCache.setValue(AuthCacheKey.SKIP_AUTH.getKey(), skip);
 
     }
 }

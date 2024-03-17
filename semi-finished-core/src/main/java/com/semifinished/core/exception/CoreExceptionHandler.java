@@ -36,14 +36,21 @@ public class CoreExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result exception(Exception e) {
         log.error("未知错误", e);
-        return Result.info(500, "未知错误");
+        return Result.info(500, "网络异常");
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result projectRuntimeException(ProjectRuntimeException e) {
         log.error("未知错误", e);
-        return Result.info(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        return Result.info(HttpStatus.BAD_REQUEST.value(), "网络异常");
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result codeException(CodeException e) {
+        log.error("代码异常", e);
+        return Result.info(HttpStatus.BAD_REQUEST.value(), "网络异常");
     }
 
     @ExceptionHandler

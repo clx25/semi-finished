@@ -16,6 +16,7 @@ import com.semifinished.core.jdbc.parser.paramsParser.ParamsParser;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
 import com.semifinished.core.utils.Assert;
+import com.semifinished.core.utils.bean.TableUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,7 @@ public class UpdateService {
     private final SqlExecutorHolder sqlExecutorHolder;
     private final ConfigProperties configProperties;
     private final ObjectMapper objectMapper;
-
+    private final TableUtils tableUtils;
 
     /**
      * 根据id删除数据
@@ -47,7 +48,15 @@ public class UpdateService {
                 .put(idKey, id)
                 .put("@tb", table);
         execute(params, (sqlDefinition) -> {
-            String sql = UpdateSqlCombiner.deleteSQL(sqlDefinition, idKey);
+            String sql;
+            if (configProperties.isLogicDelete()) {
+                String logicDeleteColumn = configProperties.getLogicDeleteColumn();
+                tableUtils.validColumnsName(sqlDefinition, sqlDefinition.getTable(), logicDeleteColumn);
+                sql = UpdateSqlCombiner.logicDeleteSQL(sqlDefinition, idKey, logicDeleteColumn);
+            } else {
+                sql = UpdateSqlCombiner.deleteSQL(sqlDefinition, idKey);
+            }
+
             sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
                     .update(sql, QuerySqlCombiner.getArgs(sqlDefinition));
         });
@@ -81,11 +90,12 @@ public class UpdateService {
         });
     }
 
+    /**
+     * 批量新增
+     *
+     * @param params 请求参数
+     */
     public void batchAdd(JsonNode params) {
-
-//        if (params instanceof ArrayNode) {
-//            params = JsonNodeFactory.instance.objectNode().set("@batch", params);
-//        }
 
         execute(params, (sqlDefinition) -> {
             String sql = UpdateSqlCombiner.addSQLExcludeId(sqlDefinition, configProperties.getIdKey());
@@ -96,11 +106,12 @@ public class UpdateService {
         });
     }
 
-
+    /**
+     * 批量修改
+     *
+     * @param params 请求参数
+     */
     public void batchUpdate(JsonNode params) {
-//        if (params instanceof ArrayNode) {
-//            params = JsonNodeFactory.instance.objectNode().set("@batch", params);
-//        }
         execute(params, (sqlDefinition) -> {
             String sql = UpdateSqlCombiner.updateSQL(sqlDefinition, configProperties.getIdKey());
             Map<String, Object>[] args = objectMapper.convertValue(sqlDefinition.getExpand().get("@batch"), new TypeReference<Map<String, Object>[]>() {

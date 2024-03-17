@@ -7,7 +7,7 @@
       }
     }
   },
-  "postb": {
+  "postB": {
     "/validateBatch": {
       "params": {
         "@tb": "semi_validate",

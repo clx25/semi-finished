@@ -85,16 +85,25 @@ public class UpdateSqlCombiner {
      * @return 删除语句SQL
      */
     public static String deleteSQL(SqlDefinition sqlDefinition, String idKey) {
-        List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
-        Optional<ValueCondition> first = valueConditions.stream().filter(v -> idKey.equals(v.getColumn())).findFirst();
-        ValueCondition valueCondition = first.orElseThrow(() -> new ParamsException("未指定主键的值"));
-
-        Object value = valueCondition.getValue();
-
-        Assert.hasNotText(value == null ? null : String.valueOf(value), () -> new ParamsException("删除的值不能为空"));
-
+        Object value = valid(sqlDefinition, idKey);
         return " delete from " + sqlDefinition.getTable() + " where " + idKey + "='" + value + "'";
 
+    }
+
+
+    public static String logicDeleteSQL(SqlDefinition sqlDefinition, String idKey, String logicDeleteColumn) {
+        Object value = valid(sqlDefinition, idKey);
+        return "update " + sqlDefinition.getTable() + " set " + logicDeleteColumn + " =1 " + " where " + idKey + "='" + value + "'";
+    }
+
+    private static Object valid(SqlDefinition sqlDefinition, String idKey) {
+        List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
+        Optional<ValueCondition> first = valueConditions.stream().filter(v -> idKey.equals(v.getColumn())).findFirst();
+        ValueCondition valueCondition = first.orElseThrow(() -> new ParamsException("未指定%s的值", idKey));
+        Object value = valueCondition.getValue();
+        Assert.hasNotText(value == null ? null : String.valueOf(value), () -> new ParamsException("%s不能为空", idKey));
+
+        return value;
     }
 
 

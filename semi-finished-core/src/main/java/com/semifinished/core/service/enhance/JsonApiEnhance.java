@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
+import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.CodeException;
+import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
@@ -25,13 +27,17 @@ import java.util.Map;
 @Order(Integer.MIN_VALUE + 500)
 public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
     private final SemiCache semiCache;
+    private final ConfigProperties configProperties;
 
     @Override
     public boolean support(SqlDefinition sqlDefinition) {
+        if (configProperties.isCommonApiEnable()) {
+            return false;
+        }
         HttpServletRequest request = RequestUtils.getRequest();
         ObjectNode params = sqlDefinition.getParams();
         String method = request.getMethod();
-        Map<String, ObjectNode> apiMaps = semiCache.getValue(CoreCacheKey.CUSTOM_API.getKey(), method);
+        Map<String, ObjectNode> apiMaps = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey(), method);
         String servletPath = request.getServletPath();
         if (apiMaps == null) {
             return false;
@@ -61,7 +67,7 @@ public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
     private ObjectNode mergeParams(ObjectNode apiConfigs, ObjectNode params) {
         ObjectNode template = (ObjectNode) apiConfigs.get("params");
         if (template.isEmpty()) {
-            return template;
+            return params;
         }
 
         return (ObjectNode) deepMerge(template, params);

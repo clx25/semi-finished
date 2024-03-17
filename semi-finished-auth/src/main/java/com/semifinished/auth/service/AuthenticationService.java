@@ -56,7 +56,7 @@ public class AuthenticationService {
         if (user != null) {
             return user;
         }
-        Map<String, JsonNode> apiMap = semiCache.getValue(CoreCacheKey.CUSTOM_API.getKey(), "POST");
+        Map<String, JsonNode> apiMap = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey(), "POST");
 
         ObjectNode params = apiMap.getOrDefault("/login", MissingNode.getInstance()).with("params");
         params.remove("@bean");

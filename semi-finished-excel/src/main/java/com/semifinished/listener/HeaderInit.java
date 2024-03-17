@@ -3,6 +3,8 @@ package com.semifinished.listener;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.core.cache.CoreCacheKey;
+import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.utils.Assert;
@@ -10,7 +12,6 @@ import com.semifinished.core.utils.JsonFileUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -20,15 +21,18 @@ import java.util.Map;
 /**
  * 初始化excel上传相关配置
  */
-@Component
+//@Component
 @AllArgsConstructor
 public class HeaderInit implements ApplicationListener<ContextRefreshedEvent> {
 
     private final ConfigProperties configProperties;
     private final ObjectMapper objectMapper;
+    private final SemiCache semiCache;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+
+
         File folder = JsonFileUtils.jarFile(configProperties);
 
         Map<String, ObjectNode> excel = new HashMap<>();
@@ -42,7 +46,8 @@ public class HeaderInit implements ApplicationListener<ContextRefreshedEvent> {
                 parseJsonFile(file, excel);
             }
         }
-
+        Map<String, ObjectNode> value = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey(), "EXCEL");
+//        semiCache.addValue(, "POST", excel);
     }
 
     private void parseJsonFile(File folder, Map<String, ObjectNode> excel) {
@@ -62,7 +67,7 @@ public class HeaderInit implements ApplicationListener<ContextRefreshedEvent> {
             Assert.isTrue(table == null, () -> new ConfigException("缺少table配置：" + code));
             Assert.isFalse(StringUtils.hasText(table.asText(null)), () -> new ConfigException("table配置不能为空：" + code));
             Assert.isFalse(value.has("header"), () -> new ConfigException("缺少header配置：" + code));
-            excel.put(code, (ObjectNode) value);
+            excel.put("/excel/" + code, (ObjectNode) value);
         });
     }
 }

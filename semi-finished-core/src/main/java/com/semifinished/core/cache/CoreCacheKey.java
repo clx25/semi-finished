@@ -28,9 +28,9 @@ public enum CoreCacheKey {
 //     */
 //    DEFAULT_DATASOURCE("semi:core:default_datasource"),
     /**
-     * 自定义api
+     * json配置
      */
-    CUSTOM_API("semi:core:custom_api", "Map<String, Map<String, ObjectNode>>");
+    JSON_CONFIGS("semi:core:json_configs", "Map<String, Map<String, ObjectNode>>");
 
 
     private final String key;
