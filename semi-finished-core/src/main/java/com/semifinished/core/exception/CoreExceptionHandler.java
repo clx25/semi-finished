@@ -16,6 +16,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -65,6 +66,11 @@ public class CoreExceptionHandler {
     public Result badSqlGrammarException(BadSqlGrammarException e) {
         log.error("sql执行错误", e);
         return Result.info(HttpStatus.BAD_REQUEST.value(), "请求参数错误");
+    }
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result maxUploadSizeExceededException(MaxUploadSizeExceededException e){
+        return Result.info(HttpStatus.BAD_REQUEST.value(), "上传文件超出大小");
     }
 
     @ExceptionHandler

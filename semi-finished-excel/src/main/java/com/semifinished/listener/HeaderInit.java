@@ -41,7 +41,7 @@ public class HeaderInit implements ApplicationListener<ContextRefreshedEvent> {
             parseJsonFile(folder, excel);
         }
 
-        for (File file : JsonFileUtils.classPatchFiles(configProperties)) {
+        for (File file : JsonFileUtils.classPathFiles(configProperties)) {
             if (file.exists()) {
                 parseJsonFile(file, excel);
             }

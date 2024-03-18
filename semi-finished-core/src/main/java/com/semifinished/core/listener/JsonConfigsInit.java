@@ -66,7 +66,7 @@ public class JsonConfigsInit implements ApplicationListener<ContextRefreshedEven
             parseJson(folder, apiMap);
         }
 
-        for (File file : JsonFileUtils.classPatchFiles(configProperties)) {
+        for (File file : JsonFileUtils.classPathFiles(configProperties)) {
             if (file.exists()) {
                 parseJson(file, apiMap);
             }

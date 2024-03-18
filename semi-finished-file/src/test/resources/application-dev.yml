@@ -25,6 +25,9 @@ spring:
       excludes:
         info:
           - comment
+  servlet:
+    multipart:
+      max-file-size: 100MB
 
 server:
   port: 4000
@@ -37,6 +40,11 @@ semi-finished:
     machine-id: 1
     common-api-enable: false
     logic-delete: true
+  file:
+    file-path:  H:\
+    image-type:
+      - gif
+
 logging:
   level:
     root: DEBUG

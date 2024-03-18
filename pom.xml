@@ -20,6 +20,7 @@
         <module>semi-finished-auth</module>
         <module>semi-finished-web</module>
         <module>semi-finished-excel</module>
+        <module>semi-finished-file</module>
     </modules>
 
     <properties>

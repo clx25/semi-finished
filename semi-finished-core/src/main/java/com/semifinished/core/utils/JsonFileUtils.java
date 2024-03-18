@@ -7,9 +7,7 @@ import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.ConfigException;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.core.io.UrlResource;
-import org.springframework.lang.Nullable;
 
-import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -34,7 +32,7 @@ public class JsonFileUtils {
     }
 
 
-    public static List<File> classPatchFiles(ConfigProperties configProperties) {
+    public static List<File> classPathFiles(ConfigProperties configProperties) {
         List<File> files = new ArrayList<>();
         try {
             Enumeration<URL> urls = JsonFileUtils.class.getClassLoader().getResources(configProperties.getApiFolder());
