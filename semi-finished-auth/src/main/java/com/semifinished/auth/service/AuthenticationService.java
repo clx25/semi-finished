@@ -38,7 +38,7 @@ public class AuthenticationService {
         String code = CaptchaCreator.create(4);
         String image = CaptchaCreator.createImage(code);
         String key = String.valueOf(snowFlake.getId());
-        semiCache.addValue(AuthCacheKey.CAPTCHA.getKey(), key, code);
+        semiCache.addHashValue(AuthCacheKey.CAPTCHA.getKey(), key, code);
         return Result.success(MapUtils.of("key", key, "img", image));
     }
 
@@ -51,12 +51,12 @@ public class AuthenticationService {
     public ObjectNode getCurrent() {
         String idKey = configProperties.getIdKey();
         String userId = RequestUtils.getRequestAttributes(idKey);
-        ObjectNode user = semiCache.getValue(AuthCacheKey.USER.getKey(), userId);
+        ObjectNode user = semiCache.getHashValue(AuthCacheKey.USER.getKey(), userId);
 
         if (user != null) {
             return user;
         }
-        Map<String, JsonNode> apiMap = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey(), "POST");
+        Map<String, JsonNode> apiMap = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), "POST");
 
         ObjectNode params = apiMap.getOrDefault("/login", MissingNode.getInstance()).with("params");
         params.remove("@bean");
@@ -64,7 +64,7 @@ public class AuthenticationService {
         params.put(idKey, userId);
 
         user = (ObjectNode) queryService.query(params);
-        semiCache.addValue(AuthCacheKey.USER.getKey(), userId, user);
+        semiCache.addHashValue(AuthCacheKey.USER.getKey(), userId, user);
 
         return user;
 

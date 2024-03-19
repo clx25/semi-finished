@@ -26,7 +26,6 @@ import java.util.List;
 public class FileService {
 
     private final FileProperties fileProperties;
-//    private ConcurrentHashMap<String, List<FileInfo>> fileUpload = new ConcurrentHashMap<>();
 
     /**
      * 上传图片
@@ -122,8 +121,15 @@ public class FileService {
         return path + File.separator;
     }
 
-
-    public Result uploadChunk(MultipartFile file, FileInfo info) throws IOException {
+    /**
+     * 分片上传
+     *
+     * @param file 文件片段
+     * @param info 文件信息
+     * @return 上传成功的分片名称
+     * @throws IOException 上传失败
+     */
+    public String uploadChunk(MultipartFile file, FileInfo info) throws IOException {
 
         String hash = info.getHash();
         String path = getPath();
@@ -131,14 +137,14 @@ public class FileService {
         File partFile = new File(path + File.separator + fileName);
         if (partFile.exists()) {
             if (partFile.length() == info.getChunkSize()) {
-                return Result.success();
+                return fileName;
             }
             Assert.isFalse(partFile.delete(), () -> new FileUploadException("文件上传失败"));
         }
 
         file.transferTo(partFile);
 
-        return Result.success(fileName);
+        return fileName;
     }
 
 
@@ -148,7 +154,7 @@ public class FileService {
      * @param info 文件信息
      * @return 操作成功，或者不完整文件的分片序号
      */
-    public Result checkUpload(FileInfo info) {
+    public Result mergeFile(FileInfo info) {
         List<Integer> incomplete = new ArrayList<>();
         List<File> readyFile = new ArrayList<>();
 
@@ -180,7 +186,14 @@ public class FileService {
         return Result.success(incomplete);
     }
 
-
+    /**
+     * 合并分片
+     *
+     * @param path       文件路径
+     * @param hash       文件哈希
+     * @param type       文件类型
+     * @param readyFiles 准备好合并的文件
+     */
     private void mergeChunks(String path, String hash, String type, List<File> readyFiles) {
         File targetFile = new File(path, hash + "." + type);
         try (FileOutputStream fos = new FileOutputStream(targetFile, true)) {
@@ -191,5 +204,17 @@ public class FileService {
         } catch (IOException e) {
             throw new FileUploadException("文件合并失败", e);
         }
+    }
+
+    /**
+     * 检查是否上传
+     *
+     * @param info 文件信息
+     * @return 文件是否上传
+     */
+    public Result checkUpload(FileInfo info) {
+        String path = getPath();
+        File file = new File(path, info.getHash() + "." + info.getType());
+        return Result.success(file.exists());
     }
 }

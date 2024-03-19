@@ -46,7 +46,7 @@ public class HeaderInit implements ApplicationListener<ContextRefreshedEvent> {
                 parseJsonFile(file, excel);
             }
         }
-        Map<String, ObjectNode> value = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey(), "EXCEL");
+        Map<String, ObjectNode> value = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), "EXCEL");
 //        semiCache.addValue(, "POST", excel);
     }
 

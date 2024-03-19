@@ -19,6 +19,7 @@ import java.io.IOException;
 @RestController
 @AllArgsConstructor
 public class FileController {
+
     private final FileService fileService;
 
 
@@ -59,9 +60,20 @@ public class FileController {
     @PostMapping("uploadChunk")
     @CrossOrigin
     public Result uploadChunk(MultipartFile file, @ModelAttribute FileInfo info) throws IOException {
-        return fileService.uploadChunk(file, info);
+        String fileName = fileService.uploadChunk(file, info);
+        return Result.success(fileName);
     }
 
+    /**
+     * 判断文件是否存在
+     *
+     * @param info 文件信息
+     * @return 文件是否上传
+     */
+    @PostMapping("checkUpload")
+    public Result checkUpload(FileInfo info) {
+        return fileService.checkUpload(info);
+    }
 
     /**
      * 检查文件完整性，并合并文件，如果文件不完整，则返回不完整的分片序号
@@ -70,9 +82,9 @@ public class FileController {
      * @param info 文件信息
      * @return 操作成功，或者不完整文件的分片序号
      */
-    @PostMapping("checkUpload")
-    public Result checkUpload(FileInfo info) {
-        return fileService.checkUpload(info);
+    @PostMapping("mergeFile")
+    public Result mergeFile(FileInfo info) {
+        return fileService.mergeFile(info);
     }
 
 

@@ -6,7 +6,6 @@ import org.springframework.core.Ordered;
 
 //todo 指定id查询树
 //todo 计数查询
-//todo 校验会导致错误sql的请求规则
 // todo 添加日志
 
 

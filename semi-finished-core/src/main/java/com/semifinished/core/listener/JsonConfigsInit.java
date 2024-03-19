@@ -78,7 +78,8 @@ public class JsonConfigsInit implements ApplicationListener<ContextRefreshedEven
 
         unique(requestMappingInfos, apiMap);
 
-        semiCache.setValue(CoreCacheKey.JSON_CONFIGS.getKey(), apiMap);
+        semiCache.initHashValue(CoreCacheKey.JSON_CONFIGS.getKey(),apiMap);
+
     }
 
     /**

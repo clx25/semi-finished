@@ -32,7 +32,7 @@ public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
         String servletPath = request.getServletPath();
         String method = request.getMethod();
 
-        Map<String, ObjectNode> apiMap = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey(), method);
+        Map<String, ObjectNode> apiMap = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), method);
         if (apiMap == null) {
             return;
         }

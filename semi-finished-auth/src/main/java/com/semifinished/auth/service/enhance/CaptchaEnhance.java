@@ -58,12 +58,12 @@ public class CaptchaEnhance implements AfterUpdateEnhance, AfterQueryEnhance {
         if (captcha == null) {
             return false;
         }
-        String matchCaptcha = semiCache.getValue(AuthCacheKey.CAPTCHA.getKey(), key);
+        String matchCaptcha = semiCache.getHashValue(AuthCacheKey.CAPTCHA.getKey(), key);
         if (matchCaptcha == null) {
             return false;
         }
         if (captcha.equalsIgnoreCase(matchCaptcha)) {
-            semiCache.removeValue(AuthCacheKey.CAPTCHA.getKey(), key);
+            semiCache.removeHashValue(AuthCacheKey.CAPTCHA.getKey(), key);
             return true;
         }
 

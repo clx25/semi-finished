@@ -138,12 +138,14 @@ public class UpdateService {
     /**
      * 解析请求参数并根据解析内容执行SQL
      *
-     * @param params   请求参数
-     * @param consumer 执行不同的SQL
+     * @param params        请求参数
+     * @param consumer      消费解析完成后的参数
+     * @param sqlDefinition SQL定义信息
      */
     private void execute(ObjectNode params, Consumer<SqlDefinition> consumer, SqlDefinition sqlDefinition) {
         Assert.isEmpty(params, () -> new ParamsException("参数不能为空"));
 
+        //筛选出支持本次查询的增强类
         List<AfterUpdateEnhance> afterUpdateEnhances = supportEnhance(sqlDefinition);
 
         afterUpdateEnhances.forEach(enhance -> enhance.beforeParse(sqlDefinition));
@@ -152,12 +154,14 @@ public class UpdateService {
 
         afterUpdateEnhances.forEach(enhance -> enhance.afterParse(sqlDefinition));
 
-
+        //执行SQL语句
         sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
                 .transaction(executor -> {
 
                     List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
                     Assert.isEmpty(valueConditions, () -> new ParamsException("参数不能为空"));
+
+                    //过滤掉
                     long count = valueConditions.stream().filter(v -> v.getCondition().startsWith("=:") || v.getCondition().trim().equals("is null")).count();
                     Assert.isFalse(count > 0, () -> new ParamsException("参数不能为空"));
 

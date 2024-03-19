@@ -81,7 +81,6 @@ public class ConfigProperties {
 
     /**
      * 逻辑删除字段，如果开启了逻辑删除又没有该字段，会提示错误
-     * todo 实现功能
      */
     private String logicDeleteColumn = "deleted";
 }

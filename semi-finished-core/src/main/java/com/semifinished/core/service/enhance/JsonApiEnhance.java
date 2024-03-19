@@ -8,7 +8,6 @@ import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.CodeException;
-import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
@@ -37,7 +36,7 @@ public class JsonApiEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
         HttpServletRequest request = RequestUtils.getRequest();
         ObjectNode params = sqlDefinition.getParams();
         String method = request.getMethod();
-        Map<String, ObjectNode> apiMaps = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey(), method);
+        Map<String, ObjectNode> apiMaps = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), method);
         String servletPath = request.getServletPath();
         if (apiMaps == null) {
             return false;

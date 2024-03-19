@@ -21,6 +21,7 @@
         <module>semi-finished-web</module>
         <module>semi-finished-excel</module>
         <module>semi-finished-file</module>
+        <module>semi-finished-redis</module>
     </modules>
 
     <properties>

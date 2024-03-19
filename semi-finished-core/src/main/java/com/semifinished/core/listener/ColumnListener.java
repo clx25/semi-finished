@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,15 +39,13 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
      */
     @Override
     public void onApplicationEvent(RefreshCacheApplication event) {
-        sqlExecutorHolder.getSqlExecutorMap().forEach((key, executor) -> {
-            String dataSourceName = key.replace("sqlExecutor", "");
+
+        Map<String, DataSourceConfig> dataSource = dataSourceProperties.getDataSource();
+        sqlExecutorHolder.getSqlExecutorMap().forEach((dataSourceName, executor) -> {
+
             ObjectNode objectNode = executor.get("select database() db");
             String db = objectNode.get("db").asText();
 
-            List<Column> tableList = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName);
-            if (tableList == null) {
-                tableList = new ArrayList<>();
-            }
             String databaseProductName = executor.getDatabaseProductName();
             List<Column> tables;
             if ("H2".equalsIgnoreCase(databaseProductName)) {
@@ -58,24 +55,20 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
             } else {
                 throw new CodeException("无法识别的数据库");
             }
-            tableList.addAll(tables);
-            semiCache.setValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName, tableList);
-        });
-        Map<String, DataSourceConfig> dataSource = dataSourceProperties.getDataSource();
-        if (dataSource == null || dataSource.isEmpty()) {
-            return;
-        }
 
-        dataSource.forEach((name, config) -> {
-            List<Column> columnList = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + name);
-            validExcludes(columnList, config);
-            validMapping(columnList, config);
+
+            DataSourceConfig config = dataSource.get(dataSourceName);
+            validExcludes(tables, config);
+            validMapping(tables, config);
+            semiCache.initValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName, tables);
         });
+
 
     }
 
     /**
      * 监测排除字段
+     * todo 添加到columnList中
      *
      * @param columnList       数据源对应的数据库字段
      * @param dataSourceConfig 数据源配置
@@ -103,7 +96,8 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
     }
 
     /**
-     * 监测排除字段
+     * 监测映射字段
+     * todo 添加到columnList中
      *
      * @param columnList       数据源对应的数据库字段
      * @param dataSourceConfig 数据源配置

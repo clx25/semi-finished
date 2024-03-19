@@ -5,14 +5,13 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * 默认的缓存处理，使用Caffeine缓存数据
  */
 
 public class CaffeineSemiCache implements SemiCache {
-    private final Cache<Object, Object> cache = Caffeine.newBuilder().build();
+    private final Cache<String, Object> cache = Caffeine.newBuilder().build();
 
     @Override
     public <T> T getValue(String key) {
@@ -21,7 +20,7 @@ public class CaffeineSemiCache implements SemiCache {
 
 
     @Override
-    public <T> T getValue(String key, String hashKey) {
+    public <T> T getHashValue(String key, String hashKey) {
         Map<String, T> hashValue = (Map<String, T>) cache.getIfPresent(key);
         if (hashValue == null) {
             return null;
@@ -30,7 +29,7 @@ public class CaffeineSemiCache implements SemiCache {
     }
 
     @Override
-    public <T> void addValue(String key, String hashKey, T value) {
+    public <T> void addHashValue(String key, String hashKey, T value) {
         Map<String, T> hashValue = (Map<String, T>) cache.getIfPresent(key);
         if (hashValue == null) {
             hashValue = new HashMap<>();
@@ -39,24 +38,14 @@ public class CaffeineSemiCache implements SemiCache {
         cache.put(key, hashValue);
     }
 
-    /**
-     * 从缓存中获取key对应的值，如果数据为<code>null</code>，那么从supplier中获取
-     * 并且会把supplier中获取的数据添加到缓存中
-     *
-     * @param key      缓存的键
-     * @param supplier 当获取的数据为<code>null</code>时，从supplier中获取
-     * @param <T>      数据类型
-     * @return 缓存中key对应的值，或supplier中获取的数据
-     */
     @Override
-    public <T> T getValue(String key, Supplier<T> supplier) {
-        Object value = cache.getIfPresent(key);
-        if (value != null) {
-            return (T) value;
-        }
-        T t = supplier.get();
-        cache.put(key, t);
-        return t;
+    public void initValue(String key, Object value) {
+        cache.put(key, value);
+    }
+
+    @Override
+    public void initHashValue(String key, Map<String, ?> value) {
+        cache.put(key, value);
     }
 
 
@@ -66,7 +55,7 @@ public class CaffeineSemiCache implements SemiCache {
     }
 
     @Override
-    public void removeValue(String key, String hashKey) {
+    public void removeHashValue(String key, String hashKey) {
         Map<Object, Object> map = (Map<Object, Object>) cache.getIfPresent(key);
         if (map != null) {
             map.remove(hashKey);

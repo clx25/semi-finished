@@ -49,7 +49,7 @@ public class ExcelService {
         String servletPath = request.getServletPath();
 
         //获取此次excel请求的参数
-        Map<String, ObjectNode> configs = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey(), "POST");
+        Map<String, ObjectNode> configs = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), "POST");
         Assert.isTrue(configs == null, () -> new ConfigException("未配置excel解析"));
 
         ObjectNode currentConfigs = configs.get(servletPath);

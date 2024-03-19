@@ -51,7 +51,7 @@ public class AfterLoginEnhance implements AfterQueryEnhance {
         });
 
         String id = userMap.remove(idKey);
-        semiCache.addValue(AuthCacheKey.USER.getKey(), id, user);
+        semiCache.addHashValue(AuthCacheKey.USER.getKey(), id, user);
 
         String token = JwtUtils.createToken(id, userMap, authProperties.getTokenDuration());
         HttpServletResponse res = RequestUtils.getResponse();
