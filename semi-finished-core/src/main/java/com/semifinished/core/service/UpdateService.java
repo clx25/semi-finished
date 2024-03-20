@@ -86,7 +86,7 @@ public class UpdateService {
         execute(params, (sqlDefinition) -> {
             String sql = UpdateSqlCombiner.updateSQL(sqlDefinition, configProperties.getIdKey());
             sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-                    .update(sql, QuerySqlCombiner.getArgs(sqlDefinition));
+                    .update(sql, UpdateSqlCombiner.getUpdateArgs(sqlDefinition, configProperties.getIdKey()));
         });
     }
 

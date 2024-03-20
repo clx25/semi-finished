@@ -10,7 +10,7 @@ public class FileUploadException extends ProjectRuntimeException {
         super(message);
     }
 
-    public FileUploadException(String message,Exception e) {
-        super(message,e);
+    public FileUploadException(String message, Exception e) {
+        super(message, e);
     }
 }

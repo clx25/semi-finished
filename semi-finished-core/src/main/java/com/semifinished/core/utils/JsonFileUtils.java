@@ -51,7 +51,6 @@ public class JsonFileUtils {
     }
 
 
-
     public static List<ObjectNode> parseJsonFile(File folder, ObjectMapper objectMapper) {
         File[] files = folder.listFiles((f, name) -> name.endsWith(".json"));
         if (files == null || files.length == 0) {
@@ -60,7 +59,7 @@ public class JsonFileUtils {
         List<ObjectNode> nodes = new ArrayList<>();
         try {
             for (File file : files) {
-                if(file.length()==0){
+                if (file.length() == 0) {
                     continue;
                 }
                 JsonNode json = objectMapper.readTree(file);

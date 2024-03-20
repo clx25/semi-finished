@@ -22,6 +22,7 @@
         <module>semi-finished-excel</module>
         <module>semi-finished-file</module>
         <module>semi-finished-redis</module>
+        <module>semi-finished-scheduling</module>
     </modules>
 
     <properties>

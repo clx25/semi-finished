@@ -19,7 +19,7 @@ public class DateTimeValue implements ValueReplacer {
     @Override
     public JsonNode replace(SqlDefinition sqlDefinition, String key, JsonNode value) {
 
-        if (!key.startsWith("time")||value==null) {
+        if (!key.startsWith("time") || value == null) {
             return value;
         }
         String text = value.asText(null);

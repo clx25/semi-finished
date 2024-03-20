@@ -20,7 +20,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestTemplate;
 
@@ -46,13 +45,6 @@ public class SemiFinishedAutoConfiguration {
         return Caffeine.newBuilder().build();
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.initialize();
-        return threadPoolTaskScheduler;
-    }
 
     @Bean
     @ConditionalOnMissingBean

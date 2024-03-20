@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ProjectRuntimeException;
 import com.semifinished.core.utils.MapUtils;
+import com.semifinished.core.utils.ParamsUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -16,10 +17,7 @@ import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -172,6 +170,23 @@ public class SqlExecutor {
 
         String sql = SqlCreator.delete(table, field);
         jdbcTemplate.batchUpdate(sql, sqlParameterSources);
+    }
+
+
+    /**
+     * 批量插入
+     *
+     * @param table       表名
+     * @param objectNodes 数据
+     */
+    public void batchInsert(String table, List<ObjectNode> objectNodes, String idKey) {
+        if (objectNodes == null || objectNodes.isEmpty()) {
+            return;
+        }
+        Set<String> fields = ParamsUtils.fields(objectNodes);
+        fields.remove(idKey);
+        String sql = SqlCreator.insert(table, fields);
+        jdbcTemplate.batchUpdate(sql, SqlCreator.toSqlParameterSourceArray(objectNodes));
     }
 
 

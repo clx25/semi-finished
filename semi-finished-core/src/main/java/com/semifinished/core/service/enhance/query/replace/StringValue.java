@@ -1,7 +1,9 @@
 package com.semifinished.core.service.enhance.query.replace;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.*;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import com.semifinished.core.jdbc.SqlDefinition;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;

@@ -1,0 +1,30 @@
+{
+  "get": {
+    "/user": {
+      "params": {
+        "@tb": "semi_user",
+        "id<": "10"
+      }
+    }
+  },
+  "postB": {
+    "/validateBatch": {
+      "params": {
+        "@tb": "semi_validate",
+        "@batch": {
+          "validate_table$$": "tb",
+          "validate_column$$": "col",
+          "pattern$$": "pt"
+        }
+      },
+      "ruler": {
+        "tb": {
+          "text": "tb不能为空"
+        },
+        "col": {
+          "text": "col不能为空"
+        }
+      }
+    }
+  }
+}

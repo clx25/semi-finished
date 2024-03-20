@@ -4,9 +4,7 @@ import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.Assert;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,17 +31,14 @@ public class UpdateSqlCombiner {
         StringBuilder sql = new StringBuilder(" update ")
                 .append(sqlDefinition.getTable())
                 .append(" set ");
-        StringJoiner sj = new StringJoiner(",");
 
-        valueConditions = valueConditions.stream().filter(v -> !idKey.equals(v.getColumn())).collect(Collectors.toList());
-        for (ValueCondition condition : valueConditions) {
-            Object value = condition.getValue();
 
-            String apostrophe = value == null ? "" : "'";
-            sj.add(condition.getColumn() + " = " + apostrophe + value + apostrophe);
-        }
+        String value = valueConditions.stream().filter(v -> !idKey.equals(v.getColumn()))
+                .map(v -> v.getColumn() + " = :" + v.getArgName())
+                .collect(Collectors.joining(" , "));
 
-        return sql.append(sj)
+
+        return sql.append(value)
                 .append(" where ")
                 .append(idKey)
                 .append("='")
@@ -107,4 +102,11 @@ public class UpdateSqlCombiner {
     }
 
 
+    public static Map<String, ?> getUpdateArgs(SqlDefinition sqlDefinition, String idKey) {
+        List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
+        Map<String, Object> args = new HashMap<>();
+        valueConditions.stream().filter(v -> !idKey.equals(v.getColumn()))
+                .forEach(v -> args.put(v.getArgName(), v.getValue()));
+        return args;
+    }
 }

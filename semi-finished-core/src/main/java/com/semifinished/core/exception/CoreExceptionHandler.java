@@ -67,9 +67,10 @@ public class CoreExceptionHandler {
         log.error("sql执行错误", e);
         return Result.info(HttpStatus.BAD_REQUEST.value(), "请求参数错误");
     }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Result maxUploadSizeExceededException(MaxUploadSizeExceededException e){
+    public Result maxUploadSizeExceededException(MaxUploadSizeExceededException e) {
         return Result.info(HttpStatus.BAD_REQUEST.value(), "上传文件超出大小");
     }
 
@@ -192,7 +193,7 @@ public class CoreExceptionHandler {
                 case "1292":
                     return "字段" + message + "日期或时间格式错误";
                 case "1366":
-                    return "字段" + message + "数据类型不匹配";
+                    return "字段" + message + "数据类型错误";
                 case "1048":
                     return "字段" + message + "不能为null";
             }
