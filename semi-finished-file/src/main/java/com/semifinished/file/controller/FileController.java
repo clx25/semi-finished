@@ -43,7 +43,6 @@ public class FileController {
      * @throws IOException 文件保存失败
      */
     @PostMapping("upload")
-    @CrossOrigin
     private Result upload(MultipartFile file) throws IOException {
         return fileService.upload(file);
     }
@@ -58,7 +57,6 @@ public class FileController {
      * @throws IOException 文件保存失败
      */
     @PostMapping("uploadChunk")
-    @CrossOrigin
     public Result uploadChunk(MultipartFile file, @ModelAttribute FileInfo info) throws IOException {
         String fileName = fileService.uploadChunk(file, info);
         return Result.success(fileName);
@@ -71,7 +69,7 @@ public class FileController {
      * @return 文件是否上传
      */
     @PostMapping("checkUpload")
-    public Result checkUpload(FileInfo info) {
+    public Result checkUpload(@RequestBody FileInfo info) {
         return fileService.checkUpload(info);
     }
 
@@ -83,7 +81,7 @@ public class FileController {
      * @return 操作成功，或者不完整文件的分片序号
      */
     @PostMapping("mergeFile")
-    public Result mergeFile(FileInfo info) {
+    public Result mergeFile(@RequestBody FileInfo info) {
         return fileService.mergeFile(info);
     }
 
@@ -96,7 +94,6 @@ public class FileController {
      * @throws IOException 文件操作异常
      */
     @GetMapping(value = "/file/{fileName}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    @ResponseBody
     public FileSystemResource file(@PathVariable String fileName) throws IOException {
         return fileService.file(fileName);
     }

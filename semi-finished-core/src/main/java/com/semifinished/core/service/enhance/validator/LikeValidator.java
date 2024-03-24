@@ -17,10 +17,12 @@ public class LikeValidator implements Validator {
         }
 
         String patternValue = pattern.substring(left ? 1 : 0, value.length() - (right ? 1 : 0));
+        if (left && right) {
+            Assert.isFalse(value.contains(patternValue), () -> new ParamsException(msg));
+            return true;
+        }
 
-
-        Assert.isTrue(left && value.startsWith(patternValue), () -> new ParamsException(msg));
-        Assert.isTrue(right && value.endsWith(patternValue), () -> new ParamsException(msg));
+        Assert.isTrue(left ? value.startsWith(patternValue) : value.endsWith(patternValue), () -> new ParamsException(msg));
         return true;
     }
 }

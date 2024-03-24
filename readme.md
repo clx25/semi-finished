@@ -29,25 +29,25 @@ spring:
 ## 一些查询规则符号的灵感来源与释义
 
 > `@`:论坛或聊天工具中代表指定
->
+> 
 > `~`:位运算中的“取反”操作
->
+> 
 > `:`:表示key-value的对应关系，映射
->
+> 
 > `%`:sql中的模糊查询匹配符
->
+> 
 > `!`:在判断式中代表“非”
->
+> 
 > `&`:位运算中的“与”操作
->
+> 
 > `#`:代表规则
->
+> 
 > `/`:排序二叉树中左边为从大到小
->
+> 
 > `\\`:排序二叉树中右边为从小到大
->
+> 
 > `^`:树结构
->
+> 
 > `$`:在一些语言中使用`${字段}`的方式表示引用字段的值
 
 ## 查询规则
@@ -524,7 +524,7 @@ public interface CoreConfigurer {
 脱敏规则有多种配置方式
 
 1. 配置左右保留字符串的数量，如左边保留3个字符，右边保留4个字符
-
+   
    ```java
    @Component
    public class TestCoreConfigurer implements CoreConfigurer {
@@ -542,7 +542,7 @@ public interface CoreConfigurer {
    ```
 
 2. 配置左右保留字符的百分比，如左边保留20%，右边保留30%
-
+   
    ```java
     Desensitization build = Desensitization.builder().table("info")
                    .column("title")
@@ -553,7 +553,7 @@ public interface CoreConfigurer {
    ```
 
 3. 使用自定义方法自行处理
-
+   
    ```java
     Desensitization build = Desensitization.builder().table("info")
                    .column("title")
@@ -563,7 +563,115 @@ public interface CoreConfigurer {
    }
    ```
 
-2. 配置左右保留字符的百分比
+## 新增规则
+
+### 新增单行数据
+
+**接口地址**:`/common`
+
+**请求方式**:`POST`
+
+请求示例
+
+```js
+{
+    "@db":"master",//使用默认数据源可省略
+    "@tb":"user",  //必须指定
+    "name":"xxx",
+    "email":"xxx@abc.com"
+}
+```
+
+### 新增多行数据
+
+**接口地址**:`/common/batch`
+
+**请求方式**:`POST`
+
+请求示例
+
+```js
+{
+    "@tb": "user",
+    "@batch": [  //@batch表示批量参数数据
+        {
+            "name": "aaa",
+            "email": "xxx1@abc.com"
+        },
+        {
+            "name": "bbb",
+            "email": "xxx2@abc.com"
+        },
+        {
+            "name": "ccc",
+            "email": "xxx3@abc.com"
+        }
+    ]
+} 
+```
+
+## 修改规则
+
+### 修改单行
+
+**接口地址**:`/common`
+
+**请求方式**:`PUT`
+
+请求示例
+
+**修改操作必须包含主键数据**
+
+```js
+{
+    "@db":"master",//使用默认数据源可省略
+    "@tb":"user",  //必须指定
+    "id":"1",       //必须包含主键数据 
+    "name":"xxx",
+    "email":"xxx@abc.com"
+}
+```
+
+### 修改多行
+
+**接口地址**:`/common/batch`
+
+**请求方式**:`PUT`
+
+请求示例
+
+**每一行修改操作都必须包含主键数据**
+
+```js
+{
+    "@tb": "user",
+    "@batch": [  //@batch表示批量参数数据
+        {
+            "id":"1",
+            "name": "aaa",
+            "email": "xxx1@abc.com"
+        },
+        {
+            "id":"2",
+            "name": "bbb",
+            "email": "xxx2@abc.com"
+        },
+        {
+            "id":"3",
+            "name": "ccc",
+            "email": "xxx3@abc.com"
+        }
+    ]
+} 
+```
+
+## 删除规则
+
+**接口地址**:`common/{table}/{id}`
+
+**请求方式**:`DELETE`
+
+通过url指定表名与需要删除的主键数据即可
 
 # 自定义查询规则
 
@@ -711,26 +819,186 @@ public interface ValueReplace {
 }
 ```
 
-# 扩展配置
+# 通过配置json文件生成完整接口
 
-实现`ExtendConfigurer`接口
+**<mark>此功能需要在[yaml配置](#yaml配置)中添加common-api-enable: false</mark>**
 
-```java
-/**
- * 扩展配置
- */
-public interface CoreConfigurer {
+当遇到复杂的查询规则，前端需要传递大量的json参数，使前端难以维护还降低了网络传输效率，并且大量的后端信息暴露在前端是存在风险的。所以有了通过后端配置参数框架，前端传递动态数据并合并的方式。json配置本质是对[API文档](#API文档)中的规则进行扩展
 
+目前，json接口配置的格式为
 
-    /**
-     * 添加脱敏规则，如果添加了自定义脱敏器，那么就不需要设置left，right
-     */
-    default void addDesensitize(List<Desensitization> desensitize) {
-    }
+```js
+{
+    "组名1": {
+        "接口1": {
+            "summary": "接口描述",
+            "params":{
+                //请求参数
+            },
+            "ruler": {//参数校验
+                "请求字段1":{
+                    "校验规则1":"不符合规则时的提示信息",
+                    "校验规则2":"不符合规则时的提示信息"
+                },
+                "请求字段2":{
 
+                },
+            }
+        },
+        "接口2": {
 
+        }
+    },
+    "组名2":{
+
+    }
 }
 ```
+
+示例，如下为认证模块的注册接口配置
+
+```js
+{
+  "post": { //组名
+    "/signup": { //接口
+      "summary":"用户注册", //描述
+      "params": { //请求参数框架
+        "@tb": "semi_user",
+        "@bean": "captchaEnhance,pwdEncodeEnhance",
+        "username$$": "uname",
+        "password$$": "pwd"
+      },
+      "ruler": {    //校验规则
+        "uname": {
+          "text": "username不能为空",
+          "unique": "用户已存在"
+        },
+        "pwd": {
+          "text": "密码不能为空",
+          "len>=6": "密码长度应该大于6"
+        }
+      }
+    }
+  }
+}
+```
+
+## 组名
+
+`post`：这个`post`与请求方式的`post`无关，只是一个名称，不分大小写，可以是任意名称，每一个组名都对应一个controller方法，可在[扩展配置](#扩展配置)中修改与新增，目前内置的组名有
+
+| 接口名称                     | 组名    | 功能   | 请求方式 |
+| ------------------------ | ----- | ---- | ---- |
+| SEMI-JSON-API-POST       | post  | 新增   | post |
+| SEMI-JSON-API-PUT        | put   | 修改   | put  |
+| SEMI-JSON-API-GET        | get   | 查询   | get  |
+| SEMI-JSON-API-POST-QUERY | postq | 查询   | post |
+| SEMI-JSON-API-POST-BATCH | postb | 批量新增 | post |
+| SEMI-JSON-API-PUT-BATCH  | putb  | 批量修改 | put  |
+
+ 接口名称就是注解`@RequestMapping`中的name，当然也包含被`@RequestMapping`传递的注解的name
+
+### 自定义组名
+
+如果想添加一个名称为user的组名，可以按以下操作执行
+
+1. 实现CoreConfigurer接口，添加接口名与组名的对应关系
+   
+   ```java
+   @Component
+   public class UserConfigurer implements  CoreConfigurer {
+   
+       public void addJsonConfig(Map<String, String> jsonConfig) {
+          jsonConfig.put("SEMI-JSON-API-POST-USER", "USER");
+       }
+   }
+   ```
+
+2. 添加配置json文件
+   
+   ```json
+   {
+       "USER":{
+           "/user":{
+               "params":{
+   
+               }
+           }
+       }
+   }
+   ```
+
+3. 添加一个controller，接口名称为`SEMI-JSON-API-POST-USER`，这里的`value=abc`可以是任何字符，因为会在添加`/user`时被删除。如果有需要，可以使用`commonParser`实现参数模板与请求参数的合并。配置完成后启动项目即可访问`/user`接口，后端会使用`UserController.getUser`这个方法接收参数
+   
+   ```java
+   @RestController
+   @AllArgsConstructor
+   public class UserController {
+   
+       private final CommonParser commonParser;
+   
+       @PostMapping(value = "abc", name = "SEMI-JSON-API-POST-USER")
+       public Object getUser(@RequestBody(required = false) ObjectNode params) {
+           ObjectNode mergeParams = commonParser.mergeParams(params,false);
+           return null;
+       }
+   
+   }
+   ```
+
+## 接口
+
+`/signup`：系统会将`/signup`这个path通过组名与接口名的对应关系添加到对应的接口上，如果组名为`user`那么效果相当于在`UserController.getUser`这个方法上添加`@PostMapping("/signup")`。
+
+## 接口描述
+
+`summary`：目前只是一个说明，没有任何功能，后续可能在api文档中生效
+
+## 参数
+
+`params`：包含API文档中的规则参数
+
+`@bean`：使用的[增强类](#自定义增强规则)的beanName，此处内置的`captchaEnhance`用于校验验证码，`pwdEncodeEnhance`用于对密码进行编码。
+
+`username$$`：`$$`表示这是一个需要被前端请求参数替换的数据，`username$$`对应的`uname`就是前端需要传递的参数的`key`，如注册接口配置的规则需要传递的参数为
+
+```json
+{
+    "uname":"xxx",
+    "pwd":"123456"
+}
+```
+
+在经过与上方注册接口配置的参数合并后最终的请求参数为
+
+```json
+{
+   "@tb": "semi_user",
+   "@bean": "captchaEnhance,pwdEncodeEnhance",
+   "username": "xxx",
+   "password": "123456"
+}
+```
+
+## 参数校验
+
+`ruler`：此处的`uname`就是`params`中`username$$`对应的`uname`，`pwd`就是`params`中`password$$`对应的`pwd`
+
+目前内置的校验规则有
+
+| 功能           | 规则                                                                                |
+| ------------ | --------------------------------------------------------------------------------- |
+| 不为null       | `!null`                                                                           |
+| 不为空字符串       | `!`                                                                               |
+| 必须包含一个非空格字符串 | `text`                                                                            |
+| 符合时间格式       | `dateyyyy-MM-dd HH:mm:ss`<br>(date后的字符串是日期格式化字符，表示<br>请求参数必须是日期且满足该格式)            |
+| 符合前后缀        | `%a`(后缀是a)，`a%`(前缀是a)，`%a%`(包含a)                                                  |
+| 电话格式         | `phone`                                                                           |
+| 邮件格式         | `email`                                                                           |
+| 数字范围         | `>5` (参数必须大于5)，`>=5`(参数必须大于等于5) ，<br>`<5`(参数必须小于5)，`<=5`(参数必须小于等于5)               |
+| 字符长度范围       | `len>5`(参数长度必须大于5)，`len>=5`(参数长度必须大于等于5)，`len<5`(参数长度必须小于5)，`len<=5`(参数长度必须小于等于5) |
+| 正则           | `/正则表达式/`                                                                         |
+| 唯一           | `unique`（判断数据库中是否已经存在该数据）                                                         |
 
 # yaml配置
 
@@ -743,8 +1011,13 @@ semi-finished:
     max-page-size: 200       # 当没有分页参数时的最大获取行数
     page-normalized: true    # 分页参数合理化
     brackets-key: value      # 括号规则中值的key
+    common-api-enable: true  # 是否开启通用接口
     datacenter-id: 1         # 数据中心id,用于雪花算法
     machine-id: 1            # 机器标识,用于雪花算法
+    id-key: id               # 主键名称
+    api-folder: SEMI-CONFIG  # 外部的api文件夹与jar包所在目录的的相对路径
+    logic-delete: false      # 是否使用逻辑删除
+    logic-delete-column: deleted # 逻辑删除字段
 ```
 
 # 表名，字段名映射，排除字段配置

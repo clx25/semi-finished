@@ -1,5 +1,5 @@
 {
-  "get": {
+  "postq": {
     "/user": {
       "params": {
         "@tb": "semi_user",

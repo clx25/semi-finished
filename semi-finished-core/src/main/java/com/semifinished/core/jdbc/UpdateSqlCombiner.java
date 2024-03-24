@@ -1,5 +1,10 @@
 package com.semifinished.core.jdbc;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.Assert;
@@ -48,7 +53,6 @@ public class UpdateSqlCombiner {
 
     }
 
-
     /**
      * 生成新增语句SQL，并排除参数中的主键字段
      *
@@ -63,13 +67,36 @@ public class UpdateSqlCombiner {
         Assert.isEmpty(valueConditions, () -> new ParamsException("缺少新增数据内容"));
 
         StringJoiner columns = new StringJoiner(",", "(", ")");
-        StringJoiner values = new StringJoiner(",", "(", ")");
-        for (ValueCondition valueCondition : valueConditions) {
-            columns.add(valueCondition.getColumn());
-            values.add(":" + valueCondition.getColumn());
-        }
+
+        String values = valueConditions.stream()
+                .peek(v -> columns.add(v.getColumn()))
+                .map(v -> ":" + v.getArgName())
+                .collect(Collectors.joining(",", "(", ")"));
+
 
         return " insert into " + sqlDefinition.getTable() + columns + " values" + values;
+    }
+
+    /**
+     * 获取批量操作的参数
+     *
+     * @param sqlDefinition SQL定义信息
+     * @param objectMapper  序列化库
+     * @return 批量操作的参数
+     */
+    public static Map<String, Object>[] getBatchArgs(SqlDefinition sqlDefinition, ObjectMapper objectMapper) {
+        List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
+        ArrayNode batch = sqlDefinition.getExpand().withArray("@batch");
+        batch.forEach(node -> {
+            ObjectNode objectNode = (ObjectNode) node;
+            for (ValueCondition v : valueConditions) {
+                JsonNode value = objectNode.remove(v.getColumn());
+                objectNode.set(v.getArgName(), value);
+            }
+        });
+
+        return objectMapper.convertValue(batch, new TypeReference<Map<String, Object>[]>() {
+        });
     }
 
     /**
@@ -80,28 +107,47 @@ public class UpdateSqlCombiner {
      * @return 删除语句SQL
      */
     public static String deleteSQL(SqlDefinition sqlDefinition, String idKey) {
-        Object value = valid(sqlDefinition, idKey);
-        return " delete from " + sqlDefinition.getTable() + " where " + idKey + "='" + value + "'";
-
+        String value = getIdArgName(sqlDefinition, idKey);
+        return " delete from " + sqlDefinition.getTable() + " where " + idKey + "=':" + value + "'";
     }
 
-
+    /**
+     * 生成逻辑删除SQL
+     *
+     * @param sqlDefinition     SQL定义信息
+     * @param idKey             主键字段
+     * @param logicDeleteColumn 逻辑删除字段
+     * @return 逻辑和三处SQL
+     */
     public static String logicDeleteSQL(SqlDefinition sqlDefinition, String idKey, String logicDeleteColumn) {
-        Object value = valid(sqlDefinition, idKey);
-        return "update " + sqlDefinition.getTable() + " set " + logicDeleteColumn + " =1 " + " where " + idKey + "='" + value + "'";
+        String value = getIdArgName(sqlDefinition, idKey);
+        return "update " + sqlDefinition.getTable() + " set " + logicDeleteColumn + " =1 " + " where " + idKey + "=':" + value + "'";
     }
 
-    private static Object valid(SqlDefinition sqlDefinition, String idKey) {
+    /**
+     * 获取主键的参数名
+     *
+     * @param sqlDefinition SQL定义信息
+     * @param idKey         主键字段
+     * @return 主键参数名
+     */
+    private static String getIdArgName(SqlDefinition sqlDefinition, String idKey) {
         List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
         Optional<ValueCondition> first = valueConditions.stream().filter(v -> idKey.equals(v.getColumn())).findFirst();
         ValueCondition valueCondition = first.orElseThrow(() -> new ParamsException("未指定%s的值", idKey));
         Object value = valueCondition.getValue();
         Assert.hasNotText(value == null ? null : String.valueOf(value), () -> new ParamsException("%s不能为空", idKey));
 
-        return value;
+        return valueCondition.getArgName();
     }
 
-
+    /**
+     * 获取修改SQL语句的参数
+     *
+     * @param sqlDefinition SQL定义信息
+     * @param idKey         主键
+     * @return 修改SQL语句的参数
+     */
     public static Map<String, ?> getUpdateArgs(SqlDefinition sqlDefinition, String idKey) {
         List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
         Map<String, Object> args = new HashMap<>();

@@ -37,6 +37,9 @@ semi-finished:
     machine-id: 1
     common-api-enable: false
     logic-delete: true
+    logic-delete-column: deleted
+    
+
 logging:
   level:
     root: DEBUG

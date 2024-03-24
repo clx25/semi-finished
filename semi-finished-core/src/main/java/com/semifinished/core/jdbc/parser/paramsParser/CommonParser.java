@@ -1,16 +1,23 @@
 package com.semifinished.core.jdbc.parser.paramsParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.core.cache.CoreCacheKey;
+import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.config.DataSourceConfig;
 import com.semifinished.core.config.DataSourceProperties;
 import com.semifinished.core.constant.ParserStatus;
+import com.semifinished.core.exception.CodeException;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParamsUtils;
+import com.semifinished.core.utils.RequestUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -18,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +36,7 @@ import java.util.Map;
 public class CommonParser {
     private final ConfigProperties configProperties;
     private final DataSourceProperties dataSourceProperties;
+    private final SemiCache semiCache;
     @Lazy
     @Resource
     private List<ParamsParser> paramsParsers;
@@ -93,9 +102,9 @@ public class CommonParser {
 
         valueCondition.addBracketsAll(sqlDefinition.getValueCondition());
 
-
         return value;
     }
+
 
     /**
      * 获取实际表名
@@ -108,6 +117,7 @@ public class CommonParser {
         return mapping != null && mapping.isEnable() ? actual(mapping.getTable(), tableKey) : tableKey;
     }
 
+
     /**
      * 通过配置的字段名映射获取实际字段名
      * 通过匹配value返回key，如果没在value中找到，但是在key中找到了，会抛出异常
@@ -118,9 +128,9 @@ public class CommonParser {
      * @return 实际字段名
      */
     public String getActualColumn(String dataSource, String table, String column) {
-
         return actual(getColumnMapping(dataSource, table), column);
     }
+
 
     /**
      * 通过配置的字段名映射获取实际的名称作为别名
@@ -136,6 +146,7 @@ public class CommonParser {
 
         return ParamsUtils.hasText(actual, column);
     }
+
 
     /**
      * 获取字段映射
@@ -174,5 +185,129 @@ public class CommonParser {
             dataSource = configProperties.getDataSource();
         }
         return dataSourceProperties.getDataSource().get(dataSource).getMapping();
+    }
+
+
+    /**
+     * 合并参数
+     *
+     * @param params    请求参数
+     * @param returnRaw 当没有合适的合并参数时，是返回原始数据还是抛出异常，true返回原始数据，false抛出异常
+     * @return 合并后的参数
+     */
+    public ObjectNode mergeParams(ObjectNode params, boolean returnRaw) {
+        ObjectNode deepParams = params.deepCopy();
+        if (configProperties.isCommonApiEnable()) {
+            return deepParams;
+        }
+        HttpServletRequest request = RequestUtils.getRequest();
+
+        String method = request.getMethod();
+        Map<String, JsonNode> apiMaps = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), method);
+        String servletPath = request.getServletPath();
+        if (returnRaw && apiMaps == null) {
+            return deepParams;
+        }
+        Assert.isTrue(!returnRaw && apiMaps == null, () -> new ParamsException("请求没有对应模板"));
+
+        JsonNode apiInfos = apiMaps.getOrDefault(servletPath, MissingNode.getInstance());
+
+        JsonNode template = apiInfos.get("params");
+        if (returnRaw && !(template instanceof ObjectNode)) {
+            return deepParams;
+        }
+        Assert.isTrue(!returnRaw && !(template instanceof ObjectNode), () -> new ParamsException("请求没有对应模板"));
+
+        return (ObjectNode) deepMerge(template, deepParams);
+    }
+
+    /**
+     * 递归深度合并参数
+     *
+     * @param template 请求对应的参数模板
+     * @param params   请求参数
+     * @return 合并后的参数
+     */
+    private JsonNode deepMerge(JsonNode template, ObjectNode params) {
+
+        if (template instanceof ArrayNode) {
+            ArrayNode jsonNodes = JsonNodeFactory.instance.arrayNode();
+            template.forEach(node -> jsonNodes.add(deepMerge(node, params)));
+            return jsonNodes;
+        }
+
+
+        if (!(template instanceof ObjectNode)) {
+            return template;
+        }
+        ObjectNode jsonNode = JsonNodeFactory.instance.objectNode();
+        template.fields().forEachRemaining(entry -> populate(params, jsonNode, entry.getKey(), entry.getValue()));
+        return jsonNode;
+    }
+
+    /**
+     * 替换并填充数据
+     *
+     * @param params   请求参数
+     * @param jsonNode 需要填充的数据
+     * @param rawKey   json配置参数的key
+     * @param value    json配置参数的value
+     */
+    private void populate(ObjectNode params, ObjectNode jsonNode, String rawKey, JsonNode value) {
+        String key = rawKey;
+        if (key.endsWith("$$")) {
+            key = key.substring(0, key.length() - 2);
+            //替换数据的key
+            String name = value.asText("");
+
+            Assert.hasNotText(name, () -> new CodeException("$$规则关联字段不能为空：" + rawKey));
+            if (!params.has(name)) {
+                return;
+            }
+            value = params.get(name);
+            jsonNode.set(key, value);
+            return;
+        }
+
+        if ("@batch".equals(key)) {
+            value = parseBatch((ObjectNode) value, params);
+        } else if (value instanceof ArrayNode || value instanceof ObjectNode) {
+            value = deepMerge(value, params);
+        }
+
+        jsonNode.set(key, value);
+    }
+
+
+    /**
+     * 解析批量请求参数
+     *
+     * @param template 参数模板
+     * @param params   请求参数
+     * @return 合并后的参数
+     */
+    private JsonNode parseBatch(ObjectNode template, ObjectNode params) {
+        JsonNode batchNodes = params.get("@batch");
+
+        ArrayNode jsonNodes = JsonNodeFactory.instance.arrayNode();
+
+        for (JsonNode node : batchNodes) {
+            ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
+            template.fields().forEachRemaining(entry -> {
+                String key = entry.getKey();
+                JsonNode value = entry.getValue();
+                if (!key.endsWith("$$")) {
+                    objectNode.set(key, value);
+                    return;
+                }
+                key = key.substring(0, key.length() - 2);
+                String name = value.asText();
+                objectNode.set(key, node.get(name));
+            });
+            jsonNodes.add(objectNode);
+        }
+
+
+        return jsonNodes;
     }
 }

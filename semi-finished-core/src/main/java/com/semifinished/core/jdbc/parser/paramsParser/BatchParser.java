@@ -11,7 +11,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -21,6 +23,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class BatchParser implements ParamsParser {
     private final TableUtils tableUtils;
+    private final CommonParser commonParser;
 
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
@@ -38,14 +41,23 @@ public class BatchParser implements ParamsParser {
             node.fieldNames().forEachRemaining(columns::add);
         });
 
+        String table = sqlDefinition.getTable();
         //校验字段
-        tableUtils.validColumnsName(sqlDefinition, sqlDefinition.getTable(), columns);
+        tableUtils.validColumnsName(sqlDefinition, table, columns);
+        Map<String, String> columnMap = columns.stream().collect(Collectors.toMap(column -> column, column -> commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column)));
 
         //补全有缺失的字段
-        batch.forEach(node -> columns.stream()
-                .filter(column -> !node.has(column))
-                .forEach(name -> ((ObjectNode) node).put(name, (String) null))
-        );
+        batch.forEach(node -> {
+            ObjectNode n = (ObjectNode) node;
+            columns.stream()
+                    .filter(column -> !node.has(column))
+                    .peek(name -> n.put(name, (String) null))
+                    .forEach(name -> {
+                        String actualColumn = columnMap.get(name);
+                        JsonNode value = n.remove(name);
+                        n.set(actualColumn, value);
+                    });
+        });
 
         sqlDefinition.getExpand().set("@batch", batch);
         params.setAll((ObjectNode) batch.get(0));
