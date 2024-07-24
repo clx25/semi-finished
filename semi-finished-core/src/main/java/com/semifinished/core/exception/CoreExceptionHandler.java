@@ -4,11 +4,13 @@ package com.semifinished.core.exception;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.semifinished.core.pojo.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageConversionException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -165,6 +167,15 @@ public class CoreExceptionHandler {
         return Result.info(HttpStatus.BAD_REQUEST.value(), e.getParameterName() + "参数不能为空");
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result bindException(BindException e) {
+        List<FieldError> fieldErrors = e.getBindingResult().getFieldErrors();
+        String message = fieldErrors.stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .reduce("", (x, y) -> y + ("".equals(x) ? x : "。" + x));
+        return Result.info(HttpStatus.BAD_REQUEST.value(), message);
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)

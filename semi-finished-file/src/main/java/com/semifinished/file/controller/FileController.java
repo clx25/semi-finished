@@ -1,12 +1,15 @@
 package com.semifinished.file.controller;
 
 
+import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.pojo.Result;
+import com.semifinished.core.utils.Assert;
 import com.semifinished.file.pojo.FileInfo;
 import com.semifinished.file.service.FileService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +18,8 @@ import java.io.IOException;
 /**
  * 文件相关操作
  */
-@CrossOrigin
+
+
 @RestController
 @AllArgsConstructor
 public class FileController {
@@ -32,6 +36,7 @@ public class FileController {
      */
     @PostMapping("upload/image")
     private Result uploadImage(MultipartFile file) throws IOException {
+        Assert.isNull(file, () -> new ParamsException("缺少文件"));
         return fileService.uploadImage(file);
     }
 
@@ -44,6 +49,7 @@ public class FileController {
      */
     @PostMapping("upload")
     private Result upload(MultipartFile file) throws IOException {
+        Assert.isNull(file, () -> new ParamsException("缺少文件"));
         return fileService.upload(file);
     }
 
@@ -57,7 +63,8 @@ public class FileController {
      * @throws IOException 文件保存失败
      */
     @PostMapping("uploadChunk")
-    public Result uploadChunk(MultipartFile file, @ModelAttribute FileInfo info) throws IOException {
+    public Result uploadChunk(MultipartFile file, @ModelAttribute @Validated(FileInfo.uploadChunk.class) FileInfo info) throws IOException {
+        Assert.isNull(file, () -> new ParamsException("缺少文件"));
         String fileName = fileService.uploadChunk(file, info);
         return Result.success(fileName);
     }
@@ -69,7 +76,7 @@ public class FileController {
      * @return 文件是否上传
      */
     @PostMapping("checkUpload")
-    public Result checkUpload(@RequestBody FileInfo info) {
+    public Result checkUpload(@RequestBody @Validated(FileInfo.checkUpload.class) FileInfo info) {
         return fileService.checkUpload(info);
     }
 
@@ -81,7 +88,7 @@ public class FileController {
      * @return 操作成功，或者不完整文件的分片序号
      */
     @PostMapping("mergeFile")
-    public Result mergeFile(@RequestBody FileInfo info) {
+    public Result mergeFile(@RequestBody @Validated(FileInfo.mergeFile.class) FileInfo info) {
         return fileService.mergeFile(info);
     }
 

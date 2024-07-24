@@ -4,7 +4,7 @@ spring:
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://192.168.2.3:3306/semifinished?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true
       username: root
-      password: XYvw#P5f$tc
+      password: XYvw#P5ftc
       excludes:
         semi_user:
           - password
@@ -12,7 +12,7 @@ spring:
       driver-class-name: com.mysql.cj.jdbc.Driver
       jdbc-url: jdbc:mysql://192.168.2.3:3306/javdb?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
       username: root
-      password: XYvw#P5f$tc
+      password: XYvw#P5ftc
       mapping:
         enable: true
         table:
@@ -36,11 +36,15 @@ semi-finished:
     brackets-key: value
     datacenter-id: 1
     machine-id: 1
+    common-api-enable: false
   auth:
     captcha: true
     skip:
       /userInfo: get
-
+    token-duration: 604800
+    admin-code: admin
+    auth-enable: true
+    token-key: token
 
 logging:
   level:

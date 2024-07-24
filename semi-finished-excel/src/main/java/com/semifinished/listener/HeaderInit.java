@@ -8,14 +8,11 @@ import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.utils.Assert;
-import com.semifinished.core.utils.JsonFileUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -32,29 +29,29 @@ public class HeaderInit implements ApplicationListener<ContextRefreshedEvent> {
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
 
-
-        File folder = JsonFileUtils.jarFile(configProperties);
-
-        Map<String, ObjectNode> excel = new HashMap<>();
-
-        if (folder.exists()) {
-            parseJsonFile(folder, excel);
-        }
-
-        for (File file : JsonFileUtils.classPathFiles(configProperties)) {
-            if (file.exists()) {
-                parseJsonFile(file, excel);
-            }
-        }
+//
+//        File folder = JsonFileUtils.jarFile(configProperties);
+//
+//        Map<String, ObjectNode> excel = new HashMap<>();
+//
+//        if (folder.exists()) {
+//            parseJsonFile(folder, excel);
+//        }
+//
+//        for (File file : JsonFileUtils.classPathFiles(configProperties)) {
+//            if (file.exists()) {
+//                parseJsonFile(file, excel);
+//            }
+//        }
         Map<String, ObjectNode> value = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), "EXCEL");
 //        semiCache.addValue(, "POST", excel);
     }
 
-    private void parseJsonFile(File folder, Map<String, ObjectNode> excel) {
-        for (ObjectNode objectNode : JsonFileUtils.parseJsonFile(folder, objectMapper)) {
-            merge(objectNode, excel);
-        }
-    }
+//    private void parseJsonFile(File folder, Map<String, ObjectNode> excel) {
+//        for (ObjectNode objectNode : JsonFileUtils.parseJsonFile(folder, objectMapper)) {
+//            merge(objectNode, excel);
+//        }
+//    }
 
     private void merge(ObjectNode objectNode, Map<String, ObjectNode> excel) {
         ObjectNode configs = objectNode.with("excel");

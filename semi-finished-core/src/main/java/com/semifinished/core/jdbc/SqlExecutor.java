@@ -27,15 +27,15 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class SqlExecutor {
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final TransactionTemplate transactionManager;
+    private final TransactionTemplate transactionTemplate;
     private final ObjectNodeRowMapper objectNodeRowMapper = new ObjectNodeRowMapper();
 
     public <R> R transaction(Function<SqlExecutor, R> function) {
-        return transactionManager.execute(transactionStatus -> function.apply(this));
+        return transactionTemplate.execute(transactionStatus -> function.apply(this));
     }
 
     public void transaction(Consumer<SqlExecutor> resultConsumer) {
-        transactionManager.executeWithoutResult(transactionStatus -> resultConsumer.accept(this));
+        transactionTemplate.executeWithoutResult(transactionStatus -> resultConsumer.accept(this));
     }
 
 

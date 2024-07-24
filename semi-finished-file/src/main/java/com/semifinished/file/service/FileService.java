@@ -133,7 +133,7 @@ public class FileService {
 
         String hash = info.getHash();
         String path = getPath();
-        String fileName = hash + ".part" + info.getChunk();
+        String fileName = hash + ".part" + info.getChunkNum();
         File partFile = new File(path + File.separator + fileName);
         if (partFile.exists()) {
             if (partFile.length() == info.getChunkSize()) {
@@ -160,21 +160,16 @@ public class FileService {
 
         String path = getPath();
         String hash = info.getHash();
-        for (int i = 1; i <= info.getChunkSize(); i++) {
+
+        long[] chunksSize = info.getChunksSize();
+        for (int i = 1; i <= chunksSize.length; i++) {
             File partFile = new File(path, hash + ".part" + i);
             readyFile.add(partFile);
             if (!partFile.exists()) {
                 incomplete.add(i);
                 continue;
             }
-            if (i == info.getChunkSize()) {
-                if (partFile.length() != info.getLastSize()) {
-                    incomplete.add(i);
-                    Assert.isFalse(partFile.delete(), () -> new FileUploadException("文件删除失败"));
-                }
-                continue;
-            }
-            if (partFile.length() != info.getFirstSize()) {
+            if (partFile.length() != chunksSize[i - 1]) {
                 incomplete.add(i);
                 Assert.isFalse(partFile.delete(), () -> new FileUploadException("文件删除失败"));
             }
@@ -183,6 +178,7 @@ public class FileService {
             mergeChunks(path, hash, info.getType(), readyFile);
             return Result.success();
         }
+
         return Result.success(incomplete);
     }
 

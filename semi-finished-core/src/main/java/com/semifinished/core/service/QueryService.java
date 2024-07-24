@@ -3,10 +3,12 @@ package com.semifinished.core.service;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.config.ConfigProperties;
+import com.semifinished.core.exception.CodeException;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.jdbc.parser.ParserExecutor;
+import com.semifinished.core.jdbc.query.Query;
 import com.semifinished.core.pojo.Page;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
 import com.semifinished.core.service.enhance.query.QueryFinallyEnhance;
@@ -26,6 +28,7 @@ public class QueryService {
     private final SqlExecutorHolder sqlExecutorHolder;
     private final ConfigProperties configProperties;
     private final List<AfterQueryEnhance> afterQueryEnhances;
+    private final List<Query> queryList;
 
     @Autowired(required = false)
     private QueryFinallyEnhance queryFinallyEnhance;
@@ -58,21 +61,22 @@ public class QueryService {
         //判断此次请求使用的增强
         List<AfterQueryEnhance> enhances = supportEnhances(sqlDefinition);
 
-
         //执行增强中的beforeParse方法
         enhances.forEach(enhance -> enhance.beforeParse(sqlDefinition));
-
 
         //执行参数解析器
         parserExecutor.parse(sqlDefinition);
 
-
         //执行增强中的afterParse方法
         enhances.forEach(enhance -> enhance.afterParse(sqlDefinition));
 
-
-        //执行sql
-        Page page = executeSql(sqlDefinition);
+        //创建分页信息
+        Page page = wrapPage(sqlDefinition);
+        //执行查询
+        Query query = queryList.stream().filter(q -> sqlDefinition.getDialect().equals(q.dialect())).findFirst().orElseThrow(() -> new CodeException(""));
+        List<ObjectNode> records = query.query(sqlDefinition);
+        page.setRecords(records);
+        page.setSize(records.size());
 
         //执行增强的afterQuery方法
         enhances.forEach(enhance -> enhance.afterQuery(page, sqlDefinition));
@@ -80,73 +84,18 @@ public class QueryService {
         //如果没有分页规则，则只返回数据列表
         Object result = resultRow(page, sqlDefinition);
 
-
         //执行最终增强
         return queryFinallyEnhance != null ?
                 queryFinallyEnhance.beforeReturn(result, sqlDefinition) : result;
     }
 
-    private Object resultRow(Page page, SqlDefinition sqlDefinition) {
-        List<ObjectNode> records = page.getRecords();
-        int rowStart = sqlDefinition.getRowStart();
-        Object result = records;
-        if (sqlDefinition.isPage()) {
-            result = page;
-        }
-        if (rowStart < 1) {
-            return result;
-        }
-        int rowEnd = sqlDefinition.getRowEnd();
-
-        if (rowEnd == 0) {
-            return records.get(rowStart - 1);
-        }
-
-        List<ObjectNode> rows = new ArrayList<>();
-        for (int i = 1; i < records.size() + 1; i++) {
-            if (rowEnd == rowStart && i == rowStart) {
-                rows.add(records.get(i - 1));
-                break;
-            }
-            if (i >= rowStart && i <= rowEnd) {
-                rows.add(records.get(i - 1));
-            }
-        }
-        records.clear();
-        records.addAll(rows);
-
-        return result;
-    }
-
-
     /**
-     * 执行sql，并返回包含结果数据的Page
+     * 创建分页对象，即使没有分页的查询，都会先包装到分页对象中，在afterQuery增强后进行拆包
      *
      * @param sqlDefinition SQL定义信息
-     * @return 查询出的数据，可能包含分页数据
+     * @return 分页对象
      */
-    private Page executeSql(SqlDefinition sqlDefinition) {
-        Page page = createPage(sqlDefinition);
-
-        //组装查询SQL并获取
-        String sql = QuerySqlCombiner.query(sqlDefinition);
-
-        //执行查询
-        List<ObjectNode> objectNodes = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-                .list(sql, QuerySqlCombiner.getArgs(sqlDefinition));
-
-        page.setRecords(objectNodes);
-        page.setSize(objectNodes.size());
-
-        return page;
-    }
-
-    /**
-     * 设置分页信息
-     *
-     * @param sqlDefinition SQL定义信息
-     */
-    private Page createPage(SqlDefinition sqlDefinition) {
+    private Page wrapPage(SqlDefinition sqlDefinition) {
         Page page = new Page();
         if (!sqlDefinition.isPage()) {
             return page;
@@ -172,6 +121,47 @@ public class QueryService {
         page.setHasPre(pageNum > 1);
         return page;
     }
+
+    /**
+     * 对返回结果行进行处理，@row规则执行，不分页查询拆包
+     *
+     * @param page          包装了查询信息的分页对象
+     * @param sqlDefinition SQL定义信息
+     * @return 分页和@row规则处理后的结果
+     */
+    private Object resultRow(Page page, SqlDefinition sqlDefinition) {
+        List<ObjectNode> records = page.getRecords();
+        int rowStart = sqlDefinition.getRowStart();
+        Object result = records;
+        if (sqlDefinition.isPage()) {
+            result = page;
+        }
+        if (rowStart < 1) {
+            return result;
+        }
+        //执行@row规则
+        int rowEnd = sqlDefinition.getRowEnd();
+
+        if (rowEnd == 0) {
+            return records.get(rowStart - 1);
+        }
+
+        List<ObjectNode> rows = new ArrayList<>();
+        for (int i = 1; i < records.size() + 1; i++) {
+            if (rowEnd == rowStart && i == rowStart) {
+                rows.add(records.get(i - 1));
+                break;
+            }
+            if (i >= rowStart && i <= rowEnd) {
+                rows.add(records.get(i - 1));
+            }
+        }
+        records.clear();
+        records.addAll(rows);
+
+        return result;
+    }
+
 
     /**
      * 执行增强中的support方法，筛选支持此次请求的增强

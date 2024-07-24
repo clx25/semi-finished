@@ -99,7 +99,7 @@ public class UpdateService {
         execute(params, (sqlDefinition) -> {
             String sql = UpdateSqlCombiner.addSQLExcludeId(sqlDefinition, configProperties.getIdKey());
 
-            Map<String, Object>[] args = UpdateSqlCombiner.getBatchArgs(sqlDefinition,objectMapper);
+            Map<String, Object>[] args = UpdateSqlCombiner.getBatchArgs(sqlDefinition, objectMapper);
             sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
                     .batchUpdate(sql, args);
         });
@@ -113,7 +113,7 @@ public class UpdateService {
     public void batchUpdate(JsonNode params) {
         execute(params, (sqlDefinition) -> {
             String sql = UpdateSqlCombiner.updateSQL(sqlDefinition, configProperties.getIdKey());
-            Map<String, Object>[] args = UpdateSqlCombiner.getBatchArgs(sqlDefinition,objectMapper);
+            Map<String, Object>[] args = UpdateSqlCombiner.getBatchArgs(sqlDefinition, objectMapper);
             sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
                     .batchUpdate(sql, args);
         });

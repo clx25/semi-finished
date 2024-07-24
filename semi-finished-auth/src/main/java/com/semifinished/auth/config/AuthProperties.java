@@ -39,6 +39,7 @@ public class AuthProperties {
 
     /**
      * 跳过登录验证的路径
+     * 请求路径 -> 请求方式，多个用逗号分隔，*号表示全部
      */
     private Map<String, String> skip;
 }

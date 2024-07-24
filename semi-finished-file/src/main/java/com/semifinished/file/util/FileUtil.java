@@ -19,6 +19,24 @@ public class FileUtil {
 
     private static String filePath;
 
+    static {
+
+        try {
+            //获取调用栈
+            StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
+            for (StackTraceElement stackTraceElement : stackTrace) {
+                //遍历调用栈，如果这个栈里面有main方法，就获取class
+                if ("main".equals(stackTraceElement.getMethodName())) {
+                    ApplicationHome applicationHome = new ApplicationHome(Class.forName(stackTraceElement.getClassName()));
+                    File file = applicationHome.getSource();
+                    filePath = file.getParentFile().toString() + File.separator + "upload";
+                }
+            }
+        } catch (ClassNotFoundException ignored) {
+
+        }
+    }
+
     /**
      * 判断是否需要执行保存文件操作
      *
@@ -81,22 +99,7 @@ public class FileUtil {
         if (filePath != null) {
             return filePath;
         }
-        try {
-            //获取调用栈
-            StackTraceElement[] stackTrace = new RuntimeException().getStackTrace();
-            for (StackTraceElement stackTraceElement : stackTrace) {
-                //遍历调用栈，如果这个栈里面有main方法，就获取class
-                if ("main".equals(stackTraceElement.getMethodName())) {
-                    ApplicationHome applicationHome = new ApplicationHome(Class.forName(stackTraceElement.getClassName()));
-                    File file = applicationHome.getSource();
 
-                    filePath = file.getParentFile().toString() + File.separator + "upload";
-                    return filePath;
-                }
-            }
-        } catch (ClassNotFoundException ignored) {
-
-        }
         throw new ProjectRuntimeException("无法推断main函数所在类");
     }
 

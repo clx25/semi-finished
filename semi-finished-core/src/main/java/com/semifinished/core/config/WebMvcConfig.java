@@ -11,7 +11,7 @@ import java.util.List;
 
 @Component
 @AllArgsConstructor
-@EnableWebMvc
+//@EnableWebMvc
 public class WebMvcConfig implements WebMvcConfigurer {
     private final ObjectMapper objectMapper;
 
@@ -20,6 +20,5 @@ public class WebMvcConfig implements WebMvcConfigurer {
         resolvers.add(new RequestValueResolver(objectMapper));
         resolvers.add(new RequestNodeResolver(objectMapper));
     }
-
 
 }

@@ -29,25 +29,25 @@ spring:
 ## 一些查询规则符号的灵感来源与释义
 
 > `@`:论坛或聊天工具中代表指定
-> 
+>
 > `~`:位运算中的“取反”操作
-> 
+>
 > `:`:表示key-value的对应关系，映射
-> 
+>
 > `%`:sql中的模糊查询匹配符
-> 
+>
 > `!`:在判断式中代表“非”
-> 
+>
 > `&`:位运算中的“与”操作
-> 
+>
 > `#`:代表规则
-> 
+>
 > `/`:排序二叉树中左边为从大到小
-> 
+>
 > `\\`:排序二叉树中右边为从小到大
-> 
+>
 > `^`:树结构
-> 
+>
 > `$`:在一些语言中使用`${字段}`的方式表示引用字段的值
 
 ## 查询规则
@@ -524,7 +524,7 @@ public interface CoreConfigurer {
 脱敏规则有多种配置方式
 
 1. 配置左右保留字符串的数量，如左边保留3个字符，右边保留4个字符
-   
+
    ```java
    @Component
    public class TestCoreConfigurer implements CoreConfigurer {
@@ -542,7 +542,7 @@ public interface CoreConfigurer {
    ```
 
 2. 配置左右保留字符的百分比，如左边保留20%，右边保留30%
-   
+
    ```java
     Desensitization build = Desensitization.builder().table("info")
                    .column("title")
@@ -553,7 +553,7 @@ public interface CoreConfigurer {
    ```
 
 3. 使用自定义方法自行处理
-   
+
    ```java
     Desensitization build = Desensitization.builder().table("info")
                    .column("title")
@@ -823,7 +823,8 @@ public interface ValueReplace {
 
 **<mark>此功能需要在[yaml配置](#yaml配置)中添加common-api-enable: false</mark>**
 
-当遇到复杂的查询规则，前端需要传递大量的json参数，使前端难以维护还降低了网络传输效率，并且大量的后端信息暴露在前端是存在风险的。所以有了通过后端配置参数框架，前端传递动态数据并合并的方式。json配置本质是对[API文档](#API文档)中的规则进行扩展
+当遇到复杂的查询规则，前端需要传递大量的json参数，使前端难以维护还降低了网络传输效率，并且大量的后端信息暴露在前端是存在风险的。所以有了通过后端配置参数框架，前端传递动态数据并合并的方式。json配置本质是对[API文档](#API文档)
+中的规则进行扩展
 
 目前，json接口配置的格式为
 
@@ -885,10 +886,11 @@ public interface ValueReplace {
 
 ## 组名
 
-`post`：这个`post`与请求方式的`post`无关，只是一个名称，不分大小写，可以是任意名称，每一个组名都对应一个controller方法，可在[扩展配置](#扩展配置)中修改与新增，目前内置的组名有
+`post`：这个`post`与请求方式的`post`
+无关，只是一个名称，不分大小写，可以是任意名称，每一个组名都对应一个controller方法，可在[扩展配置](#扩展配置)中修改与新增，目前内置的组名有
 
 | 接口名称                     | 组名    | 功能   | 请求方式 |
-| ------------------------ | ----- | ---- | ---- |
+|--------------------------|-------|------|------|
 | SEMI-JSON-API-POST       | post  | 新增   | post |
 | SEMI-JSON-API-PUT        | put   | 修改   | put  |
 | SEMI-JSON-API-GET        | get   | 查询   | get  |
@@ -896,14 +898,14 @@ public interface ValueReplace {
 | SEMI-JSON-API-POST-BATCH | postb | 批量新增 | post |
 | SEMI-JSON-API-PUT-BATCH  | putb  | 批量修改 | put  |
 
- 接口名称就是注解`@RequestMapping`中的name，当然也包含被`@RequestMapping`传递的注解的name
+接口名称就是注解`@RequestMapping`中的name，当然也包含被`@RequestMapping`传递的注解的name
 
 ### 自定义组名
 
 如果想添加一个名称为user的组名，可以按以下操作执行
 
 1. 实现CoreConfigurer接口，添加接口名与组名的对应关系
-   
+
    ```java
    @Component
    public class UserConfigurer implements  CoreConfigurer {
@@ -915,7 +917,7 @@ public interface ValueReplace {
    ```
 
 2. 添加配置json文件
-   
+
    ```json
    {
        "USER":{
@@ -928,8 +930,10 @@ public interface ValueReplace {
    }
    ```
 
-3. 添加一个controller，接口名称为`SEMI-JSON-API-POST-USER`，这里的`value=abc`可以是任何字符，因为会在添加`/user`时被删除。如果有需要，可以使用`commonParser`实现参数模板与请求参数的合并。配置完成后启动项目即可访问`/user`接口，后端会使用`UserController.getUser`这个方法接收参数
-   
+3. 添加一个controller，接口名称为`SEMI-JSON-API-POST-USER`，这里的`value=abc`可以是任何字符，因为会在添加`/user`
+   时被删除。如果有需要，可以使用`commonParser`实现参数模板与请求参数的合并。配置完成后启动项目即可访问`/user`
+   接口，后端会使用`UserController.getUser`这个方法接收参数
+
    ```java
    @RestController
    @AllArgsConstructor
@@ -948,7 +952,8 @@ public interface ValueReplace {
 
 ## 接口
 
-`/signup`：系统会将`/signup`这个path通过组名与接口名的对应关系添加到对应的接口上，如果组名为`user`那么效果相当于在`UserController.getUser`这个方法上添加`@PostMapping("/signup")`。
+`/signup`：系统会将`/signup`这个path通过组名与接口名的对应关系添加到对应的接口上，如果组名为`user`
+那么效果相当于在`UserController.getUser`这个方法上添加`@PostMapping("/signup")`。
 
 ## 接口描述
 
@@ -960,7 +965,8 @@ public interface ValueReplace {
 
 `@bean`：使用的[增强类](#自定义增强规则)的beanName，此处内置的`captchaEnhance`用于校验验证码，`pwdEncodeEnhance`用于对密码进行编码。
 
-`username$$`：`$$`表示这是一个需要被前端请求参数替换的数据，`username$$`对应的`uname`就是前端需要传递的参数的`key`，如注册接口配置的规则需要传递的参数为
+`username$$`：`$$`表示这是一个需要被前端请求参数替换的数据，`username$$`对应的`uname`就是前端需要传递的参数的`key`
+，如注册接口配置的规则需要传递的参数为
 
 ```json
 {
@@ -987,7 +993,7 @@ public interface ValueReplace {
 目前内置的校验规则有
 
 | 功能           | 规则                                                                                |
-| ------------ | --------------------------------------------------------------------------------- |
+|--------------|-----------------------------------------------------------------------------------|
 | 不为null       | `!null`                                                                           |
 | 不为空字符串       | `!`                                                                               |
 | 必须包含一个非空格字符串 | `text`                                                                            |

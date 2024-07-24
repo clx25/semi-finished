@@ -33,16 +33,16 @@ public class AdminParser implements ParamsParser {
 
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
-        String roleCode = RequestUtils.getRequestAttributes("roleCode");
+        String roleId = RequestUtils.getRequestAttributes("roleId");
 
-        deepParse(params, params.deepCopy(), roleCode);
+        deepParse(params, params.deepCopy(), roleId);
     }
 
-    private void deepParse(ObjectNode rawParams, JsonNode params, String roleCode) {
+    private void deepParse(ObjectNode rawParams, JsonNode params, String roleId) {
 
         if (params instanceof ArrayNode) {
             for (JsonNode jsonNode : params) {
-                deepParse(rawParams, jsonNode, roleCode);
+                deepParse(rawParams, jsonNode, roleId);
             }
         }
 
@@ -55,16 +55,16 @@ public class AdminParser implements ParamsParser {
             JsonNode value = entry.getValue();
 
             if (!(value instanceof ValueNode)) {
-                deepParse(rawParams, value, roleCode);
+                deepParse(rawParams, value, roleId);
             }
 
             if (!key.startsWith("?")) {
                 return;
             }
-            Assert.isTrue(roleCode == null, () -> new CodeException("缺少角色信息"));
+            Assert.isTrue(roleId == null, () -> new CodeException("缺少角色信息"));
             rawParams.remove(key);
 
-            boolean match = Arrays.stream(roleCode.split(",")).anyMatch(code -> Objects.equals(code, authProperties.getAdminCode()));
+            boolean match = Arrays.stream(roleId.split(",")).anyMatch(code -> Objects.equals(code, authProperties.getAdminCode()));
             if (!match) {
                 key = key.substring(1);
 

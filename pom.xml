@@ -23,6 +23,7 @@
         <module>semi-finished-file</module>
         <module>semi-finished-redis</module>
         <module>semi-finished-scheduling</module>
+        <module>semi-finished-api</module>
     </modules>
 
     <properties>

@@ -23,7 +23,7 @@
           "@tb1": "semi_role_access",
           "@on": "resource_id",
           "@": "",
-          "resource_type$$": "type"
+          "resource_type$$资源类 型": "type"
         }
       }
     },
@@ -71,12 +71,6 @@
       "summary": "获取字段",
       "params": {
         "@tb": "semi_column"
-      }
-    },
-    "/api": {
-      "summary": "获取api",
-      "params": {
-        "@tb": "semi_api"
       }
     },
     "/menuAll": {

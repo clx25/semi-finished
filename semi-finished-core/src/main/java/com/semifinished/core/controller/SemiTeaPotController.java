@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 public class SemiTeaPotController {
-    @GetMapping(value = "/teapot")
+    @GetMapping(value = "/teapot", name = "SEMI-TEAPOT")
     @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
     public String teapot() {
         return "<h1 style='text-align:center'>418. I’m a teapot.</h1>";

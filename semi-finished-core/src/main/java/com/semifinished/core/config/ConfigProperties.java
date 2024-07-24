@@ -65,16 +65,6 @@ public class ConfigProperties {
 
 
     /**
-     * 通用查询开关，true表示启用，false表示关闭
-     */
-    private boolean commonApiEnable = true;
-
-    /**
-     * 外部的api文件夹与jar包所在目录的的相对路径
-     */
-    private String apiFolder = "SEMI-CONFIG";
-
-    /**
      * 是否逻辑删除
      */
     private boolean logicDelete;
@@ -83,4 +73,5 @@ public class ConfigProperties {
      * 逻辑删除字段，如果开启了逻辑删除又没有该字段，会提示错误
      */
     private String logicDeleteColumn = "deleted";
+
 }

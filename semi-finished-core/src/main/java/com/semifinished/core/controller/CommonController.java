@@ -44,7 +44,7 @@ public class CommonController {
      * @param id    主键数据
      * @return 执行结果
      */
-    @DeleteMapping("common/{table}/{id}")
+    @DeleteMapping(value = "common/{table}/{id}", name = "SEMI-COMMON-DELETE")
     public Result delete(@PathVariable String table, @PathVariable String id) {
         updateService.delete(table, id);
         return Result.success();

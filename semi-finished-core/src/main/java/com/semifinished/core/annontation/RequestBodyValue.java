@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
  * </pre>
  * 这样就可以接收数据了
  * <pre>
- *     public void login(@RequestValue String username, @RequestValue String password){
+ *     public void login(@RequestBodyValue String username, @RequestBodyValue String password){
  *
  *     }
  * </pre>
