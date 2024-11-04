@@ -1,5 +1,6 @@
 package com.semifinished.api.service.validator;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.utils.Assert;
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MatchValidator implements Validator {
     @Override
-    public boolean validate(String field, String value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+
         //是否是匹配规则
         boolean match = true;
         if (pattern.startsWith("match:")) {
@@ -24,9 +26,11 @@ public class MatchValidator implements Validator {
         } else {
             return false;
         }
-
+        if (value == null || value.isMissingNode() || value.isEmpty()) {
+            return true;
+        }
         for (String v : pattern.trim().split(",")) {
-            Assert.isFalse(!match ^ v.trim().equals(value), () -> new ParamsException(msg));
+            Assert.isFalse(!match ^ v.trim().equals(value.asText()), () -> new ParamsException(msg));
         }
 
         return true;

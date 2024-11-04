@@ -20,7 +20,7 @@ public class CommonController {
      * @return 执行结果
      */
     @PostMapping(value = "common", name = "SEMI-JSON-API-POST")
-    public Result add(@RequestBody ObjectNode params) {
+    public Result add(@RequestBody JsonNode params) {
         updateService.add(params);
         return Result.success();
     }
@@ -32,7 +32,7 @@ public class CommonController {
      * @return 执行结果
      */
     @PutMapping(value = "common", name = "SEMI-JSON-API-PUT")
-    public Result update(@RequestBody ObjectNode params) {
+    public Result update(@RequestBody JsonNode params) {
         updateService.update(params);
         return Result.success();
     }
@@ -46,32 +46,39 @@ public class CommonController {
      */
     @DeleteMapping(value = "common/{table}/{id}", name = "SEMI-COMMON-DELETE")
     public Result delete(@PathVariable String table, @PathVariable String id) {
-        updateService.delete(table, id);
+//        updateService.delete(table, id);
         return Result.success();
     }
 
 
-    /**
-     * 批量新增数据
-     *
-     * @param params 请求参数
-     * @return 操作结果
-     */
-    @PostMapping(value = "common/batch", name = "SEMI-JSON-API-POST-BATCH")
-    public Result batchAdd(@RequestBody JsonNode params) {
-        updateService.batchAdd(params);
-        return Result.success();
-    }
+//    /**
+//     * 批量新增数据
+//     *
+//     * @param params 请求参数
+//     * @return 操作结果
+//     */
+//    @PostMapping(value = "common/batch", name = "SEMI-JSON-API-POST-BATCH")
+//    public Result batchAdd(@RequestBody JsonNode params) {
+//        updateService.batchAdd(params);
+//        return Result.success();
+//    }
 
-    /**
-     * 批量新增数据
-     *
-     * @param params 请求参数
-     * @return 操作结果
-     */
-    @PutMapping(value = "common/batch", name = "SEMI-JSON-API-PUT-BATCH")
-    public Result batchUpdate(@RequestBody JsonNode params) {
-        updateService.batchUpdate(params);
+//    /**
+//     * 批量新增数据
+//     *
+//     * @param params 请求参数
+//     * @return 操作结果
+//     */
+//    @PutMapping(value = "common/batch", name = "SEMI-JSON-API-PUT-BATCH")
+//    public Result batchUpdate(@RequestBody JsonNode params) {
+//        updateService.batchUpdate(params);
+//        return Result.success();
+//    }
+
+
+    @PostMapping(value="multi",name="SEMI_COMMON_MULTI")
+    public Result multi(@RequestBody JsonNode params) {
+        updateService.multi(params);
         return Result.success();
     }
 }

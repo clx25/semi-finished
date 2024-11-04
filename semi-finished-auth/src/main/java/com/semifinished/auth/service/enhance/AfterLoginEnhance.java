@@ -47,10 +47,10 @@ public class AfterLoginEnhance implements AfterQueryEnhance {
         String idKey = configProperties.getIdKey();
         Assert.isFalse(user.has(idKey), () -> new ConfigException("登录不能缺少id"));
 
-        Map<String, String> userMap = objectMapper.convertValue(user, new TypeReference<Map<String, String>>() {
+        Map<String, Object> userMap = objectMapper.convertValue(user, new TypeReference<Map<String, Object>>() {
         });
 
-        String id = userMap.remove(idKey);
+        String id = String.valueOf(userMap.remove(idKey));
         semiCache.addHashValue(AuthCacheKey.USER.getKey(), id, user);
 
         String token = JwtUtils.createToken(id, userMap, authProperties.getTokenDuration());

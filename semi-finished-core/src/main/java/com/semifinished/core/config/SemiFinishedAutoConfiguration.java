@@ -9,6 +9,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.semifinished.core.cache.CaffeineSemiCache;
 import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.exception.ConfigException;
+import com.semifinished.core.facotry.DefaultSqlDefinitionFactory;
+import com.semifinished.core.facotry.SqlDefinitionFactory;
 import com.semifinished.core.jdbc.SqlExecutor;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.utils.Assert;
@@ -38,6 +40,11 @@ import java.util.concurrent.TimeUnit;
 @ComponentScan(basePackages = "com.semifinished")
 public class SemiFinishedAutoConfiguration {
 
+    @Bean
+    @ConditionalOnMissingBean
+    public SqlDefinitionFactory sqlDefinitionFactory() {
+        return new DefaultSqlDefinitionFactory();
+    }
 
     @Bean
     @ConditionalOnMissingBean

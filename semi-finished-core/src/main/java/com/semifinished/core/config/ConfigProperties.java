@@ -63,11 +63,17 @@ public class ConfigProperties {
      */
     private String idKey = "id";
 
+    /**
+     * 是否自由删除
+     * 为false时只能根据id删除
+     * 为true时可以根据请求条件删除，注意数据安全
+     */
+    private boolean freeDelete = false;
 
     /**
      * 是否逻辑删除
      */
-    private boolean logicDelete;
+    private boolean logicDelete=false;
 
     /**
      * 逻辑删除字段，如果开启了逻辑删除又没有该字段，会提示错误

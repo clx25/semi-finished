@@ -67,13 +67,12 @@ public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
         }
 
         JsonNode jsonNode = params.get(field);
-        String text = jsonNode == null ? null : jsonNode.asText(null);
 
         value.fields().forEachRemaining(entry -> {
             for (Validator validator : validators) {
                 String pattern = entry.getKey().trim();
                 String msg = entry.getValue().asText("");
-                boolean validate = validator.validate(field, text, pattern, msg, sqlDefinition);
+                boolean validate = validator.validate(field, jsonNode, pattern, msg, sqlDefinition);
                 if (validate) {
                     return;
                 }

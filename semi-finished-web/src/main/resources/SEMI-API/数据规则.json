@@ -1,0 +1,10 @@
+{
+  "get": {
+    "/dataAccess": {
+      "summary": "获取数据权限",
+      "params": {
+        "@tb": "semi_data_access"
+      }
+    }
+  }
+}

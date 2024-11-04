@@ -17,7 +17,7 @@ public class CommonHandler implements ExcelHandler {
 
     @Override
     public void handle(ObjectNode configs, ArrayNode rows, Map<Integer, String> header) {
-        updateService.batchAdd(rows);
+//        updateService.batchAdd(rows);
     }
 
     @Override

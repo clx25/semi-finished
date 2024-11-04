@@ -10,7 +10,6 @@ import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParamsUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * 当新增/修改数据时，如果有字段为null，校验数据库字段是否支持为null
  */
-@Component
+//@Component
 @AllArgsConstructor
 public class NullAbleValidateEnhance implements AfterUpdateEnhance {
     private final SemiCache semiCache;

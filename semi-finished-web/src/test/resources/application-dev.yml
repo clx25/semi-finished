@@ -37,8 +37,14 @@ semi-finished:
     brackets-key: value
     datacenter-id: 1
     machine-id: 1
+    free-delete: true
+  api:
+    common-api-enable: false
   auth:
-    auth-enable: false
+    skip:
+      index.html: get
+      api: get
+    auth-enable: true
 logging:
   level:
     root: DEBUG

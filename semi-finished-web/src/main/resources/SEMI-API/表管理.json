@@ -1,0 +1,36 @@
+{
+  "get": {
+    "/table": {
+      "summary": "获取表",
+      "params": {
+        "@tb1": "semi_column",
+        "%name%$$": "name",
+        "pageNum$$": "pageNum",
+        "pageSize$$": "pageSize",
+        "@": "table_name:tableName"
+      }
+    },
+    "/column": {
+      "summary": "获取表对应的字段名",
+      "params": {
+        "@tb": "semi_column",
+        "table_name$$": "name",
+        "@": "id,column_name:columnName,alias,header,remark,allow"
+      }
+    }
+  },
+  "put": {
+    "/column": {
+      "summary": "修改字段信息",
+      "params": {
+        "@tb": "semi_column",
+        "@batch": {
+          "id$$": "id",
+          "header$$": "header",
+          "alias$$": "columnName",
+          "allow$$": "allow"
+        }
+      }
+    }
+  }
+}

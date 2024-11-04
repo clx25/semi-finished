@@ -22,7 +22,7 @@ public class SemiAuthenticationController {
     /**
      * 获取当前登录用户信息
      */
-    @GetMapping("current")
+//    @GetMapping("current")
     public Result currentUser() {
         Assert.isFalse(authProperties.isAuthEnable(), () -> new AuthException("需要开启登录验证并登录"));
         return Result.success(authenticationService.getCurrent());

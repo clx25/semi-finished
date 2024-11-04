@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.Assert;
+import com.semifinished.core.utils.ParamsUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,9 +47,8 @@ public class UpdateSqlCombiner {
         return sql.append(value)
                 .append(" where ")
                 .append(idKey)
-                .append("='")
-                .append(valueCondition.getValue())
-                .append("'")
+                .append("= :")
+                .append(valueCondition.getArgName())
                 .toString();
 
     }
@@ -104,24 +104,74 @@ public class UpdateSqlCombiner {
      *
      * @param sqlDefinition SQL定义信息
      * @param idKey         主键字段名
+     * @param freeDelete    是否自由删除
      * @return 删除语句SQL
      */
-    public static String deleteSQL(SqlDefinition sqlDefinition, String idKey) {
+    public static String deleteSQL(SqlDefinition sqlDefinition, String idKey, boolean freeDelete) {
+        if (freeDelete) {
+            return freeDeleteSQL(sqlDefinition);
+        }
         String value = getIdArgName(sqlDefinition, idKey);
-        return " delete from " + sqlDefinition.getTable() + " where " + idKey + "=':" + value + "'";
+        return " delete from " + sqlDefinition.getTable() + " where " + idKey + "=:" + value;
     }
 
     /**
-     * 生成逻辑删除SQL
+     * 生成不限制的删除SQL
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return 不限制的删除SQL
+     */
+    public static String freeDeleteSQL(SqlDefinition sqlDefinition) {
+        return "delete from " + sqlDefinition.getTable() + getWhereFragment(sqlDefinition);
+    }
+
+    /**
+     * 生成限制根据id删除的逻辑删除SQL
      *
      * @param sqlDefinition     SQL定义信息
      * @param idKey             主键字段
      * @param logicDeleteColumn 逻辑删除字段
-     * @return 逻辑和三处SQL
+     * @param freeDelete        是否自由删除
+     * @return 根据id删除的逻辑删除SQL
      */
-    public static String logicDeleteSQL(SqlDefinition sqlDefinition, String idKey, String logicDeleteColumn) {
+    public static String logicDeleteSQL(SqlDefinition sqlDefinition, String idKey, String logicDeleteColumn, boolean freeDelete) {
+        if (freeDelete) {
+            return freeLogicDeleteSQL(sqlDefinition, logicDeleteColumn);
+        }
         String value = getIdArgName(sqlDefinition, idKey);
-        return "update " + sqlDefinition.getTable() + " set " + logicDeleteColumn + " =1 " + " where " + idKey + "=':" + value + "'";
+        return "update " + sqlDefinition.getTable() + " set " + logicDeleteColumn + " =1 " + " where " + idKey + "=:" + value;
+    }
+
+    /**
+     * 生成不限制的逻辑删除SQL
+     *
+     * @param sqlDefinition     SQL定义信息
+     * @param logicDeleteColumn 逻辑删除字段
+     * @return 不限制的逻辑删除SQL
+     */
+    public static String freeLogicDeleteSQL(SqlDefinition sqlDefinition, String logicDeleteColumn) {
+        return "update " + sqlDefinition.getTable() + " set " + logicDeleteColumn + " =1 " + getWhereFragment(sqlDefinition);
+    }
+
+    /**
+     * 生成where条件SQL片段
+     *
+     * @param sqlDefinition SQL定义信息
+     * @return where条件SQL片段
+     */
+    private static String getWhereFragment(SqlDefinition sqlDefinition) {
+        StringBuilder whereFragment = new StringBuilder(" where 1=1 ");
+        List<ValueCondition> valueCondition = sqlDefinition.getValueCondition();
+        for (ValueCondition w : valueCondition) {
+            whereFragment.append(" ")
+                    .append(ParamsUtils.hasText(w.getCombination(), "and"))
+                    .append(" ")
+                    .append(w.getColumn())
+                    .append(" ")
+                    .append(w.getCondition());
+            ;
+        }
+        return whereFragment.toString();
     }
 
     /**

@@ -1,5 +1,5 @@
 {
-  "get": {
+  "postq": {
     "/userInfo": {
       "params": {
         "@tb": "semi_user",
@@ -24,11 +24,6 @@
         ]
       },
       "crossOrigin": "*"
-    }
-  },
-  "tesa": {
-    "/xxx": {
-
     }
   }
 }

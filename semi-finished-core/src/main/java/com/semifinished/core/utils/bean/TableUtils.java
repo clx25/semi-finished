@@ -58,7 +58,7 @@ public class TableUtils {
      */
     public void validColumnsName(SqlDefinition sqlDefinition, String table, Collection<String> columns) {
         if (columns == null || columns.isEmpty()) {
-            Assert.isFalse(validTableName(sqlDefinition.getDataSource(), table), () -> new ParamsException(table + "参数错误"));
+            Assert.isFalse(validTableName(sqlDefinition.getDataSource(), table), () -> new ParamsException("表%s不存在", table));
             return;
         }
         List<Column> tableColumnsName = getColumns(sqlDefinition.getDataSource(), table);

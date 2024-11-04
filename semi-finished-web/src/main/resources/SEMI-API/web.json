@@ -1,6 +1,6 @@
 {
   "get": {
-    "/menu": {
+    "/userMenu": {
       "summary": "获取菜单",
       "params": {
         "@tb1": "semi_menu",
@@ -25,67 +25,6 @@
           "@": "",
           "resource_type$$资源类 型": "type"
         }
-      }
-    },
-    "/role": {
-      "summary": "角色信息",
-      "params": {
-        "@tb": "semi_role",
-        "%name%$$": "name"
-      }
-    },
-    "/dataAccess": {
-      "summary": "获取数据权限",
-      "params": {
-        "@tb": "semi_data_access"
-      }
-    },
-    "/component": {
-      "summary": "获取组件信息",
-      "params": {
-        "@tb": "semi_component",
-        "pageNum$$": "pageNum",
-        "pageSize$$": "pageSize",
-        "%page%$$": "page",
-        "%code%$$": "code"
-      }
-    },
-    "/user": {
-      "summary": "获取用户列表",
-      "params": {
-        "@tb": "semi_user",
-        "pageNum$$": "pageNum",
-        "pageSize$$": "pageSize",
-        "%username%$$": "username"
-      }
-    },
-    "/department": {
-      "summary": "获取组织信息",
-      "params": {
-        "@tb": "semi_department",
-        "%dept_name%$$": "name",
-        "^": {}
-      }
-    },
-    "/column": {
-      "summary": "获取字段",
-      "params": {
-        "@tb": "semi_column"
-      }
-    },
-    "/menuAll": {
-      "summary": "获取所有菜单",
-      "params": {
-        "@tb1": "semi_menu",
-        "\\": "sort",
-        "#json": "icon",
-        "id&": {
-          "@tb": "semi_role_access",
-          "@on": "resource_id",
-          "@": "",
-          "resource_type": 2
-        },
-        "^": {}
       }
     }
   }

@@ -27,27 +27,39 @@ public class ParserUtils {
 
         boolean eq = true;
         boolean and = true;
+        boolean disabled = false;
+
+        for (int index = 0; index < 3; index++) {
+            if (chars.length > index) {
+                if (chars[index] == '!') {
+                    eq = false;
+                } else if (chars[index] == '|') {
+                    and = false;
+                } else if (chars[index] == '~') {
+                    disabled = true;
+                }
+            }
+        }
+
+        int begin = eq ? 0 : 1 + (and ? 0 : 1) + (disabled ? 1 : 0);
 
         if (chars[0] == '!') {
             eq = false;
         } else if (chars[0] == '|') {
             and = false;
         }
-        if (chars.length > 1 && (eq ^ and)) {
-            if (chars[1] == '!') {
-                eq = false;
-            } else if (chars[1] == '|') {
-                and = false;
-            }
-        }
-        if (eq ^ and) {
-            key = key.substring(1);
-        } else if (!eq) {
-            key = key.substring(2);
-        }
+
+        key = key.substring(begin);
+
         Assert.isTrue(key.length() == 0, () -> new ParamsException("key长度不能为0"));
 
-        return ValueCondition.builder().table(table).column(key).combination(and ? " and " : " or ").conditionBoolean(eq).build();
+        return ValueCondition.builder()
+                .table(table)
+                .column(key)
+                .combination(and ? " and " : " or ")
+                .conditionBoolean(eq)
+                .disabled(disabled)
+                .build();
     }
 
     /**

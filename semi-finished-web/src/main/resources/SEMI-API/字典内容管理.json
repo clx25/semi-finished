@@ -1,0 +1,47 @@
+{
+  "get": {
+    "/dictItem": {
+      "summary": "获取字典内容",
+      "params": {
+        "@tb": "semi_dict_item",
+        "pageSize$$": "pageSize",
+        "pageNum$$": "pageNum",
+        "dict_code$$": "code"
+      }
+    }
+  },
+  "post": {
+    "/dictItem": {
+      "summary": "新增字典内容",
+      "params": {
+        "@tb": "semi_dict_item",
+        "dict_code$$": "code",
+        "text$$": "text",
+        "value$$": "value",
+        "sort$$": "sort"
+      }
+    }
+  },
+  "put": {
+    "/dictItem": {
+      "summary": "修改字典",
+      "params": {
+        "@tb": "semi_dict_item",
+        "id$$": "id",
+        "dict_code$$": "code",
+        "text$$": "text",
+        "value$$": "value",
+        "sort$$": "sort"
+      }
+    }
+  },
+  "delete": {
+    "/dictItem": {
+      "summary": "删除字典内容",
+      "params": {
+        "@tb": "semi_dict_item",
+        "id$$": "id"
+      }
+    }
+  }
+}

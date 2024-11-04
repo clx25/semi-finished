@@ -168,7 +168,7 @@ public class ApiController {
             String key = entry.getKey();
             JsonNode value = entry.getValue();
             if (key.endsWith("$$")) {
-                fields.add(key.substring(0, key.length() - 2));
+                fields.add(value.asText());
                 return;
             }
 

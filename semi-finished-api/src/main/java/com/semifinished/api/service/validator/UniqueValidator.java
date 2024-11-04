@@ -1,5 +1,6 @@
 package com.semifinished.api.service.validator;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
@@ -15,9 +16,12 @@ public class UniqueValidator implements Validator {
     private final SqlExecutorHolder sqlExecutorHolder;
 
     @Override
-    public boolean validate(String field, String value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
         if (!"unique".equalsIgnoreCase(pattern)) {
             return false;
+        }
+        if (value == null || value.isMissingNode() || value.isEmpty()) {
+            return true;
         }
         String sql = "select 1  from %s where %s=:%s";
 
@@ -27,7 +31,7 @@ public class UniqueValidator implements Validator {
             if (table.equals(valueCondition.getTable()) && field.equals(valueCondition.getColumn())) {
                 sql = String.format(sql, table, field, field);
                 boolean match = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-                        .existMatch(sql, MapUtils.of(field, value));
+                        .existMatch(sql, MapUtils.of(field, value.asText()));
 
                 Assert.isTrue(match, () -> new ParamsException(msg));
             }

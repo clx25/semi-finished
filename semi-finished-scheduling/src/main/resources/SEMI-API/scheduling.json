@@ -12,14 +12,6 @@
       }
     }
   },
-  "GET": {
-    "/scheduling": {
-      "summary": "获取所有定时任务",
-      "params": {
-        "@tb": "semi_scheduling"
-      }
-    }
-  },
   "postQ": {
     "/run": {
       "summary": "运行定时任务",

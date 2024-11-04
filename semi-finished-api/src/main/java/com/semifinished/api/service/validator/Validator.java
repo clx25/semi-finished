@@ -1,5 +1,6 @@
 package com.semifinished.api.service.validator;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.jdbc.SqlDefinition;
 
 /**
@@ -18,5 +19,5 @@ public interface Validator {
      * @param sqlDefinition SQL定义信息
      * @return 是否使用了该规则
      */
-    boolean validate(String field, String value, String pattern, String msg, SqlDefinition sqlDefinition);
+    boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition);
 }

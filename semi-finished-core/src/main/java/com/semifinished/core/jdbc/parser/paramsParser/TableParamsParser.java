@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
  *     }
  * </pre>
  * select column  from tb1
+ * todo 返回的字段转驼峰命名法
  */
 @Component
 @AllArgsConstructor

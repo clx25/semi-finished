@@ -45,6 +45,11 @@ public class ValueCondition {
      */
     private List<ValueCondition> brackets;
 
+    /**
+     * 是否禁用
+     */
+    private boolean disabled;
+
     public void addBrackets(ValueCondition valueCondition) {
         if (brackets == null) {
             brackets = new ArrayList<>();

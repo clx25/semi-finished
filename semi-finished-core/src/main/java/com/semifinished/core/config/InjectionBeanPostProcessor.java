@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 /**
  * 给@Semi注解的字段找到合适的bean，并赋值
+ * 需要在所有bean初始化完成后才能赋值，所以在ContextRefreshedEvent事件中调用
  *
  * @see Semi
  */

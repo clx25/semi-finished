@@ -1,5 +1,6 @@
 package com.semifinished.api.service.validator;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
@@ -24,10 +25,8 @@ import org.springframework.util.StringUtils;
 @Component
 public class RangeValidator implements Validator {
     @Override
-    public boolean validate(String field, String value, String pattern, String msg, SqlDefinition sqlDefinition) {
-        if (!StringUtils.hasText(value)) {
-            return false;
-        }
+    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+
 
 
         boolean left = pattern.startsWith("len");
@@ -44,11 +43,13 @@ public class RangeValidator implements Validator {
 
     }
 
-    private boolean parseLeft(char[] charArray, String field, String value, String pattern, String msg, boolean len) {
+    private boolean parseLeft(char[] charArray, String field, JsonNode value, String pattern, String msg, boolean len) {
         if (charArray[0] != '<' && charArray[0] != '>') {
             return false;
         }
-
+        if (value == null || value.isMissingNode() || value.isEmpty()) {
+            return true;
+        }
         boolean lg = charArray[0] == '>'; // 是否大于
 
         boolean eq = charArray[1] == '='; // 是否等于
@@ -56,12 +57,12 @@ public class RangeValidator implements Validator {
         String patternValue = pattern.substring(eq ? 2 : 1);
 
 
-        compare(field, value, msg, eq, lg, patternValue.trim(), len);
+        compare(field, value.asText(), msg, eq, lg, patternValue.trim(), len);
         return true;
     }
 
 
-    private boolean parseRight(char[] charArray, String field, String value, String pattern, String msg, boolean len) {
+    private boolean parseRight(char[] charArray, String field, JsonNode value, String pattern, String msg, boolean len) {
         int index = charArray.length - 1;
         boolean eq = charArray[index] == '=';
         int lgIndex = eq ? index - 1 : index;
@@ -69,11 +70,14 @@ public class RangeValidator implements Validator {
         if (charArray[lgIndex] != '<' && charArray[lgIndex] != '>') {
             return false;
         }
+        if (value == null || value.isMissingNode() || value.isEmpty()) {
+            return true;
+        }
         boolean lg = charArray[lgIndex] == '<';
 
         String patternValue = pattern.substring(0, lgIndex);
 
-        compare(field, value, msg, eq, lg, patternValue.trim(), len);
+        compare(field, value.asText(), msg, eq, lg, patternValue.trim(), len);
         return true;
     }
 

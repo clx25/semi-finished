@@ -1,0 +1,61 @@
+{
+  "get": {
+    "/menu": {
+      "summary": "获取所有菜单",
+      "params": {
+        "@tb1": "semi_menu",
+        "\\": "sort",
+        "%label%$$": "name",
+        "#json": "icon",
+        "^": {}
+      }
+    }
+  },
+  "post": {
+    "menu": {
+      "summary": "修改菜单",
+      "params": {
+        "@tb": "semi_menu",
+        "id$$": "id",
+        "routePath$$": "routePath",
+        "routeName$$": "routeName",
+        "label$$": "label",
+        "component$$": "component",
+        "parent$$": "parent",
+        "tableName$$": "tableName$$",
+        "icon$$": "icon",
+        "sort$$": "sort",
+        "query$$": "query",
+        "variable$$": "variable"
+      }
+    }
+  },
+  "put": {
+    "menu": {
+      "summary": "修改菜单",
+      "params": {
+        "@tb": "semi_menu",
+        "id$$": "id",
+        "routePath$$": "routePath",
+        "routeName$$": "routeName",
+        "label$$": "label",
+        "component$$": "component",
+        "parent$$": "parent",
+        "tableName$$": "tableName$$",
+        "icon$$": "icon",
+        "sort$$": "sort",
+        "query$$": "query",
+        "variable$$": "variable"
+      }
+    }
+  },
+  "delete": {
+    "menu": {
+      "summary":"删除菜单",
+      "params": {
+        "@tb": "semi_menu",
+        "id$$": "id"
+      }
+    }
+  }
+}

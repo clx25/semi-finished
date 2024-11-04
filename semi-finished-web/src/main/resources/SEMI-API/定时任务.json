@@ -1,0 +1,12 @@
+{
+  "get": {
+    "/scheduling": {
+      "summary": "获取定时任务列表",
+      "params": {
+        "@tb": "semi_scheduling",
+        "%bean_name%$$": "name",
+        ":": "bean_name:beanName"
+      }
+    }
+  }
+}

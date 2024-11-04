@@ -1,0 +1,135 @@
+{
+  "get": {
+    "/user": {
+      "summary": "获取用户",
+      "params": {
+        "@tb": "semi_user",
+        "%username%$$": "username",
+        "pageNum$$": "pageNum",
+        "pageSize$$": "pageSize"
+      },
+      "ruler": {
+        "username": {
+          "desc": "用户名称"
+        }
+      }
+    },
+    "/userRoles": {
+      "summary": "获取用户的角色",
+      "params": {
+        "@tb": "semi_user_role",
+        "user_id$$": "userId",
+        "@": "id,role_id:roleId"
+      },
+      "ruler": {
+        "userId": {
+          "desc": "用户id",
+          "required": "用户id不能为空"
+        }
+      }
+    },
+    "/userDept": {
+      "summary": "获取用户的组织",
+      "params": {
+        "@tb": "semi_user_dept",
+        "user_id$$": "userId",
+        "@": "id,dept_id:deptId"
+      },
+      "ruler": {
+        "userId": {
+          "desc": "用户id",
+          "required": "用户id不能为空"
+        }
+      }
+    }
+  },
+  "delete": {
+    "/user": {
+      "summary": "删除用户",
+      "params": {
+        "@tb": "semi_user",
+        "id$$": "id"
+      },
+      "ruler": {
+        "id": {
+          "desc": "用户id",
+          "required": "用户id不能为空"
+        }
+      }
+    }
+  },
+  "put": {
+    "/user": {
+      "summary": "修改用户",
+      "params": {
+        "@tb": "semi_user",
+        "id$$": "id",
+        "username$$": "username"
+      },
+      "ruler": {
+        "id": {
+          "desc": "用户id",
+          "required": "用户id不能为空"
+        },
+        "username": {
+          "desc": "用户名称",
+          "required": "用户名称不能为空"
+        }
+      }
+    }
+  },
+  "multi": {
+    "/userRoles": {
+      "summary": "修改用户角色分配",
+      "params": {
+        "d:1": {
+          "@tb": "semi_user_role",
+          "user_id$$": "userId"
+        },
+        "c:2": {
+          "@tb": "semi_user_role",
+          "@batch": {
+            "user_id$$": "userId",
+            "[role_id]$$": "roleIds"
+          }
+        }
+      },
+      "ruler": {
+        "userId": {
+          "desc": "用户id",
+          "require": "用户id不能为空"
+        },
+        "roleId": {
+          "desc": "角色id",
+          "require": "角色id不能为空"
+        }
+      }
+    },
+    "/userDept": {
+      "summary": "修改用户组织分配",
+      "params": {
+        "d:1": {
+          "@tb": "semi_user_dept",
+          "user_id$$": "userId"
+        },
+        "c:2": {
+          "@tb": "semi_user_dept",
+          "@batch": {
+            "user_id$$": "userId",
+            "[dept_id]$$": "deptIds"
+          }
+        }
+      },
+      "ruler": {
+        "userId": {
+          "desc": "用户id",
+          "require": "用户id不能为空"
+        },
+        "roleId": {
+          "desc": "角色id",
+          "require": "角色id不能为空"
+        }
+      }
+    }
+  }
+}

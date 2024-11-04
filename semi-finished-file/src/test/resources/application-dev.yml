@@ -40,7 +40,7 @@ semi-finished:
     machine-id: 1
     logic-delete: true
   file:
-    #    file-path: H:\
+    file-path: H:\
     image-type:
       - gif
 

@@ -1,0 +1,60 @@
+{
+  "get": {
+    "/department": {
+      "summary": "获取组织信息",
+      "params": {
+        "@tb": "semi_department",
+        "%dept_name%$$": "name",
+        "^": {}
+      },
+      "ruler": {
+        "deptName": {
+          "desc": "组织名称"
+        }
+      }
+    },
+    "/deptAccess": {
+      "summary": "获取组织数据权限",
+      "params": {
+        "@tb": "semi_data_access_use",
+        "target_type": "2",
+        "target_id$$": "deptId",
+        "@": "id,access_id"
+      }
+    }
+  },
+  "post": {
+    "/department": {
+      "summary": "新增组织信息",
+      "params": {
+        "@tb": "semi_department",
+        "dept_name$$": "name"
+      },
+      "ruler": {
+        "name": {
+          "desc": "组织名称",
+          "required": "组织名称不能为空"
+        }
+      }
+    }
+  },
+  "multi": {
+    "/deptAccess": {
+      "params": {
+        "d:1": {
+          "@tb": "semi_data_access_use",
+          "target_type": 2,
+          "target_id$$": "deptId"
+        },
+        "c:2": {
+          "@tb": "semi_data_access_use",
+          "@batch": {
+            "[access_id]$$": "accessIds",
+            "target_id$$": "deptId",
+            "target_type": 2
+          }
+        }
+      }
+    }
+  }
+}

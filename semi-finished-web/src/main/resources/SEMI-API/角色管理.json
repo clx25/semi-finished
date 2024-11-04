@@ -1,0 +1,118 @@
+{
+  "get": {
+    "/role": {
+      "summary": "获取角色信息列表",
+      "params": {
+        "@tb": "semi_role",
+        "%name%$$": "name"
+      }
+    },
+    "/roleAccess": {
+      "summary": "获取角色权限",
+      "params": {
+        "@tb": "semi_role_access",
+        "@": "id,resource_id",
+        "role_id$$": "roleId",
+        "resource_type$$": "resourceType"
+      }
+    }
+  },
+  "put": {
+    "/role": {
+      "summary": "修改角色",
+      "params": {
+        "@tb": "semi_role",
+        "id$$": "id",
+        "name$$": "name",
+        "code$$": "code"
+      },
+      "ruler": {
+        "id": {
+          "required": "id不能为空"
+        },
+        "name": {
+          "required": "角色名称不能为空"
+        },
+        "code": {
+          "required": "角色编码不能为空"
+        }
+      }
+    }
+  },
+  "post": {
+    "/role": {
+      "summary": "新增角色",
+      "params": {
+        "@tb": "semi_role",
+        "name$$": "name",
+        "code$$": "code"
+      },
+      "ruler": {
+        "name": {
+          "required": "角色名称不能为空"
+        },
+        "code": {
+          "required": "角色编码不能为空"
+        }
+      }
+    },
+    "/userRole": {
+      "summary": "设置用户角色",
+      "multi": {
+        "delete": {
+          "@tb": "semi_user_role",
+          "user_id$$": "userId",
+          "role_id$$": "roleId"
+        }
+      }
+    }
+  },
+  "delete": {
+    "/role": {
+      "summary": "删除角色",
+      "params": {
+        "@tb": "semi_role",
+        "id$$": "id"
+      },
+      "ruler": {
+        "id": {
+          "required": "id不能为空"
+        }
+      }
+    }
+  },
+  "multi": {
+    "resource": {
+      "summary": "设置角色权限",
+      "params": {
+        "c:2": {
+          "@tb": "semi_role_access",
+          "@batch": {
+            "[resource_id]$$": "access",
+            "resource_type$$": "type",
+            "role_id$$": "roleId"
+          }
+        },
+        "d:1": {
+          "@tb": "semi_role_access",
+          "role_id$$": "roleId",
+          "resource_type$$": "type"
+        }
+      },
+      "ruler": {
+        "type": {
+          "desc": "权限类型",
+          "required": "权限类型不能为空"
+        },
+        "roleId": {
+          "desc": "角色id",
+          "required": "角色id不能为空"
+        },
+        "access": {
+          "desc": "权限id",
+          "required": "权限id不能为空"
+        }
+      }
+    }
+  }
+}

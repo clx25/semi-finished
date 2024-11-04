@@ -1,8 +1,8 @@
 package com.semifinished.core.service.enhance.update;
 
 import com.semifinished.core.jdbc.SqlDefinition;
+import com.semifinished.core.jdbc.SqlExecutor;
 import com.semifinished.core.service.enhance.ServiceEnhance;
-import lombok.AllArgsConstructor;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -29,21 +29,24 @@ public interface AfterUpdateEnhance extends ServiceEnhance {
     }
 
 
-    @AllArgsConstructor
-    class SqlAutoExecutor {
-        private final Consumer<SqlDefinition> consumer;
-        private final SqlDefinition sqlDefinition;
+    class SqlAutoExecutor extends SqlExecutor {
+        private final Consumer<SqlExecutor> consumer;
         /**
          * 是否跳过生成并执行SQL
          */
         private final AtomicBoolean skip = new AtomicBoolean(false);
+
+        public SqlAutoExecutor(SqlExecutor sqlExecutor, Consumer<SqlExecutor> consumer) {
+            super(sqlExecutor.getJdbcTemplate(), sqlExecutor.getTransactionTemplate());
+            this.consumer = consumer;
+        }
 
         /**
          * 生成SQL并执行SQL
          */
         public void exec() {
             if (skip.compareAndSet(false, true)) {
-                consumer.accept(sqlDefinition);
+                consumer.accept(this);
             }
         }
 

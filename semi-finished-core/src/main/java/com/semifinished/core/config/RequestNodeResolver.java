@@ -64,7 +64,7 @@ public class RequestNodeResolver extends AbstractNamedValueMethodArgumentResolve
      * 但是{@link #resolveName}返回null，那么就会调用该方法，抛出一个异常
      */
     @Override
-    protected void handleMissingValue(@NonNull String name, @NonNull MethodParameter parameter, @NonNull NativeWebRequest request) {
+    protected void handleMissingValue(@NonNull String name, @NonNull MethodParameter parameter) {
         throw new ParamsException("缺少参数");
     }
 

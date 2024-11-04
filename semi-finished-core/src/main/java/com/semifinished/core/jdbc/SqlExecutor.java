@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ProjectRuntimeException;
 import com.semifinished.core.utils.MapUtils;
 import com.semifinished.core.utils.ParamsUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -24,6 +25,7 @@ import java.util.function.Function;
 /**
  * SQL执行器，封装了一些常用的查询方法
  */
+@Getter
 @RequiredArgsConstructor
 public class SqlExecutor {
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -234,9 +236,6 @@ public class SqlExecutor {
         return key == null ? 0 : key.intValue();
     }
 
-    public NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
 
     public boolean has(String table, Map<String, ?> params) {
 

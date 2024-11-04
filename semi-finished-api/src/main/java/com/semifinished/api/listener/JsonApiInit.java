@@ -4,23 +4,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.semifinished.api.annotation.ApiGroup;
 import com.semifinished.api.config.ApiProperties;
 import com.semifinished.api.utils.JsonFileUtils;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.exception.ConfigException;
-import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.utils.Assert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,6 +27,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,27 +42,29 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
     private final ObjectMapper objectMapper;
     private final SemiCache semiCache;
 
-    private final Map<String, String> jsonConfig = new HashMap<>();
+    public static final Map<String, String> apiRequestNameGroupMapping = new HashMap<>();
 
-    {
+    static {
         //内置的接口name与组名的对应关系
-        jsonConfig.put("SEMI-JSON-API-POST-QUERY", "POSTQ");
-        jsonConfig.put("SEMI-JSON-API-POST", "POST");
-        jsonConfig.put("SEMI-JSON-API-GET", "GET");
-        jsonConfig.put("SEMI-JSON-API-PUT", "PUT");
-        jsonConfig.put("SEMI-JSON-API-POST-BATCH", "POSTB");
-        jsonConfig.put("SEMI-JSON-API-PUT-BATCH", "PUTB");
+        apiRequestNameGroupMapping.put("SEMI-JSON-API-POST-QUERY", "POSTQ");
+        apiRequestNameGroupMapping.put("SEMI-JSON-API-POST", "POST");
+        apiRequestNameGroupMapping.put("SEMI-JSON-API-GET", "GET");
+        apiRequestNameGroupMapping.put("SEMI-JSON-API-PUT", "PUT");
+        apiRequestNameGroupMapping.put("SEMI-JSON-API-POST-BATCH", "POSTB");
+        apiRequestNameGroupMapping.put("SEMI-JSON-API-PUT-BATCH", "PUTB");
+        apiRequestNameGroupMapping.put("SEMI-JSON-API-DELETE", "DELETE");
+        apiRequestNameGroupMapping.put("SEMI_COMMON_MULTI", "MULTI");
     }
 
-    public Map<String, String> getJsonConfig() {
-        return jsonConfig;
-    }
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (apiProperties.isCommonApiEnable()) {
             return;
         }
+        Map<RequestMappingInfo, HandlerMethod> handlerMethods = requestMappingHandlerMapping.getHandlerMethods();
+        addApiRequestNameGroupMapping(handlerMethods.values());
+
         Map<String, Map<String, ObjectNode>> apiMap = new HashMap<>();
 
         File folder = JsonFileUtils.jarFile(apiProperties);
@@ -79,13 +79,21 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
             }
         }
 
-        Set<RequestMappingInfo> requestMappingInfos = requestMappingHandlerMapping.getHandlerMethods().keySet();
+        addApi(handlerMethods, apiMap);
 
-        addApi(requestMappingInfos, apiMap);
-
-        unique(requestMappingInfos, apiMap);
+        unique(handlerMethods, apiMap);
 
         semiCache.initHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), apiMap);
+    }
+
+    private void addApiRequestNameGroupMapping(Collection<HandlerMethod> handlerMethods) {
+        for (HandlerMethod handlerMethod : handlerMethods) {
+            Method method = handlerMethod.getMethod();
+            if (method.isAnnotationPresent(ApiGroup.class)) {
+                ApiGroup annotation = method.getAnnotation(ApiGroup.class);
+                apiRequestNameGroupMapping.put(method.toString(), annotation.value().toUpperCase());
+            }
+        }
     }
 
 
@@ -95,12 +103,11 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
      * @param folder json文件目录
      * @param apiMap 解析后的json数据
      */
-    public List<ObjectNode> parseJsonFile(File folder, Map<String, Map<String, ObjectNode>> apiMap) {
+    public void parseJsonFile(File folder, Map<String, Map<String, ObjectNode>> apiMap) {
         File[] files = folder.listFiles((f, name) -> name.endsWith(".json"));
         if (files == null || files.length == 0) {
-            return Collections.emptyList();
+            return;
         }
-        List<ObjectNode> nodes = new ArrayList<>();
         try {
             for (File file : files) {
                 if (file.length() == 0) {
@@ -108,19 +115,17 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
                 }
                 JsonNode json = objectMapper.readTree(file);
                 Assert.isFalse(json instanceof ObjectNode, () -> new ConfigException("配置文件%s格式错误", file.getName()));
-                ObjectNode node = (ObjectNode) json;
+
                 json.fields().forEachRemaining(entry -> {
                     JsonNode configs = entry.getValue();
                     String key = entry.getKey().toUpperCase();
                     populateMap(key, (ObjectNode) configs, apiMap, file.getName().replace(".json", ""));
                 });
 
-                nodes.add(node);
             }
         } catch (IOException e) {
             throw new ConfigException(folder + "json配置文件格式错误");
         }
-        return nodes;
     }
 
     /**
@@ -133,19 +138,19 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
      * @param fileName  文件名
      */
     private void populateMap(String groupName, ObjectNode configs, Map<String, Map<String, ObjectNode>> apiMap, String fileName) {
-
         configs.fields().forEachRemaining(entry -> {
             String path = entry.getKey();
             if (!path.startsWith("/")) {
                 path = "/" + path;
             }
+            Assert.isFalse(apiRequestNameGroupMapping.containsValue(groupName), () -> new ConfigException("api配置文件%s：组名%s不存在", fileName, groupName));
 
             Map<String, ObjectNode> apiConfigs = apiMap.computeIfAbsent(groupName, k -> new HashMap<>());
 
             String finalPath = path;
-            Assert.isTrue(apiConfigs.containsKey(path), () -> new ParamsException("%s重复", finalPath));
+            Assert.isTrue(apiConfigs.containsKey(path), () -> new ConfigException("接口%s重复", finalPath));
             JsonNode value = entry.getValue();
-            Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("%s配置错误", value));
+            Assert.isFalse(value instanceof ObjectNode, () -> new ConfigException("%s配置错误", value));
             ObjectNode pathConfig = (ObjectNode) value;
             if (!pathConfig.has("tag")) {
                 pathConfig.put("tag", fileName);
@@ -159,27 +164,21 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
     /**
      * 添加api映射到spring的配置
      *
-     * @param requestMappingInfos api的映射信息
-     * @param apiMap              自定义api信息
+     * @param handlerMethods api的映射信息
+     * @param apiMap         自定义api信息
      */
-    private void addApi(Set<RequestMappingInfo> requestMappingInfos, Map<String, Map<String, ObjectNode>> apiMap) {
+    private void addApi(Map<RequestMappingInfo, HandlerMethod> handlerMethods, Map<String, Map<String, ObjectNode>> apiMap) {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        requestMappingInfos.forEach(info -> {
+        handlerMethods.forEach((info, handlerMethod) -> {
             Set<String> patternValues = info.getPatternValues();
-            String requestMappingName = info.getName();
-            if (StringUtils.hasText(requestMappingName)) {
-                requestMappingName=requestMappingName.toUpperCase();
-            }
-            String group = jsonConfig.get(requestMappingName);
-            if (!StringUtils.hasText(group)) {
+            String group = getGroupKey(info, handlerMethod);
+            if (!apiMap.containsKey(group)) {
                 return;
             }
             if (!apiProperties.isCommonApiEnable()) {
                 patternValues.clear();
             }
-            if (!apiMap.containsKey(group)) {
-                return;
-            }
+
 
             Map<String, ObjectNode> apiConfig = apiMap.getOrDefault(group, new HashMap<>());
 
@@ -236,35 +235,47 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
     /**
      * api唯一校验
      *
-     * @param requestMappingInfos api的映射信息
+     * @param handlerMethods api的映射信息
      */
-    private void unique(Set<RequestMappingInfo> requestMappingInfos, Map<String, Map<String, ObjectNode>> apiMap) {
+    private void unique(Map<RequestMappingInfo, HandlerMethod> handlerMethods, Map<String, Map<String, ObjectNode>> apiMap) {
         Map<String, Set<String>> uniqueMap = new HashMap<>();
-
-        for (RequestMappingInfo requestMappingInfo : requestMappingInfos) {
-            for (RequestMethod method : requestMappingInfo.getMethodsCondition().getMethods()) {
+        handlerMethods.forEach((info, handlerMethod) -> {
+            for (RequestMethod method : info.getMethodsCondition().getMethods()) {
                 String name = method.name();
                 Set<String> remain = uniqueMap.computeIfAbsent(name, k -> new HashSet<>());
-                Set<String> patternValues = requestMappingInfo.getPatternValues();
+                Set<String> patternValues = info.getPatternValues();
                 Set<String> uniqueSet = new HashSet<>(remain);
 
                 uniqueSet.retainAll(patternValues);
 
-                Assert.isFalse(uniqueSet.isEmpty(), () -> new ParamsException("接口重复：" + uniqueSet));
+                Assert.isFalse(uniqueSet.isEmpty(), () -> new ConfigException("接口重复：" + uniqueSet));
 
                 remain.addAll(patternValues);
 
 
-                String group = jsonConfig.get(requestMappingInfo.getName());
+                String group = getGroupKey(info, handlerMethod);
 
                 if (name.equals(group) || !apiMap.containsKey(group)) {
                     continue;
                 }
                 apiMap.computeIfAbsent(name, k -> new HashMap<>())
                         .putAll(apiMap.remove(group));
-
             }
-        }
+        });
+
     }
 
+
+    private String getGroupKey(RequestMappingInfo requestMappingInfo, HandlerMethod handlerMethod) {
+        String requestMappingName = requestMappingInfo.getName();
+        if (StringUtils.hasText(requestMappingName)) {
+            requestMappingName = requestMappingName.toUpperCase();
+        }
+        String group = apiRequestNameGroupMapping.get(requestMappingName);
+        if (!StringUtils.hasText(group)) {
+            String name = handlerMethod.getMethod().toString();
+            group = apiRequestNameGroupMapping.get(name);
+        }
+        return group;
+    }
 }

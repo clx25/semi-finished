@@ -4,16 +4,20 @@ package com.semifinished.file.controller;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.pojo.Result;
 import com.semifinished.core.utils.Assert;
+import com.semifinished.core.utils.MapUtils;
 import com.semifinished.file.pojo.FileInfo;
 import com.semifinished.file.service.FileService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * 文件相关操作
@@ -101,9 +105,16 @@ public class FileController {
      * @throws IOException 文件操作异常
      */
     @GetMapping(value = "/file/{fileName}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public FileSystemResource file(@PathVariable String fileName) throws IOException {
+    public FileSystemResource file(@PathVariable String fileName, HttpServletResponse response) throws IOException {
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
         return fileService.file(fileName);
     }
 
+
+    @PostMapping("/edit")
+    public Map<String,Integer> get(@RequestBody String msg){
+        return MapUtils.of("error",0);
+    }
 
 }

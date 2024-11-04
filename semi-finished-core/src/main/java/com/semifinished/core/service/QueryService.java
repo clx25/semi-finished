@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.CodeException;
+import com.semifinished.core.facotry.SqlDefinitionFactory;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
+import com.semifinished.core.jdbc.executor.Executor;
 import com.semifinished.core.jdbc.parser.ParserExecutor;
-import com.semifinished.core.jdbc.query.Query;
 import com.semifinished.core.pojo.Page;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
 import com.semifinished.core.service.enhance.query.QueryFinallyEnhance;
@@ -28,7 +29,9 @@ public class QueryService {
     private final SqlExecutorHolder sqlExecutorHolder;
     private final ConfigProperties configProperties;
     private final List<AfterQueryEnhance> afterQueryEnhances;
-    private final List<Query> queryList;
+    private final SqlDefinitionFactory sqlDefinitionFactory;
+    private final List<Executor> executorList;
+
 
     @Autowired(required = false)
     private QueryFinallyEnhance queryFinallyEnhance;
@@ -44,8 +47,9 @@ public class QueryService {
         if (ParamsUtils.isEmpty(params)) {
             params = JsonNodeFactory.instance.objectNode();
         }
+
         //解析后的sql定义信息类
-        SqlDefinition sqlDefinition = new SqlDefinition(params);
+        SqlDefinition sqlDefinition = sqlDefinitionFactory.getSqlDefinition(params);
         return query(sqlDefinition);
     }
 
@@ -73,8 +77,8 @@ public class QueryService {
         //创建分页信息
         Page page = wrapPage(sqlDefinition);
         //执行查询
-        Query query = queryList.stream().filter(q -> sqlDefinition.getDialect().equals(q.dialect())).findFirst().orElseThrow(() -> new CodeException(""));
-        List<ObjectNode> records = query.query(sqlDefinition);
+        Executor executor = executorList.stream().filter(q -> sqlDefinition.getDialect().equals(q.dialect())).findFirst().orElseThrow(() -> new CodeException("未找到对应执行器"));
+        List<ObjectNode> records = executor.query(sqlDefinition);
         page.setRecords(records);
         page.setSize(records.size());
 

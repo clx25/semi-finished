@@ -1,5 +1,6 @@
 package com.semifinished.api.service.validator;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.utils.Assert;
@@ -13,12 +14,14 @@ public class EmailValidator implements Validator {
 
 
     @Override
-    public boolean validate(String field, String value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
         if (!"email".equalsIgnoreCase(pattern)) {
             return false;
         }
-
-        boolean valid = new org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator().isValid(value, null);
+        if (value == null || value.isMissingNode() || value.isEmpty()) {
+            return true;
+        }
+        boolean valid = new org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator().isValid(value.asText(), null);
         Assert.isFalse(valid, () -> new ParamsException(msg));
         return true;
     }
