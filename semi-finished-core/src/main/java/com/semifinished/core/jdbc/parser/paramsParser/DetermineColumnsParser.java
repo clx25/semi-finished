@@ -58,7 +58,7 @@ public class DetermineColumnsParser implements ParamsParser {
 
 
         String table = sqlDefinition.getTable();
-
+        Assert.hasNotText(table, () -> new ParamsException("未指定表名"));
         //如果没有指定字段，默认所有字段
         if (columnsNode == null || columnsNode instanceof NullNode) {
             allColumns(table, sqlDefinition);

@@ -1,4 +1,4 @@
-package com.semifinished.service;
+package com.semifinished.excel.service;
 
 import com.alibaba.excel.EasyExcel;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -14,8 +14,8 @@ import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.RequestUtils;
-import com.semifinished.handler.ExcelHandler;
-import com.semifinished.listener.ExcelListener;
+import com.semifinished.excel.handler.ExcelHandler;
+import com.semifinished.excel.listener.ExcelListener;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,9 +39,10 @@ public class ExcelService {
     /**
      * 解析excel并调用处理器
      *
-     * @param file excel文件
+     * @param file   excel文件
+     * @param params 请求参数
      */
-    public void parseExcel(MultipartFile file) {
+    public void parseExcel(MultipartFile file, ObjectNode params) {
 
         Assert.isTrue(this.excelHandlers == null, () -> new CodeException("未配置excel处理类"));
 

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.api.annotation.ApiGroup;
 import com.semifinished.api.config.ApiProperties;
+import com.semifinished.api.utils.Api;
 import com.semifinished.api.utils.JsonFileUtils;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
@@ -105,26 +106,28 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
      */
     public void parseJsonFile(File folder, Map<String, Map<String, ObjectNode>> apiMap) {
         File[] files = folder.listFiles((f, name) -> name.endsWith(".json"));
-        if (files == null || files.length == 0) {
+        if (files == null) {
             return;
         }
-        try {
-            for (File file : files) {
-                if (file.length() == 0) {
-                    continue;
-                }
-                JsonNode json = objectMapper.readTree(file);
-                Assert.isFalse(json instanceof ObjectNode, () -> new ConfigException("配置文件%s格式错误", file.getName()));
 
-                json.fields().forEachRemaining(entry -> {
-                    JsonNode configs = entry.getValue();
-                    String key = entry.getKey().toUpperCase();
-                    populateMap(key, (ObjectNode) configs, apiMap, file.getName().replace(".json", ""));
-                });
-
+        for (File file : files) {
+            if (file.length() == 0) {
+                continue;
             }
-        } catch (IOException e) {
-            throw new ConfigException(folder + "json配置文件格式错误");
+            JsonNode json;
+            try {
+                json = objectMapper.readTree(file);
+            } catch (IOException e) {
+                throw new ConfigException(file + "配置文件格式错误", e);
+            }
+            Assert.isFalse(json instanceof ObjectNode, () -> new ConfigException("配置文件%s格式错误", file.getName()));
+
+            json.fields().forEachRemaining(entry -> {
+                JsonNode configs = entry.getValue();
+                String key = entry.getKey().toUpperCase();
+                populateMap(key, (ObjectNode) configs, apiMap, file.getName().replace(".json", ""));
+            });
+
         }
     }
 

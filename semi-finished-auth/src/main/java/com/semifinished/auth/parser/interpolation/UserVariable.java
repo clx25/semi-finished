@@ -15,14 +15,13 @@ public class UserVariable implements Interpolation {
 
     @Override
     public boolean match(String key, JsonNode interpolatedKey) {
-
         return RequestUtils.getRequestAttributes(interpolatedKey.asText()) != null;
     }
 
     @Override
     public JsonNode value(String table, String key, JsonNode interpolatedKey, SqlDefinition sqlDefinition) {
 
-        String value = RequestUtils.getRequestAttributes(key);
+        String value = RequestUtils.getRequestAttributes(interpolatedKey.asText());
 
         return TextNode.valueOf(value);
     }

@@ -11,6 +11,7 @@ import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.pojo.Column;
 import com.semifinished.core.utils.Assert;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -21,8 +22,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 对semi_column表数据进行初始化
+ * 获取数据库表字段数据
  */
+@Slf4j
 @Component
 @Order(-1000)
 @AllArgsConstructor
@@ -47,6 +49,7 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
             String db = objectNode.get("db").asText();
 
             String databaseProductName = executor.getDatabaseProductName();
+            log.info("数据库产品名称{}",databaseProductName);
             List<Column> tables;
             if ("H2".equalsIgnoreCase(databaseProductName)) {
                 tables = executor.list("SELECT  TABLE_NAME `table`,COLUMN_NAME `column`,TYPE_NAME  `type` ,CASE WHEN IS_NULLABLE = 'YES' THEN TRUE ELSE FALSE END AS NULL_ABLE FROM INFORMATION_SCHEMA.COLUMNS  WHERE  TABLE_SCHEMA = 'PUBLIC'", Column.class);

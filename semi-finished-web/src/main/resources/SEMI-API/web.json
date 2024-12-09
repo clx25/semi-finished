@@ -1,15 +1,16 @@
 {
   "get": {
     "/userMenu": {
-      "summary": "获取菜单",
+      "summary": "获取用户菜单",
       "params": {
         "@tb1": "semi_menu",
         "\\": "sort",
         "#json": "icon",
-        "id&": {
+        "?id&": {
           "@tb": "semi_role_access",
           "@on": "resource_id",
           "@": "",
+          "[role_id]$": "roleId",
           "resource_type": 2
         },
         "^": {}
@@ -23,7 +24,26 @@
           "@tb1": "semi_role_access",
           "@on": "resource_id",
           "@": "",
-          "resource_type$$资源类 型": "type"
+          "resource_type$$资源类型": "type"
+        }
+      }
+    },
+    "/userComponent": {
+      "summary": "获取用户组件权限",
+      "params": {
+        "@tb1": "semi_component",
+        "@": "group",
+        "id&": {
+          "@tb": "semi_component_code",
+          "@on": "group_id",
+          "@": "code",
+          "?id&": {
+            "@tb1": "semi_role_access",
+            "@on": "resource_id",
+            "@": "",
+            "[role_id]$": "roleId",
+            "resource_type": 3
+          }
         }
       }
     }

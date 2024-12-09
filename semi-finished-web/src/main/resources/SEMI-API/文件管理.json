@@ -1,0 +1,58 @@
+{
+  "get": {
+    "/fileManage": {
+      "summary": "获取文件列表",
+      "params": {
+        "@tb": "semi_file",
+        "pageSize$$": "pageSize",
+        "pageNum$$": "pageNum",
+        "name$$": "name",
+        ":": "origin_name:originName"
+      }
+    }
+  },
+  "post": {
+    "/fileManage": {
+      "summary": "新增文件记录",
+      "params": {
+        "@tb": "semi_file",
+        "name$$": "name",
+        "origin_name$$": "originName",
+        "remark$$": "remark"
+      }
+    }
+  },
+  "put": {
+    "/fileManage": {
+      "summary": "修改文件记录",
+      "params": {
+        "@tb": "semi_file",
+        "id$$": "id",
+        "name$$": "name",
+        "origin_name$$": "originName",
+        "remark$$": "remark"
+      },
+      "ruler": {
+        "id": {
+          "desc": "文件id",
+          "required": "文件id不能为空"
+        }
+      }
+    }
+  },
+  "delete": {
+    "/fileManage": {
+      "summary": "删除文件记录",
+      "params": {
+        "@tb": "semi_file",
+        "id$$": "id"
+      },
+      "ruler": {
+        "id": {
+          "desc": "文件id",
+          "required": "文件id不能为空"
+        }
+      }
+    }
+  }
+}

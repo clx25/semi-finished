@@ -5,6 +5,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import javax.validation.constraints.NotNull;
+
 
 @Data
 @Component
@@ -73,11 +75,12 @@ public class ConfigProperties {
     /**
      * 是否逻辑删除
      */
-    private boolean logicDelete=false;
+    private boolean logicDelete = false;
 
     /**
      * 逻辑删除字段，如果开启了逻辑删除又没有该字段，会提示错误
      */
     private String logicDeleteColumn = "deleted";
 
+    private boolean toCamel=true;
 }

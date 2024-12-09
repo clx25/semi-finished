@@ -110,8 +110,7 @@ public class SchedulingService implements ApplicationListener<ContextRefreshedEv
                 .forEach(node -> {
                     String beanName = node.get("bean_name").asText();
                     JsonNode jsonNode = node.path("args");
-                    Assert.isFalse(jsonNode.isObject(), () -> new ParamsException(beanName + "定时任务args参数错误"));
-                    run(beanName, node.get("cron").asText(), (ObjectNode) jsonNode);
+                    run(beanName, node.get("cron").asText(), jsonNode);
                 });
     }
 }

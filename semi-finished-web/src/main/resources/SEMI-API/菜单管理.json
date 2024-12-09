@@ -7,7 +7,14 @@
         "\\": "sort",
         "%label%$$": "name",
         "#json": "icon",
-        "^": {}
+        "^": {},
+        ":": "route_path:routePath,route_name:routeName,table_name:tableName"
+      }
+    },
+    "/icon": {
+      "summary": "获取所有图标",
+      "params": {
+        "@tb": "semi_icon"
       }
     }
   },
@@ -17,16 +24,23 @@
       "params": {
         "@tb": "semi_menu",
         "id$$": "id",
-        "routePath$$": "routePath",
-        "routeName$$": "routeName",
+        "route_path$$": "routePath",
+        "route_name$$": "routeName",
         "label$$": "label",
         "component$$": "component",
         "parent$$": "parent",
-        "tableName$$": "tableName$$",
+        "table_name$$": "tableName",
         "icon$$": "icon",
         "sort$$": "sort",
         "query$$": "query",
         "variable$$": "variable"
+      }
+    },
+    "/icon": {
+      "summary": "获取所有图标",
+      "params": {
+        "@tb": "semi_icon",
+        "image$$": "image"
       }
     }
   },
@@ -36,12 +50,12 @@
       "params": {
         "@tb": "semi_menu",
         "id$$": "id",
-        "routePath$$": "routePath",
-        "routeName$$": "routeName",
+        "route_path$$": "routePath",
+        "route_name$$": "routeName",
         "label$$": "label",
         "component$$": "component",
         "parent$$": "parent",
-        "tableName$$": "tableName$$",
+        "table_name$$": "tableName$$",
         "icon$$": "icon",
         "sort$$": "sort",
         "query$$": "query",
@@ -51,9 +65,16 @@
   },
   "delete": {
     "menu": {
-      "summary":"删除菜单",
+      "summary": "删除菜单",
       "params": {
         "@tb": "semi_menu",
+        "id$$": "id"
+      }
+    },
+    "icon": {
+      "summary": "删除自定义菜单图标",
+      "params": {
+        "@tb": "semi_icon",
         "id$$": "id"
       }
     }

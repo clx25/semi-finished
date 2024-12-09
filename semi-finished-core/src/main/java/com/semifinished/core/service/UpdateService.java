@@ -18,11 +18,9 @@ import com.semifinished.core.utils.ParamsUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.math3.util.Pair;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -37,6 +35,7 @@ public class UpdateService {
     private final ObjectMapper objectMapper;
     private final SqlDefinitionFactory sqlDefinitionFactory;
     private final List<Executor> executorList;
+    private final QueryService queryService;
 
     public void delete(ObjectNode params) {
         SqlDefinition sqlDefinition = sqlDefinitionFactory.getSqlDefinition(params.deepCopy());
@@ -57,9 +56,10 @@ public class UpdateService {
                 .delete(definition)), sqlDefinition);
     }
 
-    public void add(JsonNode params) {
+    public String add(JsonNode params) {
         SqlDefinition sqlDefinition = sqlDefinitionFactory.getSqlDefinition(params.deepCopy());
         add(sqlDefinition);
+        return sqlDefinition.getId();
     }
 
     /**
@@ -80,10 +80,9 @@ public class UpdateService {
                 .filter(q -> definition.getDialect().equals(q.dialect()))
                 .findFirst()
                 .orElseThrow(() -> new CodeException("未找到对应执行器"))
-                .add(definition);
+                .add(definition, configProperties.getIdKey());
 
         execute(consumer, sqlDefinition);
-
     }
 
     public void update(JsonNode params) {
@@ -100,7 +99,7 @@ public class UpdateService {
 
         ObjectNode params = sqlDefinition.getParams();
         Consumer<SqlDefinition> consumer = params.has("@batch") ? (definition) -> {
-            String sql = UpdateSqlCombiner.updateSQL(definition, configProperties.getIdKey());
+            String sql = UpdateSqlCombiner.updateByIdSQL(definition, configProperties.getIdKey());
             Map<String, Object>[] args = UpdateSqlCombiner.getBatchArgs(definition, objectMapper);
             sqlExecutorHolder.dataSource(definition.getDataSource())
                     .batchUpdate(sql, args);
@@ -204,8 +203,12 @@ public class UpdateService {
                 String key = entry.getKey();
                 JsonNode value = entry.getValue();
                 Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("%参数类型错误", key));
+
+
                 SqlDefinition definition = new SqlDefinition();
+
                 definition.setParams((ObjectNode) value);
+
                 definition.setRawParams(params);
 
                 //获取执行排序
@@ -220,10 +223,14 @@ public class UpdateService {
                         execute.add(Pair.create(Integer.parseInt(index), () -> update(definition)));
                         break;
                     case "c":
+                        //todo 需要完善 把上一个新增返回的id作为下一个新增的参数
                         execute.add(Pair.create(Integer.parseInt(index), () -> add(definition)));
                         break;
                     case "d":
                         execute.add(Pair.create(Integer.parseInt(index), () -> delete(definition)));
+                        break;
+                    case "r":
+                        queryService.query(definition);
                 }
             });
 

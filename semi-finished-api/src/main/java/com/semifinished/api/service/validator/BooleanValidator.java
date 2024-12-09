@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BooleanValidator implements Validator {
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean beforeParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
         if (!"boolean".equals(pattern)) {
             return false;
         }

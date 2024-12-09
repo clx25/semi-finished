@@ -1,7 +1,6 @@
 package com.semifinished.core.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.pojo.Result;
 import com.semifinished.core.service.UpdateService;
 import lombok.AllArgsConstructor;
@@ -21,8 +20,8 @@ public class CommonController {
      */
     @PostMapping(value = "common", name = "SEMI-JSON-API-POST")
     public Result add(@RequestBody JsonNode params) {
-        updateService.add(params);
-        return Result.success();
+        String id = updateService.add(params);
+        return Result.success(id);
     }
 
     /**
@@ -76,7 +75,7 @@ public class CommonController {
 //    }
 
 
-    @PostMapping(value="multi",name="SEMI_COMMON_MULTI")
+    @PostMapping(value = "multi", name = "SEMI_COMMON_MULTI")
     public Result multi(@RequestBody JsonNode params) {
         updateService.multi(params);
         return Result.success();

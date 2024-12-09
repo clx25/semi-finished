@@ -175,9 +175,6 @@ public class ParamsUtils {
         return true;
     }
 
-    public static <T> List<T> asList(T... arr) {
-        return new ArrayList<>(Arrays.asList(arr));
-    }
 
     public static boolean isEmpty(ObjectNode params) {
         return params == null || params.isEmpty();

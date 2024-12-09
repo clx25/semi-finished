@@ -13,7 +13,7 @@ public class PhoneValidator implements Validator {
     private static final Pattern PATTERN = Pattern.compile("1\\d{10}]");
 
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean beforeParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
         if (!"phone".equalsIgnoreCase(pattern)) {
             return false;
         }

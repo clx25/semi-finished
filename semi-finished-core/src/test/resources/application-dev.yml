@@ -25,7 +25,8 @@ spring:
       excludes:
         info:
           - comment
-
+  jackson:
+    property-naming-strategy: LOWER_CAMEL_CASE
 server:
   port: 4000
 

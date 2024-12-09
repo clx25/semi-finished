@@ -6,15 +6,19 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import com.semifinished.auth.config.AuthProperties;
 import com.semifinished.core.exception.CodeException;
+import com.semifinished.core.jdbc.SqlCreator;
 import com.semifinished.core.jdbc.SqlDefinition;
+import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.jdbc.parser.paramsParser.ParamsParser;
 import com.semifinished.core.utils.Assert;
+import com.semifinished.core.utils.MapUtils;
 import com.semifinished.core.utils.RequestUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * 请求参数的?表示如果该请求是管理员，那么忽略这条规则
@@ -29,48 +33,58 @@ import java.util.Objects;
 @AllArgsConstructor
 public class AdminParser implements ParamsParser {
     private final AuthProperties authProperties;
-
+    private final SqlExecutorHolder sqlExecutorHolder;
 
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
+        Object id = RequestUtils.getRequestAttributes("id");
+        if(id==null){
+            return;
+        }
         String roleId = RequestUtils.getRequestAttributes("roleId");
-
-        deepParse(params, params.deepCopy(), roleId);
+        Assert.isTrue(roleId == null, () -> new CodeException("缺少角色信息"));
+        String[] roleIds = roleId.split(",");
+        String sql = SqlCreator.builder()
+                .table("semi_role")
+                .in("id")
+                .eq("code")
+                .build();
+        Map<String, Object> args = MapUtils.of("id", Arrays.asList(roleIds), "code", authProperties.getAdminCode());
+        boolean existed = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
+                .existMatch(sql, args);
+        deepParse(params, existed);
     }
 
-    private void deepParse(ObjectNode rawParams, JsonNode params, String roleId) {
+
+    private void deepParse(JsonNode params, boolean existed) {
 
         if (params instanceof ArrayNode) {
             for (JsonNode jsonNode : params) {
-                deepParse(rawParams, jsonNode, roleId);
+                deepParse(jsonNode, existed);
             }
         }
 
         if (!(params instanceof ObjectNode)) {
             return;
         }
-
-        params.fields().forEachRemaining(entry -> {
-            String key = entry.getKey();
-            JsonNode value = entry.getValue();
-
-            if (!(value instanceof ValueNode)) {
-                deepParse(rawParams, value, roleId);
-            }
-
-            if (!key.startsWith("?")) {
+        Iterator<Map.Entry<String, JsonNode>> fields = params.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> next = fields.next();
+            String key = next.getKey();
+            JsonNode value = next.getValue();
+            if (key.startsWith("?")) {
+                fields.remove();
+                if (!existed) {
+                    key = key.substring(1);
+                    ((ObjectNode) params).set(key, value);
+                }
                 return;
             }
-            Assert.isTrue(roleId == null, () -> new CodeException("缺少角色信息"));
-            rawParams.remove(key);
-
-            boolean match = Arrays.stream(roleId.split(",")).anyMatch(code -> Objects.equals(code, authProperties.getAdminCode()));
-            if (!match) {
-                key = key.substring(1);
-
-                rawParams.set(key, value);
+            if (!(value instanceof ValueNode)) {
+                deepParse(value, existed);
             }
-        });
+        }
+
     }
 
 

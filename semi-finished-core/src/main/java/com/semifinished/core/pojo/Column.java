@@ -28,11 +28,6 @@ public class Column {
     private String type;
 
     /**
-     * 导入excel时字段对应的表头
-     */
-    private String header;
-
-    /**
      * 是否禁止查询
      */
     private boolean disabled;

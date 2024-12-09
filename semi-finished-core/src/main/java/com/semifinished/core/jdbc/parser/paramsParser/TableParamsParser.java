@@ -14,6 +14,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * 解析查询的表名
  * <pre>
@@ -34,12 +37,39 @@ public class TableParamsParser implements ParamsParser {
 
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
+        String field = null;
+        JsonNode tbNode = null;
+        Iterator<Map.Entry<String, JsonNode>> iterator = params.fields();
+        while (iterator.hasNext()) {
+            Map.Entry<String, JsonNode> entry = iterator.next();
+            String key = entry.getKey();
+            if (key.startsWith("@tb")) {
+                Assert.hasText(field, () -> new ParamsException("指定表规则重复"));
+                field = key;
+                tbNode = entry.getValue();
+                iterator.remove();
+            }
+        }
+        if (field == null) {
+            return;
+        }
 
-        JsonNode tbNode = params.remove("@tb");
-        if (tbNode == null) {
-            tbNode = params.remove("@tb1");
+        if (field.equals("@tb1")) {
+            field = field.substring(4);
             sqlDefinition.setDistinct(true);
         }
+
+        if (field.startsWith("@tb@")) {
+            String column = field.substring(1);
+            tableUtils.validColumnsName(sqlDefinition, field, column);
+            //todo 指定返回的字段
+
+            sqlDefinition.addColumn(tbNode.asText(""), column, "semi__id__key");
+            sqlDefinition.addExcludeColumns(tbNode.asText(""), "semi__id__key");
+
+            sqlDefinition.setResultId(true);
+        }
+
 
         if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY)) {
             Assert.isTrue(tbNode != null, () -> new ParamsException("表名规则位置错误"));

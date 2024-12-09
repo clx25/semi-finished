@@ -3,7 +3,41 @@
     "/dataAccess": {
       "summary": "获取数据权限",
       "params": {
-        "@tb": "semi_data_access"
+        "@tb": "semi_data_access",
+        "%name%$$": "name",
+        ":": "table_name:tableName"
+      }
+    }
+  },
+  "post": {
+    "dataAccess": {
+      "summary": "新增数据规则",
+      "params": {
+        "@tb": "semi_data_access",
+        "access$$": "access",
+        "name$$": "name",
+        "table_name$$": "tableName"
+      }
+    }
+  },
+  "put": {
+    "dataAccess": {
+      "summary": "修改数据规则",
+      "params": {
+        "@tb": "semi_data_access",
+        "access$$": "access",
+        "id$$": "id",
+        "name$$": "name",
+        "table_name$$": "tableName"
+      }
+    }
+  },
+  "delete": {
+    "dataAccess": {
+      "summary": "删除数据规则",
+      "params": {
+        "@tb": "semi_data_access",
+        "id$$": "id"
       }
     }
   }

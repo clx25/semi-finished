@@ -64,7 +64,6 @@ public class SemiFinishedAutoConfiguration {
     public ObjectMapper objectMapper() {
         return JsonMapper.builder()
                 .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
-                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
                 .build();
     }
 

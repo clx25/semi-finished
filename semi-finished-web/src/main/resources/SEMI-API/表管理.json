@@ -10,6 +10,13 @@
         "@": "table_name:tableName"
       }
     },
+    "/tableAll": {
+      "summary": "获取所有表",
+      "params": {
+        "@tb1": "semi_column",
+        "@": "table_name:tableName"
+      }
+    },
     "/column": {
       "summary": "获取表对应的字段名",
       "params": {

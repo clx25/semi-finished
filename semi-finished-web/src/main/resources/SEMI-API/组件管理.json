@@ -1,32 +1,53 @@
 {
   "get": {
     "/component": {
-      "summary": "获取组件权限信息",
+      "summary": "获取组件分组信息",
       "params": {
         "@tb": "semi_component",
         "pageNum$$": "pageNum",
         "pageSize$$": "pageSize",
-        "%page%$$": "page",
-        "%code%$$": "code"
+        "%group%$$": "group"
+      }
+    },
+    "/componentCode": {
+      "summary": "根据分组id获取组件编码",
+      "params": {
+        "@tb": "semi_component_code",
+        "pageNum$$": "pageNum",
+        "pageSize$$": "pageSize",
+        "group_id$$": "groupId"
       }
     }
   },
   "post": {
     "/component": {
-      "summary": "新增组件权限信息",
+      "summary": "新增组件分组信息",
       "params": {
         "@tb": "semi_component",
-        "id$$": "id",
-        "page$$": "page",
-        "code$$": "code"
+        "group$$": "group",
+        "remark$$": "remark"
       },
       "ruler": {
-        "id": {
-          "desc": "组件权限id",
-          "require": "组件权限id不能为空"
+        "group": {
+          "desc": "组件组名",
+          "required": "组名不能为空"
         }
       }
-
+    },
+    "/componentCode": {
+      "summary": "新增组件编码",
+      "params": {
+        "@tb": "semi_component_code",
+        "code$$": "code",
+        "remark$$": "remark",
+        "group_id$$": "groupId"
+      },
+      "ruler": {
+        "group": {
+          "code": "组件编码",
+          "required": "组件编码不能为空"
+        }
+      }
     }
   },
   "put": {
@@ -35,20 +56,36 @@
       "params": {
         "@tb": "semi_component",
         "id$$": "id",
-        "page$$": "page",
-        "code$$": "code"
+        "group$$": "group",
+        "remark$$": "remark",
+        "group_id$$": "groupId"
       },
       "ruler": {
         "id": {
           "desc": "组件权限id",
-          "require": "组件权限id不能为空"
+          "required": "组件权限id不能为空"
+        }
+      }
+    },
+    "/componentCode": {
+      "summary": "修改组件编码",
+      "params": {
+        "@tb": "semi_component_code",
+        "id$$": "id",
+        "code$$": "code",
+        "remark$$": "remark"
+      },
+      "ruler": {
+        "code": {
+          "desc": "组件编码id",
+          "required": "组件编码id不能为空"
         }
       }
     }
   },
   "delete": {
     "/component": {
-      "summary": "删除组件权限信息",
+      "summary": "删除组件分组",
       "params": {
         "@tb": "semi_component",
         "id$$": "id"
@@ -56,7 +93,20 @@
       "ruler": {
         "id": {
           "desc": "组件权限id",
-          "require": "组件权限id不能为空"
+          "required": "组件权限id不能为空"
+        }
+      }
+    },
+    "/componentCode": {
+      "summary": "删除组件编码",
+      "params": {
+        "@tb": "semi_component_code",
+        "id$$": "id"
+      },
+      "ruler": {
+        "id": {
+          "desc": "组件编码id",
+          "required": "组件编码id不能为空"
         }
       }
     }

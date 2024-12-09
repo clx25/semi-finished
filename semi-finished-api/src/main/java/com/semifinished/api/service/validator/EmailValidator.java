@@ -14,7 +14,7 @@ public class EmailValidator implements Validator {
 
 
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean beforeParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
         if (!"email".equalsIgnoreCase(pattern)) {
             return false;
         }

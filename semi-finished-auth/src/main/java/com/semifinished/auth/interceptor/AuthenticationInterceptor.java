@@ -58,9 +58,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             String idKey = configProperties.getIdKey();
             request.setAttribute(idKey, decodedJWT.getSubject());
 
-            decodedJWT.getClaims().forEach((k, v) -> {
-                request.setAttribute(k, v.toString());
-            });
+            decodedJWT.getClaims().forEach((k, v) -> request.setAttribute(k, v.asString()));
 
             //刷新token，放入响应头
             String newToken = JwtUtils.refreshToken(token, decodedJWT);

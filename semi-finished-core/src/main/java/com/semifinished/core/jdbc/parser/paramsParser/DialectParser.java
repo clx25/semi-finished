@@ -1,5 +1,6 @@
 package com.semifinished.core.jdbc.parser.paramsParser;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
@@ -28,11 +29,12 @@ public class DialectParser implements ParamsParser {
 
     @Override
     public void parse(ObjectNode params, SqlDefinition sqlDefinition) {
-        if (!params.has("@dialect")) {
+        JsonNode dialectNode = params.remove("@dialect");
+        if (dialectNode == null) {
             sqlDefinition.setDialect("mysql");
             return;
         }
-        String dialect = params.path("@dialect").asText("");
+        String dialect = dialectNode.asText("");
         Assert.isFalse(StringUtils.hasText(dialect), () -> new ParamsException("@dialect参数不能为空"));
 
         Assert.isFalse(executorList.stream().anyMatch(q -> dialect.equals(q.dialect())), () -> new ParamsException("指定的dialect不存在:%s", dialect));

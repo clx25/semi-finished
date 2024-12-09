@@ -95,37 +95,37 @@ public class ObjectNodeRowMapper implements RowMapper<ObjectNode> {
     }
 
 
-    public void putString(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {
-        objectNode.put(columns, row.getString(columns));
+    public void putString(ObjectNode objectNode, String column, ResultSet row) throws SQLException {
+        objectNode.put(column, row.getString(column));
     }
 
-    private void putInteger(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {
-        objectNode.put(columns, row.getInt(columns));
+    private void putInteger(ObjectNode objectNode, String column, ResultSet row) throws SQLException {
+        objectNode.put(column, row.getInt(column));
     }
 
-    private void putDouble(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {
-        objectNode.put(columns, row.getDouble(columns));
+    private void putDouble(ObjectNode objectNode, String column, ResultSet row) throws SQLException {
+        objectNode.put(column, row.getDouble(column));
     }
 
-    private void putBigDecimal(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {
-        objectNode.put(columns, row.getBigDecimal(columns).toPlainString());
+    private void putBigDecimal(ObjectNode objectNode, String column, ResultSet row) throws SQLException {
+        objectNode.put(column, row.getBigDecimal(column).toPlainString());
     }
 
-    private void putLong(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {
-        objectNode.put(columns, row.getLong(columns));
+    private void putLong(ObjectNode objectNode, String column, ResultSet row) throws SQLException {
+        objectNode.put(column, row.getLong(column));
     }
 
-    private void putBoolean(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {
-        objectNode.put(columns, row.getBoolean(columns));
+    private void putBoolean(ObjectNode objectNode, String column, ResultSet row) throws SQLException {
+        objectNode.put(column, row.getBoolean(column));
     }
 
-    private void putByteArray(ObjectNode objectNode, String columns, ResultSet row) throws SQLException {
-        objectNode.put(columns, row.getBytes(columns));
+    private void putByteArray(ObjectNode objectNode, String column, ResultSet row) throws SQLException {
+        objectNode.put(column, row.getBytes(column));
     }
 
 
     @FunctionalInterface
     private interface ResultConsumer {
-        void accept(ObjectNode objectNode, String columns, ResultSet row) throws SQLException;
+        void accept(ObjectNode objectNode, String column, ResultSet row) throws SQLException;
     }
 }

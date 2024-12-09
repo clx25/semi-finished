@@ -1,6 +1,7 @@
 package com.semifinished.core.jdbc.parser.paramsParser.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.constant.ParserStatus;
 import com.semifinished.core.exception.ParamsException;
@@ -53,6 +54,22 @@ public class JoinParser implements KeyValueParamsParser {
 
 
         Assert.isTrue(left && inner, () -> new ParamsException("join规则错误：" + key));
+
+        if (value instanceof ArrayNode) {
+            for (JsonNode jsonNode : value) {
+                parseJoin(table, key, jsonNode, sqlDefinition, left, inner);
+            }
+        } else if (value instanceof ObjectNode) {
+            parseJoin(table, key, value, sqlDefinition, left, inner);
+        } else {
+            throw new ParamsException("join规则错误：" + key);
+        }
+
+
+        return true;
+    }
+
+    private void parseJoin(String table, String key, JsonNode value, SqlDefinition sqlDefinition, boolean left, boolean inner) {
         Assert.isFalse(value.isObject(), () -> new ParamsException("join规则错误"));
 
         String col = left ? key.substring(1) : key.substring(0, key.length() - 1);
@@ -76,7 +93,6 @@ public class JoinParser implements KeyValueParamsParser {
         join.setJoinOn(new Pair<>(col, on));
 
         sqlDefinition.addJoin(join);
-        return true;
     }
 
 

@@ -16,7 +16,7 @@ public class UniqueValidator implements Validator {
     private final SqlExecutorHolder sqlExecutorHolder;
 
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean afterParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
         if (!"unique".equalsIgnoreCase(pattern)) {
             return false;
         }

@@ -282,7 +282,7 @@ public class QuerySqlCombiner {
                     }
                 }
             }
-        }, SqlDefinition::getJoin, SqlDefinition::getDict, inner -> ParamsUtils.asList(inner.getSubTable()));
+        }, SqlDefinition::getJoin, SqlDefinition::getDict, inner -> ParserUtils.asList(inner.getSubTable()));
 
     }
 
@@ -353,6 +353,9 @@ public class QuerySqlCombiner {
             }
             valueCondition.sort((c1, c2) -> "and".equals(c1.getCombination().trim()) ? -1 : 1);
             for (ValueCondition w : valueCondition) {
+                if (w.isDisabled()) {
+                    continue;
+                }
                 whereFragment.append(" ")
                         .append(ParamsUtils.hasText(w.getCombination(), "and"))
                         .append(" ")
@@ -459,7 +462,7 @@ public class QuerySqlCombiner {
                 return;
             }
             valueConditions.forEach(column -> bracketsArgs(args, column));
-        }, SqlDefinition::getJoin, inner -> ParamsUtils.asList(inner.getSubTable()));
+        }, SqlDefinition::getJoin, inner -> ParserUtils.asList(inner.getSubTable()));
         return args;
     }
 

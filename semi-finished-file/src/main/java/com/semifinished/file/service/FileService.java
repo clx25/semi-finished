@@ -4,6 +4,7 @@ import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.pojo.Result;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.file.config.FileProperties;
+import com.semifinished.file.exception.FileNotFoundException;
 import com.semifinished.file.exception.FileUploadException;
 import com.semifinished.file.pojo.FileInfo;
 import com.semifinished.file.util.FileUtil;
@@ -99,11 +100,11 @@ public class FileService {
      * @param fileName 文件名
      * @return 文件
      */
-    public FileSystemResource file(String fileName) throws IOException {
+    public FileSystemResource file(String fileName) {
         String path = getPath();
         File file = new File(path + File.separator + fileName);
         if (!file.exists()) {
-            throw new ParamsException("文件不存在");
+            throw new FileNotFoundException("文件不存在");
         }
         return new FileSystemResource(file);
     }

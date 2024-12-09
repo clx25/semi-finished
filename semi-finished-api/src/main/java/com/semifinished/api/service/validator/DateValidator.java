@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 public class DateValidator implements Validator {
 
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean beforeParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
         if (!pattern.startsWith("date")) {
             return false;
         }

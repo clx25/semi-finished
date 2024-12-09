@@ -25,7 +25,7 @@ public class UpdateSqlCombiner {
      * @param idKey         主键字段名
      * @return 修改语句SQL
      */
-    public static String updateSQL(SqlDefinition sqlDefinition, String idKey) {
+    public static String updateByIdSQL(SqlDefinition sqlDefinition, String idKey) {
 
         List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
 
@@ -40,7 +40,7 @@ public class UpdateSqlCombiner {
 
 
         String value = valueConditions.stream().filter(v -> !idKey.equals(v.getColumn()))
-                .map(v -> v.getColumn() + " = :" + v.getArgName())
+                .map(v -> "`" + v.getColumn() + "` = :" + v.getArgName())
                 .collect(Collectors.joining(" , "));
 
 
@@ -69,7 +69,7 @@ public class UpdateSqlCombiner {
         StringJoiner columns = new StringJoiner(",", "(", ")");
 
         String values = valueConditions.stream()
-                .peek(v -> columns.add(v.getColumn()))
+                .peek(v -> columns.add("`" + v.getColumn() + "`"))
                 .map(v -> ":" + v.getArgName())
                 .collect(Collectors.joining(",", "(", ")"));
 
@@ -195,14 +195,12 @@ public class UpdateSqlCombiner {
      * 获取修改SQL语句的参数
      *
      * @param sqlDefinition SQL定义信息
-     * @param idKey         主键
      * @return 修改SQL语句的参数
      */
-    public static Map<String, ?> getUpdateArgs(SqlDefinition sqlDefinition, String idKey) {
+    public static Map<String, ?> getUpdateArgs(SqlDefinition sqlDefinition) {
         List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
         Map<String, Object> args = new HashMap<>();
-        valueConditions.stream().filter(v -> !idKey.equals(v.getColumn()))
-                .forEach(v -> args.put(v.getArgName(), v.getValue()));
+        valueConditions.forEach(v -> args.put(v.getArgName(), v.getValue()));
         return args;
     }
 }

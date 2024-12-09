@@ -41,13 +41,7 @@ public class ParserUtils {
             }
         }
 
-        int begin = eq ? 0 : 1 + (and ? 0 : 1) + (disabled ? 1 : 0);
-
-        if (chars[0] == '!') {
-            eq = false;
-        } else if (chars[0] == '|') {
-            and = false;
-        }
+        int begin = (eq ? 0 : 1) + (and ? 0 : 1) + (disabled ? 1 : 0);
 
         key = key.substring(begin);
 

@@ -34,5 +34,10 @@
             <artifactId>semi-finished-scheduling</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.semifinished</groupId>
+            <artifactId>semi-finished-file</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 </project>

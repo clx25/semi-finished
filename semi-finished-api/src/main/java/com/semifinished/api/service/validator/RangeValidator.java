@@ -25,7 +25,7 @@ import org.springframework.util.StringUtils;
 @Component
 public class RangeValidator implements Validator {
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean beforeParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
 
 
 

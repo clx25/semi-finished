@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 @Component
 public class RegexValidator implements Validator {
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean beforeParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
         char[] chars = pattern.toCharArray();
         if (!(chars[0] == '/' && chars[chars.length - 1] == '/')) {
             return false;

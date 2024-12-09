@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.*;
+import com.semifinished.core.pojo.Column;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
 import com.semifinished.core.utils.Assert;
@@ -41,10 +42,21 @@ public class MySqlExecutor implements Executor {
 
 
     @Override
-    public void add(SqlDefinition sqlDefinition) {
+    public void add(SqlDefinition sqlDefinition, String idKey) {
         transactional(sqlDefinition, executor -> {
             String sql = UpdateSqlCombiner.addSQLExcludeId(sqlDefinition, configProperties.getIdKey());
-            executor.update(sql, QuerySqlCombiner.getArgs(sqlDefinition));
+            String id = executor.insert(sql, QuerySqlCombiner.getArgs(sqlDefinition));
+            List<Column> columns = sqlDefinition.getColumns();
+            if (columns == null) {
+                return;
+            }
+            for (Column column : columns) {
+                if (column.getColumn().equals(idKey)) {
+                    sqlDefinition.setId(id);
+                    return;
+                }
+            }
+
         });
 
     }
@@ -52,8 +64,8 @@ public class MySqlExecutor implements Executor {
     @Override
     public void update(SqlDefinition sqlDefinition) {
         transactional(sqlDefinition, executor -> {
-            String sql = UpdateSqlCombiner.updateSQL(sqlDefinition, configProperties.getIdKey());
-            executor.update(sql, UpdateSqlCombiner.getUpdateArgs(sqlDefinition, configProperties.getIdKey()));
+            String sql = UpdateSqlCombiner.updateByIdSQL(sqlDefinition, configProperties.getIdKey());
+            executor.update(sql, UpdateSqlCombiner.getUpdateArgs(sqlDefinition));
         });
     }
 
@@ -66,9 +78,9 @@ public class MySqlExecutor implements Executor {
             if (configProperties.isLogicDelete()) {
                 String logicDeleteColumn = configProperties.getLogicDeleteColumn();
                 tableUtils.validColumnsName(sqlDefinition, sqlDefinition.getTable(), logicDeleteColumn);
-                sql = UpdateSqlCombiner.logicDeleteSQL(sqlDefinition, idKey, logicDeleteColumn,configProperties.isFreeDelete());
+                sql = UpdateSqlCombiner.logicDeleteSQL(sqlDefinition, idKey, logicDeleteColumn, configProperties.isFreeDelete());
             } else {
-                sql = UpdateSqlCombiner.deleteSQL(sqlDefinition, idKey,configProperties.isFreeDelete());
+                sql = UpdateSqlCombiner.deleteSQL(sqlDefinition, idKey, configProperties.isFreeDelete());
             }
 
             executor.update(sql, QuerySqlCombiner.getArgs(sqlDefinition));

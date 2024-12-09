@@ -13,10 +13,11 @@ import org.springframework.util.StringUtils;
 @Component
 public class RequiredValidator implements Validator {
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
-        if (!"required".equals(pattern)) {
+    public boolean beforeParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+        if (!"required".equals(pattern) && !"require".equals(pattern)) {
             return false;
         }
+        Assert.isTrue(value == null, () -> new ParamsException(msg));
         if (value instanceof ValueNode) {
             Assert.isFalse(StringUtils.hasText(value.asText()), () -> new ParamsException(msg));
             return true;

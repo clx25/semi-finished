@@ -25,8 +25,18 @@ public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
     private final SemiCache semiCache;
     private final List<Validator> validators;
 
+
+    @Override
+    public void beforeParse(SqlDefinition sqlDefinition) {
+        validate(sqlDefinition, true);
+    }
+
     @Override
     public void afterParse(SqlDefinition sqlDefinition) {
+        validate(sqlDefinition, false);
+    }
+
+    private void validate(SqlDefinition sqlDefinition, boolean before) {
         HttpServletRequest request = RequestUtils.getRequest();
         String servletPath = request.getServletPath();
         String method = request.getMethod();
@@ -45,7 +55,7 @@ public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
             return;
         }
 
-        ruler.fields().forEachRemaining(entry -> validate(entry.getKey(), entry.getValue(), sqlDefinition.getRawParams(), sqlDefinition));
+        ruler.fields().forEachRemaining(entry -> validate(entry.getKey(), entry.getValue(), sqlDefinition.getRawParams(), sqlDefinition, before));
     }
 
 
@@ -57,11 +67,11 @@ public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
      * @param params        请求参数
      * @param sqlDefinition SQL定义信息
      */
-    private void validate(String field, JsonNode value, JsonNode params, SqlDefinition sqlDefinition) {
+    private void validate(String field, JsonNode value, JsonNode params, SqlDefinition sqlDefinition, boolean before) {
 
         if (params instanceof ArrayNode) {
             for (JsonNode param : params) {
-                validate(field, value, param, sqlDefinition);
+                validate(field, value, param, sqlDefinition, before);
             }
             return;
         }
@@ -72,7 +82,8 @@ public class ValidateEnhance implements AfterQueryEnhance, AfterUpdateEnhance {
             for (Validator validator : validators) {
                 String pattern = entry.getKey().trim();
                 String msg = entry.getValue().asText("");
-                boolean validate = validator.validate(field, jsonNode, pattern, msg, sqlDefinition);
+                boolean validate = before ? validator.beforeParse(field, jsonNode, pattern, msg, sqlDefinition)
+                        : validator.afterParse(field, jsonNode, pattern, msg, sqlDefinition);
                 if (validate) {
                     return;
                 }

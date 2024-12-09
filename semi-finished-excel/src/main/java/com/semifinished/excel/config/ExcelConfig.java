@@ -1,4 +1,4 @@
-package com.semifinished.config;
+package com.semifinished.excel.config;
 
 import com.semifinished.core.config.CoreConfigurer;
 import org.springframework.stereotype.Component;

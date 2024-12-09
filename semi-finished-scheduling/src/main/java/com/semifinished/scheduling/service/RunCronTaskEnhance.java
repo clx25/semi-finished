@@ -26,8 +26,9 @@ public class RunCronTaskEnhance implements AfterQueryEnhance {
     @Override
     public void afterQuery(Page page, SqlDefinition sqlDefinition) {
         List<ObjectNode> records = page.getRecords();
-
-        Assert.isFalse(records.size() == 1, () -> new ParamsException("定时任务名称错误"));
+        if (records.isEmpty()) {
+            return;
+        }
 
         ObjectNode objectNode = records.get(0);
         String corn = objectNode.path("cron").asText(null);

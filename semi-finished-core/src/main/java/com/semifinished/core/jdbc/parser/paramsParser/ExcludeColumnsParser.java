@@ -41,8 +41,8 @@ public class ExcludeColumnsParser implements ParamsParser {
         sqlDefinition.addExcludeColumns(table, excludes);
 
 
-        JsonNode value = params.path("~");
-        if (value.isMissingNode()) {
+        JsonNode value = params.remove("~");
+        if (value==null) {
             return;
         }
 
@@ -53,7 +53,7 @@ public class ExcludeColumnsParser implements ParamsParser {
         if (columns == null || columns.isEmpty()) {
             return;
         }
-        String text = value.asText();
+        String text = value.asText("");
         Assert.hasNotText(text, () -> new ParamsException("排除规则字段不能为空：~"));
         String[] fields = text.split(",");
 

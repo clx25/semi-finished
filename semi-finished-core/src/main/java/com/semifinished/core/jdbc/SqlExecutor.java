@@ -7,6 +7,7 @@ import com.semifinished.core.utils.MapUtils;
 import com.semifinished.core.utils.ParamsUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -25,6 +26,7 @@ import java.util.function.Function;
 /**
  * SQL执行器，封装了一些常用的查询方法
  */
+@Slf4j
 @Getter
 @RequiredArgsConstructor
 public class SqlExecutor {
@@ -57,6 +59,7 @@ public class SqlExecutor {
 
 
     public List<ObjectNode> list(String sql, Map<String, ?> params) {
+        log.info("执行查询 sql:{},参数{}", sql, params);
         return jdbcTemplate.query(sql, params, objectNodeRowMapper);
     }
 
@@ -217,7 +220,7 @@ public class SqlExecutor {
      * @param params sql中对应的参数
      * @return 插入数据的id
      */
-    public int insert(String sql, Map<String, ?> params) {
+    public String insert(String sql, Map<String, ?> params) {
         SqlParameterSource sqlParameterSource = SqlCreator.toSqlParameterSource(params);
         return insert(sql, sqlParameterSource);
     }
@@ -229,11 +232,14 @@ public class SqlExecutor {
      * @param sqlParameterSource sql中对应的参数
      * @return 插入数据的id
      */
-    public int insert(String sql, SqlParameterSource sqlParameterSource) {
+    public String insert(String sql, SqlParameterSource sqlParameterSource) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(sql, sqlParameterSource, keyHolder);
-        Number key = keyHolder.getKey();
-        return key == null ? 0 : key.intValue();
+        Map<String, Object> keys = keyHolder.getKeys();
+        if (keys == null) {
+            return "";
+        }
+        return String.valueOf(keys.getOrDefault("GENERATED_KEY", ""));
     }
 
 

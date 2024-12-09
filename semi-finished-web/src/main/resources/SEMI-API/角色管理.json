@@ -15,6 +15,18 @@
         "role_id$$": "roleId",
         "resource_type$$": "resourceType"
       }
+    },
+    "/roleComponent": {
+      "summary": "获取所有组件权限",
+      "params": {
+        "@tb": "semi_component",
+        "@": "group,remark:groupRemark",
+        "id&": {
+          "@tb": "semi_component_code",
+          "@on": "group_id",
+          "@": "id,code,remark:codeRemark"
+        }
+      }
     }
   },
   "put": {

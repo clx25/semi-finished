@@ -7,6 +7,7 @@ import com.semifinished.core.service.enhance.ServiceEnhance;
 
 /**
  * 查询的增强，可以在查询的过程中对参数和返回值进行修改
+ * todo 添加不使用Enhance的方式，而是使用接口，类似tk.mybatis使用接口和继承通用实现类完成增强功能
  */
 public interface AfterQueryEnhance extends ServiceEnhance {
 

@@ -31,7 +31,7 @@ public class CancelCronTaskEnhance implements AfterQueryEnhance {
 
         ObjectNode objectNode = records.get(0);
         JsonNode rawParams = sqlDefinition.getRawParams();
-
+        //todo 前端停止时传递打断策略
         schedulingService.cancel(objectNode.path("bean_name").asText(), rawParams.path("interrupt").asBoolean());
         records.clear();
     }

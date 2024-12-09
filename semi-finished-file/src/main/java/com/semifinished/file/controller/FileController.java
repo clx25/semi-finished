@@ -105,7 +105,7 @@ public class FileController {
      * @throws IOException 文件操作异常
      */
     @GetMapping(value = "/file/{fileName}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public FileSystemResource file(@PathVariable String fileName, HttpServletResponse response) throws IOException {
+    public FileSystemResource file(@PathVariable String fileName, HttpServletResponse response) {
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
 
         return fileService.file(fileName);
@@ -113,8 +113,8 @@ public class FileController {
 
 
     @PostMapping("/edit")
-    public Map<String,Integer> get(@RequestBody String msg){
-        return MapUtils.of("error",0);
+    public Map<String, Integer> get(@RequestBody String msg) {
+        return MapUtils.of("error", 0);
     }
 
 }

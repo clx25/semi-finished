@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MatchValidator implements Validator {
     @Override
-    public boolean validate(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
+    public boolean beforeParse(String field, JsonNode value, String pattern, String msg, SqlDefinition sqlDefinition) {
 
         //是否是匹配规则
         boolean match = true;

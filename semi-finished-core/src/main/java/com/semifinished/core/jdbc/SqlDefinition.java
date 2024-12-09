@@ -51,6 +51,7 @@ public class SqlDefinition {
      */
     private JsonNode rawParams;
 
+    private String id;
     /**
      * 查询方言
      */
@@ -70,6 +71,11 @@ public class SqlDefinition {
      * 查询的主表
      */
     private String table;
+
+    /**
+     * 新增是否返回id
+     */
+    private boolean resultId;
 
     /**
      * 子查询SQL信息，与主表同时存在时，主表名作为别名
@@ -299,6 +305,13 @@ public class SqlDefinition {
             expand = JsonNodeFactory.instance.objectNode();
         }
         return expand;
+    }
+
+    public void setExpandItem(String field,JsonNode node){
+        if (expand == null) {
+            expand = JsonNodeFactory.instance.objectNode();
+        }
+        this.expand.set(field,node);
     }
 
 }
