@@ -3,8 +3,10 @@ package com.semifinished.auth.utils;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.semifinished.auth.config.AuthProperties;
 import com.semifinished.core.exception.CodeException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
@@ -13,9 +15,14 @@ import java.util.Map;
 /**
  * jwt token的创建与校验
  */
+@Component
 public class JwtUtils {
     public static final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-    private final static Algorithm algorithm = Algorithm.HMAC256("jfap84jt&f9fr4wtsWS3");
+    private static Algorithm algorithm;
+
+    public JwtUtils(AuthProperties authProperties) {
+        algorithm = Algorithm.HMAC256(authProperties.getSecret());
+    }
 
     public static String createToken(String subject, Map<String, ?> payload, long tokenDuration) {
         long tokenDate = new Date().getTime() + tokenDuration * 1000;
@@ -45,6 +52,4 @@ public class JwtUtils {
         }
         return token;
     }
-
-
 }

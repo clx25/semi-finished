@@ -2,9 +2,11 @@ package com.semifinished.core.jdbc.parser.paramsParser.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.annontation.Where;
+import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.parser.paramsParser.CommonParser;
 import com.semifinished.core.pojo.ValueCondition;
+import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParamsUtils;
 import com.semifinished.core.utils.ParserUtils;
 import com.semifinished.core.utils.bean.TableUtils;
@@ -40,13 +42,13 @@ public class EqParamsParser implements KeyValueParamsParser {
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
         ValueCondition valueCondition = ParserUtils.columnValue(table, key);
+
         key = valueCondition.getColumn();
         if (key.endsWith("=")) {
             key = key.substring(0, key.length() - 1);
         }
-        if (!ParamsUtils.isLegalName(key)) {
-            return false;
-        }
+        Assert.isFalse(ParamsUtils.isLegalName(key),()->new ParamsException("%s错误",valueCondition.getColumn()));
+
 
         value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);
 

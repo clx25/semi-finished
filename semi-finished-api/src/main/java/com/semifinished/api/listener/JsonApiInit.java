@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.api.annotation.ApiGroup;
 import com.semifinished.api.config.ApiProperties;
-import com.semifinished.api.utils.Api;
 import com.semifinished.api.utils.JsonFileUtils;
 import com.semifinished.core.cache.CoreCacheKey;
 import com.semifinished.core.cache.SemiCache;
@@ -14,6 +13,7 @@ import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.utils.Assert;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.math3.util.Pair;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
@@ -60,6 +60,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+        //如果开启通用查询规则，则直接返回，不解析json文件
         if (apiProperties.isCommonApiEnable()) {
             return;
         }
@@ -80,11 +81,14 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
             }
         }
 
+
+        Map<String, Map<String, ObjectNode>> allPath = uniqueVersion(handlerMethods, apiMap);
+
         addApi(handlerMethods, apiMap);
 
-        unique(handlerMethods, apiMap);
+        unique(handlerMethods);
 
-        semiCache.initHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), apiMap);
+        semiCache.initHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), allPath);
     }
 
     private void addApiRequestNameGroupMapping(Collection<HandlerMethod> handlerMethods) {
@@ -136,7 +140,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
      * group->(path->config)
      *
      * @param groupName 组名
-     * @param configs   api配置信息
+     * @param configs   json文件解析的api配置信息
      * @param apiMap    json数据的填充目标
      * @param fileName  文件名
      */
@@ -150,19 +154,91 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
             Map<String, ObjectNode> apiConfigs = apiMap.computeIfAbsent(groupName, k -> new HashMap<>());
 
-            String finalPath = path;
-            Assert.isTrue(apiConfigs.containsKey(path), () -> new ConfigException("接口%s重复", finalPath));
+            //已存在的配置
+            ObjectNode oldConfig = apiConfigs.get(path);
+
+            //新的配置
             JsonNode value = entry.getValue();
             Assert.isFalse(value instanceof ObjectNode, () -> new ConfigException("%s配置错误", value));
-            ObjectNode pathConfig = (ObjectNode) value;
-            if (!pathConfig.has("tag")) {
-                pathConfig.put("tag", fileName);
+            ObjectNode newConfig = (ObjectNode) value;
+
+            //如果旧的配置不为空，表示有重复，则比较版本
+            if (oldConfig != null) {
+                double oldVersion = oldConfig.path("version").asDouble(0);
+                double newVersion = newConfig.path("version").asDouble(0);
+                String finalPath = path;
+                Assert.isTrue(oldVersion == newVersion, () -> new ConfigException("接口%s重复", finalPath));
+
+                //如果已存在的版本高，则直接舍弃新的版本
+                if (oldVersion > newVersion) {
+                    return;
+                }
+                //如果新的版本高，则删除旧版
+                apiConfigs.remove(path);
             }
-            apiConfigs.put(path, pathConfig);
+
+
+            if (!newConfig.has("tag")) {
+                newConfig.put("tag", fileName);
+            }
+            apiConfigs.put(path, newConfig);
         });
 
     }
 
+    private Map<String, Map<String, ObjectNode>> uniqueVersion(Map<RequestMappingInfo, HandlerMethod> handlerMethods, Map<String, Map<String, ObjectNode>> apiMap) {
+        Map<String, Map<String, ObjectNode>> allPath = new HashMap<>();
+        Map<Pair<String, String>, String> groupPathMap = new HashMap<>();
+        List<Pair<String, String>> removePaths = new ArrayList<>();
+        handlerMethods.forEach((info, handlerMethod) -> {
+            for (RequestMethod method : info.getMethodsCondition().getMethods()) {
+                String requestMethodName = method.name();
+                String group = getGroupKey(info, handlerMethod);
+                Map<String, ObjectNode> config = apiMap.get(group);
+                if (config == null) {
+                    return;
+                }
+                Map<String, ObjectNode> methodConfigs = allPath.computeIfAbsent(requestMethodName, k -> new HashMap<>());
+                //如果存在相同请求方式，相同path的请求，则判断版本
+                Iterator<Map.Entry<String, ObjectNode>> iterator = config.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, ObjectNode> entry = iterator.next();
+
+                    String path = entry.getKey();
+                    ObjectNode oldConfig = methodConfigs.get(path);
+                    ObjectNode newConfig = entry.getValue();
+                    if (oldConfig == null) {
+                        methodConfigs.put(path, newConfig);
+                        groupPathMap.put(new Pair<>(requestMethodName, path), group);
+                        continue;
+                    }
+
+                    //旧
+                    String version = oldConfig.path("version").asText("");
+                    //新
+                    String newVersion = newConfig.path("version").asText("");
+
+                    Assert.isTrue(version.equals(newVersion), () -> new ConfigException("接口重复：" + path));
+
+                    int compare = version.compareTo(newVersion);
+
+                    if (compare > 0) {
+                        iterator.remove();
+                    } else {
+                        String oldGroup = groupPathMap.get(new Pair<>(requestMethodName, path));
+                        removePaths.add(new Pair<>(oldGroup, path));
+                        methodConfigs.remove(path);
+                        methodConfigs.put(path, newConfig);
+                    }
+
+                }
+            }
+        });
+        for (Pair<String, String> removePath : removePaths) {
+            apiMap.get(removePath.getKey()).remove(removePath.getValue());
+        }
+        return allPath;
+    }
 
     /**
      * 添加api映射到spring的配置
@@ -173,16 +249,21 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
     private void addApi(Map<RequestMappingInfo, HandlerMethod> handlerMethods, Map<String, Map<String, ObjectNode>> apiMap) {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         handlerMethods.forEach((info, handlerMethod) -> {
+
             Set<String> patternValues = info.getPatternValues();
+
+            //获取该请求的组名
             String group = getGroupKey(info, handlerMethod);
+
+            //如果不是配置中的组名，则表示不是系统增强的接口，直接返回
             if (!apiMap.containsKey(group)) {
                 return;
             }
-            if (!apiProperties.isCommonApiEnable()) {
-                patternValues.clear();
-            }
 
+            //清除通用接口path
+            patternValues.clear();
 
+            //获取该组名对应的请求配置
             Map<String, ObjectNode> apiConfig = apiMap.getOrDefault(group, new HashMap<>());
 
 
@@ -240,7 +321,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
      *
      * @param handlerMethods api的映射信息
      */
-    private void unique(Map<RequestMappingInfo, HandlerMethod> handlerMethods, Map<String, Map<String, ObjectNode>> apiMap) {
+    private void unique(Map<RequestMappingInfo, HandlerMethod> handlerMethods) {
         Map<String, Set<String>> uniqueMap = new HashMap<>();
         handlerMethods.forEach((info, handlerMethod) -> {
             for (RequestMethod method : info.getMethodsCondition().getMethods()) {
@@ -254,15 +335,6 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
                 Assert.isFalse(uniqueSet.isEmpty(), () -> new ConfigException("接口重复：" + uniqueSet));
 
                 remain.addAll(patternValues);
-
-
-                String group = getGroupKey(info, handlerMethod);
-
-                if (name.equals(group) || !apiMap.containsKey(group)) {
-                    continue;
-                }
-                apiMap.computeIfAbsent(name, k -> new HashMap<>())
-                        .putAll(apiMap.remove(group));
             }
         });
 

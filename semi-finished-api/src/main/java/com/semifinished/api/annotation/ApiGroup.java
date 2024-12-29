@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * 添加在请求接口上，json文件的api参数会添加到接口的ObjectNode类型参数上
+ * todo 验证可行性
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

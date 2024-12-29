@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 public class ApiProperties {
     /**
      * 通用查询开关，true表示启用，false表示关闭
+     * 开启无法使用后端配置的json,前端需要传递完整的查询参数
+     * 关闭则只能使用后端配置的json，无法使用通用查询，前端传递完整参数无效
      */
     private boolean commonApiEnable = false;
 

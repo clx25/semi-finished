@@ -45,6 +45,7 @@ semi-finished:
       index.html: get
       api: get
     auth-enable: true
+    secret: jfap84jt&f9fr4wtsWS3
 logging:
   level:
     root: DEBUG

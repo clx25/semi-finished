@@ -12,11 +12,12 @@ import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.exception.CodeException;
 import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.exception.ParamsException;
+import com.semifinished.core.facotry.SqlDefinitionFactory;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.RequestUtils;
 import com.semifinished.excel.handler.ExcelHandler;
 import com.semifinished.excel.listener.ExcelListener;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,25 +30,34 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ExcelService {
     private final SemiCache semiCache;
     private final ObjectMapper objectMapper;
     private final List<ExcelHandler> excelHandlers;
+    private final SqlDefinitionFactory sqlDefinitionFactory;
 
+    private final Map<String, Map<String, String>> headerMap = new HashMap<>();
+
+    public Map<String, Map<String, String>> getHeaderMap() {
+        return headerMap;
+    }
 
     /**
      * 解析excel并调用处理器
      *
-     * @param file   excel文件
-     * @param params 请求参数
+     * @param file excel文件
      */
-    public void parseExcel(MultipartFile file, ObjectNode params) {
+    public void parseExcel(MultipartFile file) {
 
         Assert.isTrue(this.excelHandlers == null, () -> new CodeException("未配置excel处理类"));
 
         HttpServletRequest request = RequestUtils.getRequest();
         String servletPath = request.getServletPath();
+        
+        // 从headerMap中获取header
+        Map<String, String> header = headerMap.get(servletPath);
+        Assert.isTrue(header == null, () -> new ConfigException("未配置该请求header"));
 
         //获取此次excel请求的参数
         Map<String, ObjectNode> configs = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), "POST");
@@ -58,17 +68,23 @@ public class ExcelService {
 
         //获取表头的配置信息
         JsonNode headerNode = currentConfigs.path("header");
-        Assert.isTrue(headerNode == null, () -> new ConfigException("未配置该请求表头"));
-        Map<String, String> headerConfig = objectMapper.convertValue(headerNode, new TypeReference<Map<String, String>>() {
-        });
+        Map<String, String> headerConfig;
+        if (headerNode == null || headerNode.isNull()) {
+            // 如果headerNode为空，则从headerMap获取
+            headerConfig = headerMap.get(servletPath);
+            Assert.isTrue(headerConfig == null, () -> new ConfigException("未配置表头信息"));
+        } else {
+            headerConfig = objectMapper.convertValue(headerNode, new TypeReference<Map<String, String>>() {
+            });
+        }
 
         //保存excel解析后的数据
         ArrayNode rows = JsonNodeFactory.instance.arrayNode();
         //保存解析后的表头
-        Map<Integer, String> header = new HashMap<>();
+        Map<Integer, String> parsedHeader = new HashMap<>();
 
         try {
-            EasyExcel.read(file.getInputStream(), new ExcelListener(rows, headerConfig, header)).sheet().doRead();
+            EasyExcel.read(file.getInputStream(), new ExcelListener(rows, headerConfig, parsedHeader)).sheet().doRead();
         } catch (IOException e) {
             throw new ParamsException("excel文件异常");
         }
@@ -86,7 +102,7 @@ public class ExcelService {
                 .collect(Collectors.toList());
 
         Assert.isTrue(matchHandlers.isEmpty(), () -> new CodeException("没有对应处理器"));
-        matchHandlers.forEach(handler -> handler.handle(currentConfigs, rows, header));
+        matchHandlers.forEach(handler -> handler.handle(currentConfigs, rows, parsedHeader));
     }
 
 

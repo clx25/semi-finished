@@ -111,8 +111,9 @@ public class UpdateSqlCombiner {
         if (freeDelete) {
             return freeDeleteSQL(sqlDefinition);
         }
-        String value = getIdArgName(sqlDefinition, idKey);
-        return " delete from " + sqlDefinition.getTable() + " where " + idKey + "=:" + value;
+        ValueCondition valueCondition = getIdArgName(sqlDefinition, idKey);
+
+        return " delete from " + sqlDefinition.getTable() + " where " + idKey + valueCondition.getCondition();
     }
 
     /**
@@ -138,8 +139,8 @@ public class UpdateSqlCombiner {
         if (freeDelete) {
             return freeLogicDeleteSQL(sqlDefinition, logicDeleteColumn);
         }
-        String value = getIdArgName(sqlDefinition, idKey);
-        return "update " + sqlDefinition.getTable() + " set " + logicDeleteColumn + " =1 " + " where " + idKey + "=:" + value;
+        ValueCondition valueCondition = getIdArgName(sqlDefinition, idKey);
+        return "update " + sqlDefinition.getTable() + " set " + logicDeleteColumn + " =1 " + " where " + idKey + valueCondition.getCondition();
     }
 
     /**
@@ -181,14 +182,14 @@ public class UpdateSqlCombiner {
      * @param idKey         主键字段
      * @return 主键参数名
      */
-    private static String getIdArgName(SqlDefinition sqlDefinition, String idKey) {
+    private static ValueCondition getIdArgName(SqlDefinition sqlDefinition, String idKey) {
         List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
         Optional<ValueCondition> first = valueConditions.stream().filter(v -> idKey.equals(v.getColumn())).findFirst();
         ValueCondition valueCondition = first.orElseThrow(() -> new ParamsException("未指定%s的值", idKey));
         Object value = valueCondition.getValue();
         Assert.hasNotText(value == null ? null : String.valueOf(value), () -> new ParamsException("%s不能为空", idKey));
 
-        return valueCondition.getArgName();
+        return valueCondition;
     }
 
     /**

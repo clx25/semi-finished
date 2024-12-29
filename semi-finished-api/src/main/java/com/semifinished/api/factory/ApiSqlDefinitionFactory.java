@@ -24,30 +24,36 @@ import java.util.Map;
 public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
     private final SemiCache semiCache;
 
+    /**
+     * 在进入解析流程前处理请求参数的替换规则，而不是放到解析中进行，因为解析器前的增强器可能会使用到替换后的数据
+     *
+     * @param params 请求参数
+     * @return SQL定义信息
+     */
     @Override
     public SqlDefinition getSqlDefinition(JsonNode params) {
+        return getSqlDefinition(getTemplate(), params);
+    }
+
+    public SqlDefinition getSqlDefinition(JsonNode template, JsonNode params) {
         SqlDefinition definition = new SqlDefinition();
         definition.setRawParams(params.deepCopy());
-        ObjectNode node = replace(params);
-        Assert.isTrue(node.isEmpty(), () -> new ParamsException("参数不能为空"));
-        definition.setParams(node);
+        ObjectNode objectNode = (ObjectNode) deepMerge(template, params);
+        Assert.isTrue(objectNode.isEmpty(), () -> new ParamsException("参数不能为空"));
+        definition.setParams(objectNode);
         return definition;
     }
 
-    public ObjectNode replace(JsonNode params) {
 
+    public ObjectNode getTemplate() {
         JsonNode apiInfos = getApiInfos();
         if (apiInfos.isMissingNode()) {
             return null;
         }
-        ObjectNode template = apiInfos.with("params");
-        if (template.isEmpty()) {
-            return template;
-        }
-        return (ObjectNode) deepMerge(template, params);
+        return apiInfos.with("params");
     }
 
-    private JsonNode getApiInfos() {
+    public JsonNode getApiInfos() {
 
         HttpServletRequest request = RequestUtils.getRequest();
         String servletPath = request.getServletPath();
@@ -69,7 +75,7 @@ public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
      * @param params   请求参数
      * @return 合并后的参数
      */
-    private JsonNode deepMerge(JsonNode template, JsonNode params) {
+    public JsonNode deepMerge(JsonNode template, JsonNode params) {
 
         if (template instanceof ArrayNode) {
             ArrayNode jsonNodes = JsonNodeFactory.instance.arrayNode();
@@ -130,7 +136,7 @@ public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
     private JsonNode parseBatch(JsonNode template, JsonNode params) {
         if (params instanceof ArrayNode) {
             ArrayNode jsonNodes = JsonNodeFactory.instance.arrayNode();
-            ArrayNode arrayNode= (ArrayNode) params;
+            ArrayNode arrayNode = (ArrayNode) params;
             for (JsonNode jsonNode : arrayNode) {
                 JsonNode mergeItem = deepMerge(template, jsonNode.deepCopy());
                 jsonNodes.add(mergeItem);

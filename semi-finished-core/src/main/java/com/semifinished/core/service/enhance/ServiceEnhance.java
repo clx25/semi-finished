@@ -1,12 +1,15 @@
 package com.semifinished.core.service.enhance;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.parser.paramsParser.ParamsParser;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 对查询结果进行增强
@@ -35,7 +38,11 @@ public interface ServiceEnhance {
      * @return 如果请求参数中@bean的值等于实现类的beanName那么返回true，不想等则返回false
      */
     default boolean supportForBeanName(SqlDefinition sqlDefinition) {
-        String beans = sqlDefinition.getParams().path("@bean").asText(null);
+        JsonNode beanNode = sqlDefinition.getParams().remove("@bean");
+        if (beanNode == null) {
+            return false;
+        }
+        String beans = beanNode.asText(null);
         if (!StringUtils.hasText(beans)) {
             return false;
         }
@@ -45,7 +52,13 @@ public interface ServiceEnhance {
         if (!StringUtils.hasText(name)) {
             return false;
         }
-        return Arrays.asList(beans.split(",")).contains(name);
+        String[] beanArray = beans.split(",");
+        List<String> filterBean = Arrays.stream(beanArray).filter(bean -> !bean.equals(name)).collect(Collectors.toList());
+        if (!filterBean.isEmpty()) {
+            sqlDefinition.getParams().put("@bean", String.join(",", filterBean));
+        }
+
+        return beanArray.length - 1 == filterBean.size();
     }
 
     default String name() {

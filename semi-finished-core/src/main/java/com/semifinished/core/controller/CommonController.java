@@ -75,9 +75,5 @@ public class CommonController {
 //    }
 
 
-    @PostMapping(value = "multi", name = "SEMI_COMMON_MULTI")
-    public Result multi(@RequestBody JsonNode params) {
-        updateService.multi(params);
-        return Result.success();
-    }
+
 }
