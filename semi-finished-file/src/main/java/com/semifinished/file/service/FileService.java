@@ -137,10 +137,10 @@ public class FileService {
         String fileName = hash + ".part" + info.getChunkNum();
         File partFile = new File(path + File.separator + fileName);
         if (partFile.exists()) {
-            if (partFile.length() == info.getChunkSize()) {
+            if (partFile.length() == info.getCurrentChunkSize()) {
                 return fileName;
             }
-            Assert.isFalse(partFile.delete(), () -> new FileUploadException("文件上传失败"));
+            boolean delete = partFile.delete();
         }
 
         file.transferTo(partFile);
@@ -213,5 +213,11 @@ public class FileService {
         String path = getPath();
         File file = new File(path, info.getHash() + "." + info.getType());
         return Result.success(file.exists());
+    }
+
+    public Result checkChunk(FileInfo info) {
+        File file = new File(getPath(), info.getHash() + ".part" + info.getChunkNum());
+        boolean exist = file.exists() && file.length() == info.getCurrentChunkSize();
+        return Result.success(exist);
     }
 }

@@ -6,7 +6,7 @@ import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.jdbc.parser.ParserExecutor;
 import com.semifinished.core.pojo.Column;
-import com.semifinished.core.pojo.Page;
+import com.semifinished.core.pojo.ResultHolder;
 import com.semifinished.core.pojo.ValueCondition;
 import com.semifinished.core.utils.ParamsUtils;
 import com.semifinished.core.utils.bean.TableUtils;
@@ -147,8 +147,8 @@ public class GroupByEnhance implements AfterQueryEnhance {
     }
 
     @Override
-    public void afterQuery(Page page, SqlDefinition sqlDefinition) {
-        List<ObjectNode> records = page.getRecords();
+    public void afterQuery(ResultHolder resultHolder, SqlDefinition sqlDefinition) {
+        List<ObjectNode> records = resultHolder.getRecords();
         if (records.isEmpty() || sqlDefinition.getGroupStatus() == SqlDefinition.GROUP_DISABLE) {
             return;
         }

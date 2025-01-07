@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.pojo.Column;
-import com.semifinished.core.pojo.Page;
+import com.semifinished.core.pojo.ResultHolder;
 import com.semifinished.core.utils.ParamsUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -26,8 +26,8 @@ public class ExcludeEnhance implements AfterQueryEnhance {
 
 
     @Override
-    public void afterQuery(Page page, SqlDefinition sqlDefinition) {
-        List<ObjectNode> records = page.getRecords();
+    public void afterQuery(ResultHolder resultHolder, SqlDefinition sqlDefinition) {
+        List<ObjectNode> records = resultHolder.getRecords();
         if (records.isEmpty()) {
             return;
         }

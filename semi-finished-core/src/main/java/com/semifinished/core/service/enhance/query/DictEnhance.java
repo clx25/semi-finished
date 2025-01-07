@@ -11,7 +11,7 @@ import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.jdbc.parser.ParserExecutor;
 import com.semifinished.core.pojo.Column;
-import com.semifinished.core.pojo.Page;
+import com.semifinished.core.pojo.ResultHolder;
 import com.semifinished.core.utils.ParamsUtils;
 import lombok.AllArgsConstructor;
 import org.apache.commons.math3.util.Pair;
@@ -44,9 +44,9 @@ public class DictEnhance implements AfterQueryEnhance {
 
 
     @Override
-    public void afterQuery(Page page, SqlDefinition sqlDefinition) {
+    public void afterQuery(ResultHolder resultHolder, SqlDefinition sqlDefinition) {
         List<SqlDefinition> dictList = QuerySqlCombiner.dicts(sqlDefinition);
-        List<ObjectNode> records = page.getRecords();
+        List<ObjectNode> records = resultHolder.getRecords();
 
         for (SqlDefinition definition : dictList) {
             Pair<String, String> joinOn = definition.getJoinOn();
@@ -69,7 +69,7 @@ public class DictEnhance implements AfterQueryEnhance {
             List<ObjectNode> secondRecords = sqlExecutorHolder.dataSource(definition.getDataSource()).list(sql, QuerySqlCombiner.getArgs(definition));
 
             //合并数据
-            combine(definition, records, secondRecords, definition.getRowStart(), definition.getRowEnd());
+            combine(definition, records, secondRecords);
         }
     }
 
@@ -135,10 +135,8 @@ public class DictEnhance implements AfterQueryEnhance {
      * @param definition 表字典的SQL定义信息
      * @param records    第一次查询数据
      * @param replaces   第二次查询数据
-     * @param rowStart   开始行
-     * @param rowEnd     结束行
      */
-    private void combine(SqlDefinition definition, List<ObjectNode> records, List<ObjectNode> replaces, int rowStart, int rowEnd) {
+    private void combine(SqlDefinition definition, List<ObjectNode> records, List<ObjectNode> replaces) {
         Pair<String, String> joinOn = definition.getJoinOn();
         String left = joinOn.getFirst();
         String right = joinOn.getSecond();
@@ -175,7 +173,11 @@ public class DictEnhance implements AfterQueryEnhance {
 
             });
         }
-
+        int rowStart = definition.getRowStart();
+        int rowEnd = definition.getRowEnd();
+        if (rowStart < 0) {
+            return;
+        }
         List<Column> columns = definition.getColumns();
         List<String> columnsField = columns.stream().map(col -> ParamsUtils.hasText(col.getAlias(), col.getColumn())).collect(Collectors.toList());
 
@@ -184,21 +186,19 @@ public class DictEnhance implements AfterQueryEnhance {
             //实现表字典查询的@row规则，第一次查询的key可能对应第二次查询的多条数据，所以会产生数组
             //这里的@row可以指定返回1条还是多条数据
             for (String field : columnsField) {
-                if (rowStart <= 0) {
-                    break;
-                }
-                if (rowEnd == 0) {
+
+                if (rowEnd == rowStart) {
                     JsonNode jsonNode = record.remove(field);
                     if (jsonNode != null) {
-                        record.set(field, jsonNode.get(rowStart - 1));
+                        record.set(field, jsonNode.get(rowStart));
                     }
                     continue;
                 }
                 ArrayNode jsonNodes = record.withArray(field);
                 ArrayNode rows = JsonNodeFactory.instance.arrayNode();
-                for (int i = 1; i < jsonNodes.size() + 1; i++) {
+                for (int i = 0; i < jsonNodes.size(); i++) {
                     if (i <= rowEnd && i >= rowStart) {
-                        rows.add(jsonNodes.get(i - 1));
+                        rows.add(jsonNodes.get(i));
                     }
                 }
                 record.set(field, rows);

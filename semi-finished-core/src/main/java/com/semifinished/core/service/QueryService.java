@@ -11,11 +11,11 @@ import com.semifinished.core.jdbc.SqlExecutorHolder;
 import com.semifinished.core.jdbc.executor.Executor;
 import com.semifinished.core.jdbc.parser.ParserExecutor;
 import com.semifinished.core.pojo.Page;
+import com.semifinished.core.pojo.ResultHolder;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
-import com.semifinished.core.service.enhance.query.QueryFinallyEnhance;
 import com.semifinished.core.utils.ParamsUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,10 +31,6 @@ public class QueryService {
     private final List<AfterQueryEnhance> afterQueryEnhances;
     private final SqlDefinitionFactory sqlDefinitionFactory;
     private final List<Executor> executorList;
-
-
-    @Autowired(required = false)
-    private QueryFinallyEnhance queryFinallyEnhance;
 
 
     /**
@@ -76,21 +72,54 @@ public class QueryService {
 
         //创建分页信息
         Page page = wrapPage(sqlDefinition);
+
         //执行查询
-        Executor executor = executorList.stream().filter(q -> sqlDefinition.getDialect().equals(q.dialect())).findFirst().orElseThrow(() -> new CodeException("未找到对应执行器"));
+        String dialect = sqlDefinition.getDialect();
+        Executor executor = executorList.stream().filter(q -> dialect.equals(q.dialect())).findFirst().orElseThrow(() -> new CodeException("未找到%s对应执行器", dialect));
         List<ObjectNode> records = executor.query(sqlDefinition);
-        page.setRecords(records);
-        page.setSize(records.size());
+
+        ResultHolder resultHolder = new ResultHolder(page, records);
 
         //执行增强的afterQuery方法
-        enhances.forEach(enhance -> enhance.afterQuery(page, sqlDefinition));
+        enhances.forEach(enhance -> enhance.afterQuery(resultHolder, sqlDefinition));
 
-        //如果没有分页规则，则只返回数据列表
-        Object result = resultRow(page, sqlDefinition);
+        //执行@row规则
+        executeRows(resultHolder, sqlDefinition);
 
-        //执行最终增强
-        return queryFinallyEnhance != null ?
-                queryFinallyEnhance.beforeReturn(result, sqlDefinition) : result;
+        return result(resultHolder, sqlDefinition);
+    }
+
+    /**
+     * 执行@row规则
+     *
+     * @param resultHolder  包含查询数据与分页数据
+     * @param sqlDefinition SQL定义信息
+     */
+    private void executeRows(ResultHolder resultHolder, SqlDefinition sqlDefinition) {
+        List<ObjectNode> records = resultHolder.getRecords();
+
+        //@row开始小于1表示没使用，则直接返回即可
+        int rowStart = sqlDefinition.getRowStart();
+        if (rowStart == -1) {
+            return;
+        }
+        //执行@row结束规则
+        int rowEnd = sqlDefinition.getRowEnd();
+
+
+        List<ObjectNode> rows = new ArrayList<>();
+        for (int i = 0; i < records.size(); i++) {
+            //如果@row开始结束数值相同，则只返回@row指定位置的数据
+            if (rowEnd == rowStart && i == rowStart) {
+                rows.add(records.get(i));
+                break;
+            }
+            //如果@row开始结束数值不相同，则返回@row指定范围的数据
+            if (i >= rowStart && i <= rowEnd) {
+                rows.add(records.get(i));
+            }
+        }
+        resultHolder.setRecords(rows);
     }
 
     /**
@@ -99,11 +128,13 @@ public class QueryService {
      * @param sqlDefinition SQL定义信息
      * @return 分页对象
      */
+    @Nullable
     private Page wrapPage(SqlDefinition sqlDefinition) {
-        Page page = new Page();
         if (!sqlDefinition.isPage()) {
-            return page;
+            return null;
         }
+
+        Page page = new Page();
         //分页查询
         int pageNum = sqlDefinition.getPageNum();
         int pageSize = sqlDefinition.getPageSize();
@@ -127,43 +158,28 @@ public class QueryService {
     }
 
     /**
-     * 对返回结果行进行处理，@row规则执行，不分页查询拆包
+     * 对返回结果行进行处理，执行@row规则
      *
-     * @param page          包装了查询信息的分页对象
+     * @param resultHolder  包含查询数据与分页数据
      * @param sqlDefinition SQL定义信息
      * @return 分页和@row规则处理后的结果
      */
-    private Object resultRow(Page page, SqlDefinition sqlDefinition) {
-        List<ObjectNode> records = page.getRecords();
-        int rowStart = sqlDefinition.getRowStart();
-        Object result = records;
+    private Object result(ResultHolder resultHolder, SqlDefinition sqlDefinition) {
+        List<ObjectNode> records = resultHolder.getRecords();
+
         if (sqlDefinition.isPage()) {
-            result = page;
+            Page page = resultHolder.getPage();
+            page.setRecords(records);
+            page.setSize(records.size());
+            return page;
         }
-        if (rowStart < 1) {
-            return result;
-        }
-        //执行@row规则
+        int rowStart = sqlDefinition.getRowStart();
         int rowEnd = sqlDefinition.getRowEnd();
-
-        if (rowEnd == 0) {
-            return records.get(rowStart - 1);
+        if (records.isEmpty()) {
+            return records;
         }
 
-        List<ObjectNode> rows = new ArrayList<>();
-        for (int i = 1; i < records.size() + 1; i++) {
-            if (rowEnd == rowStart && i == rowStart) {
-                rows.add(records.get(i - 1));
-                break;
-            }
-            if (i >= rowStart && i <= rowEnd) {
-                rows.add(records.get(i - 1));
-            }
-        }
-        records.clear();
-        records.addAll(rows);
-
-        return result;
+        return rowStart == rowEnd ? records.get(0) : records;
     }
 
 

@@ -47,11 +47,11 @@ public class RowNumParser implements KeyValueParamsParser {
         Assert.isFalse(ParamsUtils.isInteger(values[0]) && (range || ParamsUtils.isInteger(values[1])), () -> new ParamsException("@row值不是整数"));
 
         int rowStart = Integer.parseInt(values[0]);
-        int rowEnd = range ? 0 : Integer.parseInt(values[values.length - 1]);
+        int rowEnd = range ? rowStart : Integer.parseInt(values[values.length - 1]);
 
-        Assert.isTrue(rowStart != 0 && rowEnd != 0 && rowStart > rowEnd, () -> new ParamsException(key + "参数错误"));
+        Assert.isTrue(rowStart < 0 || rowEnd < 0 || (rowEnd != 0 && rowStart > rowEnd), () -> new ParamsException(key + "参数错误"));
 
-        sqlDefinition.setRowStart(Math.max(rowStart, 1));
+        sqlDefinition.setRowStart(rowStart);
         sqlDefinition.setRowEnd(rowEnd);
 
         return true;

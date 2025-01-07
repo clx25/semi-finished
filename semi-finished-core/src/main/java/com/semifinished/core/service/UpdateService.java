@@ -35,7 +35,6 @@ public class UpdateService {
     private final ObjectMapper objectMapper;
     private final SqlDefinitionFactory sqlDefinitionFactory;
     private final List<Executor> executorList;
-    private final QueryService queryService;
 
     public void delete(ObjectNode params) {
         SqlDefinition sqlDefinition = sqlDefinitionFactory.getSqlDefinition(params.deepCopy());
@@ -112,47 +111,6 @@ public class UpdateService {
         execute(consumer, sqlDefinition);
     }
 
-//    /**
-//     * 批量新增
-//     *
-//     * @param params 请求参数
-//     */
-//    public void batchAdd(JsonNode params) {
-//        execute(params, (sqlDefinition) -> {
-//            String sql = UpdateSqlCombiner.addSQLExcludeId(sqlDefinition, configProperties.getIdKey());
-//
-//            Map<String, Object>[] args = UpdateSqlCombiner.getBatchArgs(sqlDefinition, objectMapper);
-//            sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-//                    .batchUpdate(sql, args);
-//        });
-//    }
-
-//    /**
-//     * 批量修改
-//     *
-//     * @param params 请求参数
-//     */
-//    public void batchUpdate(JsonNode params) {
-//        execute(params, (sqlDefinition) -> {
-//            String sql = UpdateSqlCombiner.updateSQL(sqlDefinition, configProperties.getIdKey());
-//            Map<String, Object>[] args = UpdateSqlCombiner.getBatchArgs(sqlDefinition, objectMapper);
-//            sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
-//                    .batchUpdate(sql, args);
-//        });
-//    }
-
-
-//    private void execute(JsonNode params, Consumer<SqlDefinition> consumer) {
-//
-//        if (params instanceof ArrayNode) {
-//            params = JsonNodeFactory.instance.objectNode().set("@batch", params);
-//        }
-//
-//        SqlDefinition sqlDefinition = sqlDefinitionFactory.getSqlDefinition(params.deepCopy());
-//
-//
-//        execute((ObjectNode) params, consumer, sqlDefinition);
-//    }
 
 
     /**

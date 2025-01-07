@@ -23,10 +23,10 @@ public class FileInfo {
 
 
     /**
-     * 分块大小
+     * 当前分块大小
      */
     @Min(value = 1, message = "分块大小错误", groups = {uploadChunk.class})
-    private long chunkSize;
+    private long currentChunkSize;
 
     /**
      * 所有分块的大小

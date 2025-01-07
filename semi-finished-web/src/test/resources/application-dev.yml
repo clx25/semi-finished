@@ -25,12 +25,14 @@ spring:
       excludes:
         info:
           - comment
-
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
 
 
 server:
   port: 4000
-
 semi-finished:
   core:
     page-normalized: true

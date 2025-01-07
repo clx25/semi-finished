@@ -1,0 +1,105 @@
+{
+  "get": {
+    "/semiApi": {
+      "summary": "查询内置api",
+      "params": {
+        "@tb": "semi_api",
+        "@bean": "semiApi",
+        "pageNum$$": "pageNum",
+        "pageSize$$": "pageSize"
+      },
+      "ruler": {
+        "pageNum": {
+          "number": "页码必须为数字",
+          "min>=1": "页码最小值为1",
+          "desc": "页码"
+        },
+        "pageSize": {
+          "number": "每页条数必须为数字",
+          "min>=1": "每页条数最小值为1",
+          "max<=100": "每页条数最大值为100",
+          "desc": "每页条数"
+        }
+      }
+    }
+  },
+  "post": {
+    "/semi-api": {
+      "summary": "新增semi_api表数据",
+      "version": 1,
+      "params": {
+        "@tb": "semi_api",
+        "@bean": "dataValidateEnhance"
+      },
+      "ruler": {
+        "api_name": {
+          "text": "API名称不能为空",
+          "len>=2": "API名称长度至少2个字符",
+          "desc": "API名称"
+        },
+        "api_path": {
+          "text": "API路径不能为空",
+          "unique": "API路径已存在",
+          "desc": "API路径"
+        }
+      }
+    }
+  },
+  "put": {
+    "/semi-api": {
+      "summary": "修改semi_api表数据",
+      "params": {
+        "@tb": "semi_api"
+      },
+      "ruler": {
+        "id": {
+          "!null": "ID不能为空",
+          "desc": "API ID"
+        },
+        "api_name": {
+          "text": "API名称不能为空",
+          "desc": "API名称"
+        }
+      }
+    }
+  },
+  "delete": {
+    "/semi-api/{id}": {
+      "summary": "删除semi_api表数据",
+      "params": {
+        "@tb": "semi_api"
+      },
+      "ruler": {
+        "id": {
+          "desc": "API ID",
+          "required": "ID不能为空"
+        }
+      }
+    }
+  },
+  "multi": {
+    "/semi-api/batch": {
+      "summary": "批量操作semi_api表数据",
+      "version": 1,
+      "params": {
+        "d:1": {
+          "@tb": "semi_api",
+          "[id]$$": "ids"
+        },
+        "c:2": {
+          "@tb": "semi_api",
+          "@batch": {
+            "api_name$$": "apiNames",
+            "api_path$$": "apiPaths"
+          }
+        }
+      },
+      "ruler": {
+        "ids": {
+          "desc": "API ID列表",
+          "required": "ID列表不能为空"
+        }
+      }
+    }
+  }
+}

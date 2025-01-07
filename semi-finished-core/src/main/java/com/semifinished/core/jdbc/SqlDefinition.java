@@ -51,6 +51,9 @@ public class SqlDefinition {
      */
     private JsonNode rawParams;
 
+    /**
+     * 新增数据的id
+     */
     private String id;
     /**
      * 查询方言
@@ -154,7 +157,7 @@ public class SqlDefinition {
     /**
      * 获取指定序号或范围的数据
      */
-    private int rowStart;
+    private int rowStart=-1;
     private int rowEnd;
 
     /**

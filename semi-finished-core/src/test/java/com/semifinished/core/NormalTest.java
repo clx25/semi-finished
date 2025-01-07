@@ -42,7 +42,7 @@ public class NormalTest {
     @Test
     @DisplayName("测试表字典")
     public void testDict() {
-        String params = "{\"@tb\":\"users\",\"@\":\"name\",\"gender:\":{\"@tb\":\"gender\",\"@on\":\"id\",\"@\":\"name:gender\",\"@row\":1}}";
+        String params = "{\"@tb\":\"users\",\"@\":\"name\",\"gender:\":{\"@tb\":\"gender\",\"@on\":\"id\",\"@\":\"name:gender\",\"@row\":0}}";
         String result = "{\"name\":\"Alice\",\"gender\":\"变性\"}";
         testCommon.test(params, 50, result);
     }
@@ -59,11 +59,11 @@ public class NormalTest {
     @Test
     @DisplayName("测试指定字段")
     public void testColumn() {
-        String params = "{\"@tb\":\"users\",\"@\":\"id,name\",\"@row\":\"1,3\"}";
+        String params = "{\"@tb\":\"users\",\"@\":\"id,name\",\"@row\":\"0,2\"}";
         String result = "[{\"id\":\"1\",\"name\":\"Alice\"},{\"id\":\"2\",\"name\":\"Bob\"},{\"id\":\"3\",\"name\":\"Charlie\"}]";
         testCommon.test(params, 0, result);
 
-        String params2 = "{\"@tb\":\"users\",\"@row\":\"1,3\"}";
+        String params2 = "{\"@tb\":\"users\",\"@row\":\"0,2\"}";
         String result2 = "[{\"id\":\"1\",\"name\":\"Alice\",\"gender\":\"23\"},{\"id\":\"2\",\"name\":\"Bob\",\"gender\":\"30\"},{\"id\":\"3\",\"name\":\"Charlie\",\"gender\":\"15\"}]";
         testCommon.test(params2, 0, result2);
     }
@@ -72,7 +72,7 @@ public class NormalTest {
     @Test
     @DisplayName("测试分组查询")
     public void testGroup() {
-        String params = "{\"@tb\":\"users\",\"@group\":\"gender\",\"@row\":\"1,5\"}";
+        String params = "{\"@tb\":\"users\",\"@group\":\"gender\",\"@row\":\"0,4\"}";
         String result = "{\"gender\":\"3\",\"id\":[\"49\"],\"name\":[\"William\"]}";
         testCommon.test(params, 5, result);
     }
@@ -119,14 +119,14 @@ public class NormalTest {
     @Test
     @DisplayName("测试别名")
     public void testAlias() {
-        String params = "{\"@tb\":\"users\",\":\":\"name:名字,id:id\",\"@row\":\"1,3\"}";
+        String params = "{\"@tb\":\"users\",\":\":\"name:名字,id:id\",\"@row\":\"0,2\"}";
         String result = "[{\"id\":\"1\",\"gender\":\"23\",\"名字\":\"Alice\"},{\"id\":\"2\",\"gender\":\"30\",\"名字\":\"Bob\"},{\"id\":\"3\",\"gender\":\"15\",\"名字\":\"Charlie\"}]";
         testCommon.test(params, 0, result);
 
-        String params2 = "{\"@tb\":\"users\",\":\":[\"name:名字\",\"id:id\"],\"@row\":\"1,3\"}";
+        String params2 = "{\"@tb\":\"users\",\":\":[\"name:名字\",\"id:id\"],\"@row\":\"0,2\"}";
         testCommon.test(params2, 0, result);
 
-        String params3 = "{\"@tb\":\"users\",\":\":\"name:名字,id:id\",\"@row\":\"1,3\"}";
+        String params3 = "{\"@tb\":\"users\",\":\":\"name:名字,id:id\",\"@row\":\"0,2\"}";
         testCommon.test(params3, 0, result);
     }
 
@@ -134,7 +134,7 @@ public class NormalTest {
     @Test
     @DisplayName("测试等于规则")
     public void testEq() {
-        String params = "{\"@tb\":\"users\",\":\":\"name:userName,id:userId\",\"name\":\"Bob\",\"!name\":null,\"@row\":1}";
+        String params = "{\"@tb\":\"users\",\":\":\"name:userName,id:userId\",\"name\":\"Bob\",\"!name\":null,\"@row\":0}";
         String result = "{\"userId\":\"2\",\"userName\":\"Bob\",\"gender\":\"30\"}";
         testCommon.test(params, 0, result);
     }
@@ -146,7 +146,7 @@ public class NormalTest {
         Map<String, Set<String>> excludes = dataSourceConfig.getExcludes();
         dataSourceConfig.setExcludes(MapUtils.of("users", Collections.singleton("id")));
         String params = "{\"@tb\":\"users\",\"~\":\"name\",\"@row\":1}";
-        testCommon.test(params, 0, "{\"gender\":\"23\"}");
+        testCommon.test(params, 0, "{\"gender\":\"30\"}");
         dataSourceConfig.setExcludes(excludes);
 
 
@@ -221,11 +221,11 @@ public class NormalTest {
         String Lt2Result = "[{\"id\":\"1\",\"name\":\"Alice\",\"gender\":\"23\"},{\"id\":\"2\",\"name\":\"Bob\",\"gender\":\"30\"},{\"id\":\"3\",\"name\":\"Charlie\",\"gender\":\"15\"}]";
         testCommon.test(paramsLt2, 0, Lt2Result);
 
-        String paramsLg1 = "{\"@tb\":\"users\",\"<id\":\"2\",\"@row\":\"1,3\"}";
+        String paramsLg1 = "{\"@tb\":\"users\",\"<id\":\"2\",\"@row\":\"0,2\"}";
         String lg1Result = "[{\"id\":\"3\",\"name\":\"Charlie\",\"gender\":\"15\"},{\"id\":\"4\",\"name\":\"David\",\"gender\":\"14\"},{\"id\":\"5\",\"name\":\"Emma\",\"gender\":\"24\"}]";
         testCommon.test(paramsLg1, 0, lg1Result);
 
-        String paramsLg2 = "{\"@tb\":\"users\",\"<=id\":\"2\",\"@row\":\"1,3\"}";
+        String paramsLg2 = "{\"@tb\":\"users\",\"<=id\":\"2\",\"@row\":\"0,2\"}";
         String lg2Result = "[{\"id\":\"2\",\"name\":\"Bob\",\"gender\":\"30\"},{\"id\":\"3\",\"name\":\"Charlie\",\"gender\":\"15\"},{\"id\":\"4\",\"name\":\"David\",\"gender\":\"14\"}]";
         testCommon.test(paramsLg2, 0, lg2Result);
 
@@ -236,11 +236,11 @@ public class NormalTest {
     @Test
     @DisplayName("测试排序")
     public void testSort() {
-        String params = "{\"@tb\":\"users\",\"/\":\"gender\",\"@row\":\"1,4\"}";
+        String params = "{\"@tb\":\"users\",\"/\":\"gender\",\"@row\":\"0,3\"}";
         String result = "[{\"id\":\"20\",\"name\":\"Thomas\",\"gender\":\"51\"},{\"id\":\"41\",\"name\":\"Oliver\",\"gender\":\"50\"},{\"id\":\"48\",\"name\":\"Vera\",\"gender\":\"48\"},{\"id\":\"18\",\"name\":\"Ryan\",\"gender\":\"47\"}]";
         testCommon.test(params, 0, result);
 
-        String params2 = "{\"@tb\":\"users\",\"\\\\\":\"gender\",\"@row\":\"1,4\"}";
+        String params2 = "{\"@tb\":\"users\",\"\\\\\":\"gender\",\"@row\":\"0,3\"}";
         String result2 = "[{\"id\":\"49\",\"name\":\"William\",\"gender\":\"3\"},{\"id\":\"47\",\"name\":\"Usher\",\"gender\":\"5\"},{\"id\":\"44\",\"name\":\"Rachel\",\"gender\":\"6\"},{\"id\":\"40\",\"name\":\"Nathan\",\"gender\":\"7\"}]";
         testCommon.test(params2, 0, result2);
 
@@ -290,7 +290,7 @@ public class NormalTest {
     @Test
     @DisplayName("测试插值规则")
     public void testInterpolation() {
-        String params = "{\"@tb\":\"users\",\"id$\":\"random\",\"@row\":1}";
+        String params = "{\"@tb\":\"users\",\"id$\":\"random\",\"@row\":0}";
         ObjectNode objectNode = testCommon.request(params);
         JsonNode result = objectNode.path("result");
         ObjectNode objectNode2 = testCommon.request(params);
@@ -309,7 +309,7 @@ public class NormalTest {
         String params2 = "{\"@tb\":{\"@tb\":\"users\",\"#num000\":\"id\"}}";
         testCommon.test(params2, 50, "{\"id\":\"001\",\"name\":\"Alice\",\"gender\":\"23\"}");
 
-        String params3 = "{\"@tb\":\"users\",\"@\":\"name\",\"gender:\":{\"@tb\":\"gender\",\"@on\":\"id\",\"@\":\"name:gender\",\"@row\":1,\"#num000\":\"id\"}}";
+        String params3 = "{\"@tb\":\"users\",\"@\":\"name\",\"gender:\":{\"@tb\":\"gender\",\"@on\":\"id\",\"@\":\"name:gender\",\"@row\":0,\"#num000\":\"id\"}}";
         testCommon.test(params3, 50, "{\"name\":\"Alice\",\"gender\":\"变性\"}");
     }
 

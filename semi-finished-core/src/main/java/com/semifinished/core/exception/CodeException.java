@@ -7,4 +7,8 @@ public class CodeException extends ProjectRuntimeException {
     public CodeException(String message) {
         super(message);
     }
+
+    public CodeException(String message, Object... args) {
+        super(String.format(message, args));
+    }
 }

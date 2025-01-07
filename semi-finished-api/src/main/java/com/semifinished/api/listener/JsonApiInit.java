@@ -337,7 +337,6 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
                 remain.addAll(patternValues);
             }
         });
-
     }
 
 

@@ -10,7 +10,7 @@ import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.ConfigException;
 import com.semifinished.core.jdbc.SqlDefinition;
-import com.semifinished.core.pojo.Page;
+import com.semifinished.core.pojo.ResultHolder;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.RequestUtils;
@@ -40,9 +40,9 @@ public class AfterLoginEnhance implements AfterQueryEnhance {
 
 
     @Override
-    public void afterQuery(Page page, SqlDefinition sqlDefinition) {
+    public void afterQuery(ResultHolder resultHolder, SqlDefinition sqlDefinition) {
 
-        ObjectNode user = page.getRecords().get(0);
+        ObjectNode user = resultHolder.getRecords().get(0);
 
         String idKey = configProperties.getIdKey();
         Assert.isFalse(user.has(idKey), () -> new ConfigException("登录不能缺少id"));

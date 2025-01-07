@@ -23,7 +23,7 @@ import java.util.Map;
  * 文件相关操作
  */
 
-
+@CrossOrigin
 @RestController
 @AllArgsConstructor
 public class FileController {
@@ -71,6 +71,17 @@ public class FileController {
         Assert.isNull(file, () -> new ParamsException("缺少文件"));
         String fileName = fileService.uploadChunk(file, info);
         return Result.success(fileName);
+    }
+
+    /**
+     * 检查分片是否上传
+     *
+     * @param info 文件信息
+     * @return 分片是否上传
+     */
+    @PostMapping("checkChunk")
+    public Result checkChunk(@RequestBody FileInfo info) {
+        return fileService.checkChunk(info);
     }
 
     /**
