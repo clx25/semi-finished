@@ -32,7 +32,7 @@ public class UpdateSqlCombiner {
         Optional<ValueCondition> first = valueConditions.stream().filter(v -> idKey.equals(v.getColumn())).findFirst();
         ValueCondition valueCondition = first.orElseThrow(() -> new ParamsException("参数缺少主键字段：" + idKey));
 
-        Assert.isFalse(valueConditions.size() > 1, () -> new ParamsException("缺少修改数据内容"));
+        Assert.isTrue(valueConditions.size() > 1, () -> new ParamsException("缺少修改数据内容"));
 
         StringBuilder sql = new StringBuilder(" update ")
                 .append(sqlDefinition.getTable())
@@ -64,7 +64,7 @@ public class UpdateSqlCombiner {
         List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
 
         valueConditions = valueConditions.stream().filter(v -> !idKey.equals(v.getColumn())).collect(Collectors.toList());
-        Assert.isEmpty(valueConditions, () -> new ParamsException("缺少新增数据内容"));
+        Assert.notEmpty(valueConditions, () -> new ParamsException("缺少新增数据内容"));
 
         StringJoiner columns = new StringJoiner(",", "(", ")");
 
@@ -187,7 +187,7 @@ public class UpdateSqlCombiner {
         Optional<ValueCondition> first = valueConditions.stream().filter(v -> idKey.equals(v.getColumn())).findFirst();
         ValueCondition valueCondition = first.orElseThrow(() -> new ParamsException("未指定%s的值", idKey));
         Object value = valueCondition.getValue();
-        Assert.hasNotText(value == null ? null : String.valueOf(value), () -> new ParamsException("%s不能为空", idKey));
+        Assert.notBlank(value == null ? null : String.valueOf(value), () -> new ParamsException("%s不能为空", idKey));
 
         return valueCondition;
     }

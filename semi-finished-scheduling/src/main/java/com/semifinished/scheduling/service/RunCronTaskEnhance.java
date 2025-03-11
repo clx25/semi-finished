@@ -32,7 +32,7 @@ public class RunCronTaskEnhance implements AfterQueryEnhance {
 
         ObjectNode objectNode = records.get(0);
         String corn = objectNode.path("cron").asText(null);
-        Assert.hasNotText(corn, () -> new ParamsException("该任务缺少定时规则"));
+        Assert.notBlank(corn, () -> new ParamsException("该任务缺少定时规则"));
 
         String beanName = objectNode.path("bean_name").asText();
         JsonNode args = objectNode.path("args");

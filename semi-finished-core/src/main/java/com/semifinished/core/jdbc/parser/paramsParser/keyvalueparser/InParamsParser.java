@@ -100,13 +100,13 @@ public class InParamsParser implements KeyValueParamsParser {
             }
             nodes.forEach(node -> {
                 String[] multipleValue = node.split(",");
-                Assert.isFalse(multipleValue.length == length, () -> new ParamsException("in规则参数数量不匹配：" + nodes));
+                Assert.isTrue(multipleValue.length == length, () -> new ParamsException("in规则参数数量不匹配：" + nodes));
                 values.add(multipleValue);
             });
             return values;
         }
         String text = value.asText(null);
-        Assert.hasNotText(text, () -> new ParamsException("in规则字段不能为空：" + key));
+        Assert.notBlank(text, () -> new ParamsException("in规则字段不能为空：" + key));
         if (length == 1) {
             values.addAll(Arrays.asList(text.split(",")));
             return values;
@@ -118,11 +118,11 @@ public class InParamsParser implements KeyValueParamsParser {
         for (int i = 0; i < inValues.length; i++) {
 
             String inValue = inValues[i];
-            Assert.isFalse(inValue.startsWith("(") && (i != inValues.length - 1 || inValue.endsWith(")")), () -> new ParamsException("参数格式错误：" + text));
+            Assert.isTrue(inValue.startsWith("(") && (i != inValues.length - 1 || inValue.endsWith(")")), () -> new ParamsException("参数格式错误：" + text));
             inValue = inValue.substring(1, inValue.length() - (i == inValues.length - 1 ? 1 : 0));
 
             String[] multipleValue = inValue.split(",");
-            Assert.isFalse(multipleValue.length == length, () -> new ParamsException("in规则参数数量不匹配：" + text));
+            Assert.isTrue(multipleValue.length == length, () -> new ParamsException("in规则参数数量不匹配：" + text));
             values.add(multipleValue);
         }
 

@@ -9,8 +9,8 @@ import com.semifinished.core.utils.Assert;
 public class DefaultSqlDefinitionFactory implements SqlDefinitionFactory {
     @Override
     public SqlDefinition getSqlDefinition(JsonNode params) {
-        Assert.isFalse(params instanceof ObjectNode, () -> new ParamsException("请求参数类型错误"));
-        Assert.isTrue(params.isEmpty(), () -> new ParamsException("参数不能为空"));
+        Assert.isTrue(params instanceof ObjectNode, () -> new ParamsException("请求参数类型错误"));
+        Assert.isFalse(params.isEmpty(), () -> new ParamsException("参数不能为空"));
         return new SqlDefinition((ObjectNode) params);
     }
 }

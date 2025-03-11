@@ -44,7 +44,7 @@ public class TableParamsParser implements ParamsParser {
             Map.Entry<String, JsonNode> entry = iterator.next();
             String key = entry.getKey();
             if (key.startsWith("@tb")) {
-                Assert.hasText(field, () -> new ParamsException("指定表规则重复"));
+                Assert.isBlank(field, () -> new ParamsException("指定表规则重复"));
                 field = key;
                 tbNode = entry.getValue();
                 iterator.remove();
@@ -72,13 +72,13 @@ public class TableParamsParser implements ParamsParser {
 
 
         if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY)) {
-            Assert.isTrue(tbNode != null, () -> new ParamsException("表名规则位置错误"));
+            Assert.isFalse(tbNode != null, () -> new ParamsException("表名规则位置错误"));
             return;
         }
         if (tbNode == null && sqlDefinition.getStatus() == ParserStatus.DICTIONARY.getStatus()) {
             return;
         }
-        Assert.isTrue(tbNode == null || (tbNode instanceof ValueNode && !StringUtils.hasText(tbNode.asText())), () -> new ParamsException("未指定表名"));
+        Assert.isFalse(tbNode == null || (tbNode instanceof ValueNode && !StringUtils.hasText(tbNode.asText())), () -> new ParamsException("未指定表名"));
 
         if (tbNode instanceof ValueNode) {
             String tb = tbNode.asText();

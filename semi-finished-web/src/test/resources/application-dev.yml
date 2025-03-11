@@ -10,21 +10,21 @@ spring:
       excludes:
         semi_user:
           - password
-    test:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://192.168.2.3:3306/javdb?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
-      username: root
-      password: XYvw#P5ftc
-      mapping:
-        enable: true
-        table:
-          info: iifo
-        column:
-          info:
-            evaluate: xxx
-      excludes:
-        info:
-          - comment
+#    test:
+#      driver-class-name: com.mysql.cj.jdbc.Driver
+#      jdbc-url: jdbc:mysql://192.168.2.3:3306/javdb?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+#      username: root
+#      password: XYvw#P5ftc
+#      mapping:
+#        enable: true
+#        table:
+#          info: iifo
+#        column:
+#          info:
+#            evaluate: xxx
+#      excludes:
+#        info:
+#          - comment
   servlet:
     multipart:
       max-file-size: 1024MB
@@ -32,7 +32,7 @@ spring:
 
 
 server:
-  port: 4000
+  port: 4100
 semi-finished:
   core:
     page-normalized: true

@@ -33,14 +33,14 @@ public class DataSourceParser implements ParamsParser {
         JsonNode db = params.remove("@db");
 
         if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.JOIN, ParserStatus.SUB_TABLE, ParserStatus.DICTIONARY)) {
-            Assert.isTrue(db != null, () -> new ParamsException("数据源规则位置错误"));
+            Assert.isFalse(db != null, () -> new ParamsException("数据源规则位置错误"));
             return;
         }
 
         String dataSource = "";
         if (db != null) {
             dataSource = db.asText(null);
-            Assert.hasNotText(dataSource, () -> new ParamsException("数据源规则不能为空"));
+            Assert.notBlank(dataSource, () -> new ParamsException("数据源规则不能为空"));
             dataSource = ParamsUtils.hasText(dataSource, configProperties.getDataSource());
         } else {
             if (StringUtils.hasText(sqlDefinition.getDataSource())) {
@@ -50,7 +50,7 @@ public class DataSourceParser implements ParamsParser {
         }
 
         String finalDataSource = dataSource;
-        Assert.isFalse(dataSourceProperties.getDataSource().containsKey(dataSource), () -> new ParamsException("数据源" + finalDataSource + "不存在"));
+        Assert.isTrue(dataSourceProperties.getDataSource().containsKey(dataSource), () -> new ParamsException("数据源" + finalDataSource + "不存在"));
         sqlDefinition.setDataSource(dataSource);
     }
 

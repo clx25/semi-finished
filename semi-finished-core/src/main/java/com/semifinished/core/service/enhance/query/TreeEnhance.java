@@ -9,6 +9,7 @@ import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.pojo.ResultHolder;
+import com.semifinished.core.pojo.Tree;
 import com.semifinished.core.utils.Assert;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -39,29 +40,9 @@ import java.util.stream.Collectors;
 @Component
 public class TreeEnhance implements AfterQueryEnhance {
 
-
     @Override
     public void afterParse(SqlDefinition sqlDefinition) {
-        List<ObjectNode> expandAll = QuerySqlCombiner.expandAll(sqlDefinition);
-        Set<String> repeat = new HashSet<>();
-        StringJoiner sj = new StringJoiner(",");
-        boolean needToTree = false;
-        for (ObjectNode expand : expandAll) {
-            JsonNode tree = expand.path("^");
-            if (tree.isMissingNode()) {
-                continue;
-            }
-            needToTree = true;
-            tree.fieldNames().forEachRemaining(key -> {
-                if (!repeat.add(key)) {
-                    sj.add(key);
-                }
-            });
-        }
-        if (!needToTree) {
-            return;
-        }
-        Assert.hasText(sj.toString(), () -> new ParamsException("树查询规则重复：" + sj));
+        QuerySqlCombiner.getTree(sqlDefinition);
     }
 
     @Override
@@ -70,37 +51,26 @@ public class TreeEnhance implements AfterQueryEnhance {
         if (records.isEmpty()) {
             return;
         }
-
-
-        List<ObjectNode> expandAll = QuerySqlCombiner.expandAll(sqlDefinition);
-        ObjectNode treeConfig = JsonNodeFactory.instance.objectNode();
-        boolean needToTree = false;
-        for (ObjectNode expand : expandAll) {
-            JsonNode tree = expand.path("^");
-            if (tree.isMissingNode()) {
-                continue;
-            }
-            needToTree = true;
-            tree.fields().forEachRemaining(entry -> treeConfig.put(entry.getKey(), entry.getValue().asText()));
-        }
-        if (!needToTree) {
+        Tree tree = QuerySqlCombiner.getTree(sqlDefinition);
+        if(tree==null){
             return;
         }
-        toTree(treeConfig, records);
+
+        toTree(tree, records);
     }
 
 
     /**
      * 转树结构
      *
-     * @param treeConfig 树结构的配置字段
+     * @param tree 树结构的配置字段
      * @param records    数据集合
      */
-    private void toTree(ObjectNode treeConfig, List<ObjectNode> records) {
+    private void toTree(Tree tree, List<ObjectNode> records) {
 
-        String parent = treeConfig.path("parent").asText("parent");
-        String children = treeConfig.path("children").asText("children");
-        String id = treeConfig.path("id").asText("id");
+        String parent = tree.getParent();
+        String children = tree.getChildren();
+        String id = tree.getId();
 
 
         //由于支持join规则，所以树结构的id和parent字段可能为空，这里需要两个都获取作为顶层数据

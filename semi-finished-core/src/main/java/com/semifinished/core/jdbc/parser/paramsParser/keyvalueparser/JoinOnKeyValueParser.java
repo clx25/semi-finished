@@ -17,7 +17,7 @@ public class JoinOnKeyValueParser implements KeyValueParamsParser {
     @Override
     public boolean parse(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
 
-        Assert.isTrue("@on".equals(key), () -> new ParamsException("@on规则位置错误"));
+        Assert.isFalse("@on".equals(key), () -> new ParamsException("@on规则位置错误"));
         return false;
     }
 

@@ -1,12 +1,12 @@
 package com.semifinished.core.jdbc.parser.paramsParser.keyvalueparser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.QuerySqlCombiner;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.parser.paramsParser.CommonParser;
 import com.semifinished.core.pojo.Column;
+import com.semifinished.core.pojo.Tree;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.bean.TableUtils;
 import lombok.AllArgsConstructor;
@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 /**
  * 树结构规则解析
- * todo 处理当转换字段不存在时添加到查询字段，并在转换后删除
  */
 @Component
 @AllArgsConstructor
@@ -32,57 +31,58 @@ public class TreeKeyValueParser implements KeyValueParamsParser {
         if (!"^".equals(key.trim())) {
             return false;
         }
-        ObjectNode expand = sqlDefinition.getExpand();
-        expand = expand.with("^");
+
+        Tree tree = sqlDefinition.getTree();
+
+        if (tree == null) {
+            tree = new Tree();
+            sqlDefinition.setTree(tree);
+        }
+        Assert.isBlank(tree.getParent(), () -> new ParamsException("树查询parent值重复"));
+        Assert.isBlank(tree.getChildren(), () -> new ParamsException("树查询children值重复"));
+        Assert.isBlank(tree.getId(), () -> new ParamsException("树查询id值重复"));
+
         List<Column> columns = QuerySqlCombiner.queryColumns(sqlDefinition);
 
-        Set<String> columnsSet = columns.stream().filter(column -> !column.isDisabled()).filter(column -> table.equals(column.getTable())).map(Column::getColumn).collect(Collectors.toSet());
+        Set<String> columnsSet = columns.stream()
+                .filter(column -> !column.isDisabled())
+                .filter(column -> table.equals(column.getTable()))
+                .map(Column::getColumn)
+                .collect(Collectors.toSet());
 
 
-        parseValue(columnsSet, sqlDefinition, expand, value, "parent");
-        parseValue(columnsSet, sqlDefinition, expand, value, "id");
-        if (!value.has("children")) {
-            return true;
-        }
+        String parent = setTree(sqlDefinition, columnsSet, value, "parent");
+        Assert.notBlank(parent, () -> new ParamsException("树查询parent值不能为空"));
+        tree.setParent(parent);
+
+        String id = setTree(sqlDefinition, columnsSet, value, "id");
+        Assert.notBlank(id, () -> new ParamsException("树查询id值不能为空"));
+        tree.setId(id);
+
+
         String children = value.path("children").asText("children");
-        Assert.hasNotText(children, () -> new ParamsException("树查询children值不能为空"));
-        Assert.isFalse(columnsSet.add(children), () -> new ParamsException("树规则字段已存在：" + children));
+        Assert.notBlank(children, () -> new ParamsException("树查询children值不能为空"));
+        tree.setChildren(children);
 
-        addExpand(expand, "children", children);
 
         return true;
     }
 
-    private static void addExpand(ObjectNode expand, String key, String column) {
-        Assert.isTrue(expand.has(key), () -> new ParamsException("树规则存在多个parent"));
-        expand.put(key, column);
-    }
-
-    private void parseValue(Set<String> columnsSet, SqlDefinition sqlDefinition, ObjectNode expand, JsonNode params, String key) {
-        String column = getValue(sqlDefinition, params, key);
-        if (column == null) {
-            return;
-        }
-
+    private String setTree(SqlDefinition sqlDefinition,
+                           Set<String> columnsSet,
+                           JsonNode value,
+                           String key) {
+        String column = value.path(key).asText(key);
+        column = commonParser.getActualColumn(sqlDefinition.getDataSource(), sqlDefinition.getTable(), column);
         if (columnsSet.add(column)) {
             String treeColumn = tableUtils.uniqueAlias("tree_" + key + "_");
             sqlDefinition.addColumn(sqlDefinition.getTable(), column, treeColumn);
             sqlDefinition.addExcludeColumns("", treeColumn);
-            column = treeColumn;
+            return treeColumn;
         }
-        addExpand(expand, key, column);
-    }
-
-    private String getValue(SqlDefinition sqlDefinition, JsonNode params, String key) {
-        if (!params.has(key)) {
-            return null;
-        }
-        JsonNode jsonNode = params.get(key);
-        String column = jsonNode == null ? key : jsonNode.asText();
-        column = commonParser.getActualColumn(sqlDefinition.getDataSource(), sqlDefinition.getTable(), column);
-        Assert.hasNotText(column, () -> new ParamsException("树查询" + key + "值不能为空"));
         return column;
     }
+
 
     @Override
     public int getOrder() {

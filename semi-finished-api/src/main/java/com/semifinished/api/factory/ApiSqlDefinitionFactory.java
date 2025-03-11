@@ -1,6 +1,7 @@
 package com.semifinished.api.factory;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.MissingNode;
@@ -15,14 +16,18 @@ import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.RequestUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Iterator;
 import java.util.Map;
 
+@Component
 @AllArgsConstructor
 public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
+
     private final SemiCache semiCache;
+    private final ObjectMapper objectMapper;
 
     /**
      * 在进入解析流程前处理请求参数的替换规则，而不是放到解析中进行，因为解析器前的增强器可能会使用到替换后的数据
@@ -39,7 +44,7 @@ public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
         SqlDefinition definition = new SqlDefinition();
         definition.setRawParams(params.deepCopy());
         ObjectNode objectNode = (ObjectNode) deepMerge(template, params);
-        Assert.isTrue(objectNode.isEmpty(), () -> new ParamsException("参数不能为空"));
+        Assert.isFalse(objectNode.isEmpty(), () -> new ParamsException("参数不能为空"));
         definition.setParams(objectNode);
         return definition;
     }
@@ -50,7 +55,15 @@ public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
         if (apiInfos.isMissingNode()) {
             return null;
         }
-        return apiInfos.with("params");
+        JsonNode path = apiInfos.path("params");
+        if(path instanceof ObjectNode){
+            return (ObjectNode) path;
+        }
+        try {
+            return objectMapper.readValue(path.asText(), ObjectNode.class);
+        }catch (Exception e){
+            throw new ApiException("参数格式配置错误",e);
+        }
     }
 
     public JsonNode getApiInfos() {
@@ -107,7 +120,7 @@ public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
             //替换数据的key
             String name = value.asText("");
 
-            Assert.hasNotText(name, () -> new CodeException("$$规则关联字段不能为空：" + rawKey));
+            Assert.notBlank(name, () -> new CodeException("$$规则关联字段不能为空：" + rawKey));
             if (!params.has(name)) {
                 return;
             }
@@ -180,7 +193,7 @@ public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
                 arrayName = name;
             }
         }
-        Assert.hasNotText(arrayName, () -> new ApiException("api配置错误"));
+        Assert.notBlank(arrayName, () -> new ApiException("api配置错误"));
 
 
         ArrayNode arrayNodes = JsonNodeFactory.instance.arrayNode();
@@ -189,7 +202,7 @@ public class ApiSqlDefinitionFactory implements SqlDefinitionFactory {
         params = params.without(arrayName);
         String msg = "参数" + arrayName + "数据类型错误";
         arrayName = arrayName.substring(1, arrayName.length() - 1);
-        Assert.isTrue(jsonNode instanceof ObjectNode, () -> new ParamsException(msg));
+        Assert.isFalse(jsonNode instanceof ObjectNode, () -> new ParamsException(msg));
         if (jsonNode instanceof ArrayNode) {
             ArrayNode arrayNode = (ArrayNode) jsonNode;
             for (JsonNode node : arrayNode) {

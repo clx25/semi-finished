@@ -20,7 +20,7 @@ public class RequestUtils {
 
     @Nullable
     public static <T> T getRequestAttributes(@NotNull String key) {
-        Assert.isTrue(key == null, () -> new CodeException("attribute key不能为null"));
+        Assert.isFalse(key == null, () -> new CodeException("attribute key不能为null"));
         return (T) getRequest().getAttribute(key);
     }
 

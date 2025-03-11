@@ -29,7 +29,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private final PathMatcher pathMatcher = new AntPathMatcher();
     private final ConfigProperties configProperties;
     private final AuthProperties authProperties;
-    private final SemiCache semiCache;
+    private final Map<String, String> skipAuth;
 
 
     @Override
@@ -78,8 +78,6 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
      * @return 是否跳过认证
      */
     private boolean skipAuth(HttpServletRequest req) {
-
-        Map<String, String> skipAuth = semiCache.getValue(AuthCacheKey.SKIP_AUTH.getKey());
 
         if (CollectionUtils.isEmpty(skipAuth)) {
             return false;

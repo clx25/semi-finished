@@ -42,19 +42,19 @@ public class ExcludeColumnsParser implements ParamsParser {
 
 
         JsonNode value = params.remove("~");
-        if (value==null) {
+        if (value == null) {
             return;
         }
 
 
-        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
+        Assert.isTrue(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
                 ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("排除规则位置错误"));
 
         if (columns == null || columns.isEmpty()) {
             return;
         }
         String text = value.asText("");
-        Assert.hasNotText(text, () -> new ParamsException("排除规则字段不能为空：~"));
+        Assert.notBlank(text, () -> new ParamsException("排除规则字段不能为空：~"));
         String[] fields = text.split(",");
 
         for (int i = 0; i < fields.length; i++) {

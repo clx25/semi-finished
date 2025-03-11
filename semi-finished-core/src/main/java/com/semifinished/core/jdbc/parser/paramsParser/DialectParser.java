@@ -35,10 +35,10 @@ public class DialectParser implements ParamsParser {
             return;
         }
         String dialect = dialectNode.asText("");
-        Assert.isFalse(StringUtils.hasText(dialect), () -> new ParamsException("@dialect参数不能为空"));
+        Assert.isTrue(StringUtils.hasText(dialect), () -> new ParamsException("@dialect参数不能为空"));
 
-        Assert.isFalse(executorList.stream().anyMatch(q -> dialect.equals(q.dialect())), () -> new ParamsException("指定的dialect不存在:%s", dialect));
-        Assert.isTrue(executorList.stream().filter(q -> dialect.equals(q.dialect())).count() > 1, () -> new ParamsException("指定的dialect存在多个:%s", dialect));
+        Assert.isTrue(executorList.stream().anyMatch(q -> dialect.equals(q.dialect())), () -> new ParamsException("指定的dialect不存在:%s", dialect));
+        Assert.isFalse(executorList.stream().filter(q -> dialect.equals(q.dialect())).count() > 1, () -> new ParamsException("指定的dialect存在多个:%s", dialect));
     }
 
     @Override

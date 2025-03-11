@@ -48,7 +48,7 @@ public class SchedulingService implements ApplicationListener<ContextRefreshedEv
      * @param args     参数
      */
     public void run(String beanName, String cron, JsonNode args) {
-        Assert.hasNotText(cron, () -> new ParamsException("cron不能为空"));
+        Assert.notBlank(cron, () -> new ParamsException("cron不能为空"));
         //如果已经执行，那么不需要重复启动
         if (scheduledFutures.get(beanName) != null) {
             scheduling.put(beanName, cron);
@@ -81,7 +81,7 @@ public class SchedulingService implements ApplicationListener<ContextRefreshedEv
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         String idKey = configProperties.getIdKey();
-        List<ObjectNode> objectNodes = sqlExecutorHolder.dataSource(null).list("select * from semi_scheduling");
+        List<ObjectNode> objectNodes = sqlExecutorHolder.dataSource().list("select * from semi_scheduling");
 
         List<String> remove = objectNodes.stream()
                 .filter(node -> !cronTaskMap.containsKey(node.get("bean_name").asText()))
@@ -98,7 +98,7 @@ public class SchedulingService implements ApplicationListener<ContextRefreshedEv
                     return objectNode;
                 })
                 .collect(Collectors.toList());
-        sqlExecutorHolder.dataSource(null).transaction(executor -> {
+        sqlExecutorHolder.dataSource().transaction(executor -> {
             executor.batchDelete("semi_scheduling", idKey, remove);
             executor.batchInsert("semi_scheduling", add, idKey);
         });

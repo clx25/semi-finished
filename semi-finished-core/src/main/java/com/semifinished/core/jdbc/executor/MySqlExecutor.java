@@ -99,13 +99,13 @@ public class MySqlExecutor implements Executor {
                 .transaction(executor -> {
 
                     List<ValueCondition> valueConditions = sqlDefinition.getValueCondition();
-                    Assert.isEmpty(valueConditions, () -> new ParamsException("参数不能为空"));
+                    Assert.notEmpty(valueConditions, () -> new ParamsException("参数不能为空"));
 
                     //判断是否有修改内容
 //                    long count = valueConditions.stream().filter(v -> v.getCondition().startsWith("=:") || v.getCondition().trim().equals("is null")).count();
 //                    Assert.isFalse(count > 0, () -> new ParamsException("参数不能为空"));
 
-                    Assert.hasNotText(sqlDefinition.getTable(), () -> new ParamsException("未指定表名"));
+                    Assert.notBlank(sqlDefinition.getTable(), () -> new ParamsException("未指定表名"));
 
                     AfterUpdateEnhance.SqlAutoExecutor sqlAutoExecutor = new AfterUpdateEnhance.SqlAutoExecutor(executor, consumer);
 

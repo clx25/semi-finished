@@ -139,7 +139,7 @@ public class SqlExecutor {
     }
 
     public void batch(String sql, List<ObjectNode> list) {
-        SqlParameterSource[] sqlParameterSources = SqlCreator.toSqlParameterSourceArray(list);
+        SqlParameterSource[] sqlParameterSources = SqlCreator.nodeToSqlParameterSourceArray(list);
         jdbcTemplate.batchUpdate(sql, sqlParameterSources);
     }
 
@@ -191,7 +191,25 @@ public class SqlExecutor {
         Set<String> fields = ParamsUtils.fields(objectNodes);
         fields.remove(idKey);
         String sql = SqlCreator.insert(table, fields);
-        jdbcTemplate.batchUpdate(sql, SqlCreator.toSqlParameterSourceArray(objectNodes));
+        jdbcTemplate.batchUpdate(sql, SqlCreator.nodeToSqlParameterSourceArray(objectNodes));
+    }
+
+    /**
+     * 批量插入
+     *
+     * @param table 表名
+     * @param batch 数据
+     */
+    public void batchInsert(String table, SqlParameterSource[] batch) {
+        if (batch == null || batch.length == 0) {
+            return;
+        }
+        String[] parameterNames = batch[0].getParameterNames();
+        if (parameterNames == null || parameterNames.length == 0) {
+            return;
+        }
+        String sql = SqlCreator.insert(table, Arrays.asList(parameterNames));
+        jdbcTemplate.batchUpdate(sql, batch);
     }
 
 

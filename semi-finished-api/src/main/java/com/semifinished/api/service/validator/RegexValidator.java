@@ -22,7 +22,7 @@ public class RegexValidator implements Validator {
         String p = pattern.substring(1, chars.length - 1);
         Pattern compile = Pattern.compile(p);
 
-        Assert.isFalse(compile.matcher(value.asText()).matches(), () -> new ParamsException(msg));
+        Assert.isTrue(compile.matcher(value.asText()).matches(), () -> new ParamsException(msg));
         return true;
     }
 }

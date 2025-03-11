@@ -68,11 +68,11 @@ public class RangeValidator implements Validator {
         if (jsonNode == null || !StringUtils.hasText(jsonNode.asText(""))) {
             return;
         }
-        Assert.isFalse(ParamsUtils.isNumber(pattern), () -> new ApiException("接口数字范围校验规则错误"));
+        Assert.isTrue(ParamsUtils.isNumber(pattern), () -> new ApiException("接口数字范围校验规则错误"));
 
-        Assert.isFalse(jsonNode.isNumber() || ParamsUtils.isNumber(jsonNode.asText()), () -> new ParamsException("%s参数应该是数值", field));
+        Assert.isTrue(jsonNode.isNumber() || ParamsUtils.isNumber(jsonNode.asText()), () -> new ParamsException("%s参数应该是数值", field));
 
-        Assert.isFalse(predicate.test(jsonNode.asDouble(), Double.valueOf(pattern)), () -> new ParamsException(msg));
+        Assert.isTrue(predicate.test(jsonNode.asDouble(), Double.valueOf(pattern)), () -> new ParamsException(msg));
     }
 
 }

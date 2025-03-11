@@ -100,7 +100,7 @@ public class ParamsExceptionTest {
         testCommon.testException(params, "树查询children值不能为空");
 
         String params2 = "{\"@tb\":\"role\",\"@\":\"code,name_cn\",\"id:\":{\"@tb\":\"user_role\",\"@on\":\"role_id\",\"@\":\"user_id\",\"^\":{\"children\":\"children\"}},\"^\":{\"id\":\"id\",\"parent\":\"parent_id\",\"children\":\"children\"}}";
-        testCommon.testException(params2, "树查询规则重复：children");
+        testCommon.testException(params2, "树查询规则重复");
     }
 
 

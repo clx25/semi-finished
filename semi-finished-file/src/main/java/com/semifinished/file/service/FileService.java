@@ -41,12 +41,12 @@ public class FileService {
 
         String detect = tika.detect(file.getInputStream());
 
-        Assert.isFalse(detect.contains("image/"), () -> new ParamsException("上传的文件不是图片类型"));
+        Assert.isTrue(detect.contains("image/"), () -> new ParamsException("上传的文件不是图片类型"));
 
         List<String> imageType = fileProperties.getImageType();
         String type = detect.replace("image/", "");
 
-        Assert.isTrue(imageType != null && !imageType.isEmpty() && imageType.stream().noneMatch(s -> s.equals(type)), () -> new ParamsException("仅支持以下图片类型：" + String.join(",", imageType)));
+        Assert.isFalse(imageType != null && !imageType.isEmpty() && imageType.stream().noneMatch(s -> s.equals(type)), () -> new ParamsException("仅支持以下图片类型：" + String.join(",", imageType)));
         String fileName = save(file, type);
 
         return Result.success(fileName);
@@ -172,7 +172,7 @@ public class FileService {
             }
             if (partFile.length() != chunksSize[i - 1]) {
                 incomplete.add(i);
-                Assert.isFalse(partFile.delete(), () -> new FileUploadException("文件删除失败"));
+                Assert.isTrue(partFile.delete(), () -> new FileUploadException("文件删除失败"));
             }
         }
         if (incomplete.isEmpty()) {
@@ -196,7 +196,7 @@ public class FileService {
         try (FileOutputStream fos = new FileOutputStream(targetFile, true)) {
             for (File readyFile : readyFiles) {
                 Files.copy(readyFile.toPath(), fos);
-                Assert.isFalse(readyFile.delete(), () -> new FileUploadException("文件删除失败：" + readyFile.getAbsolutePath()));
+                Assert.isTrue(readyFile.delete(), () -> new FileUploadException("文件删除失败：" + readyFile.getAbsolutePath()));
             }
         } catch (IOException e) {
             throw new FileUploadException("文件合并失败", e);

@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -119,7 +120,7 @@ public class SqlCreator {
 
     private static void validAndId(Map<String, String> params) {
         String id = params.get("id");
-        Assert.hasNotText(id, () -> new ParamsException("参数id错误"));
+        Assert.notBlank(id, () -> new ParamsException("参数id错误"));
         ParamsValid.valid(params);
     }
 
@@ -150,6 +151,26 @@ public class SqlCreator {
         return array;
     }
 
+    public static SqlParameterSource[] toSqlParameterSourceArray(List<?> params) {
+        //todo 与nodeToSqlParameterSourceArray合并
+        List<MapSqlParameterSource> result = new ArrayList<>();
+        for (Object param : params) {
+            MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
+
+            Field[] fields = param.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                try {
+                    field.setAccessible(true);
+                    sqlParameterSource.addValue(field.getName(), field.get(param));
+                } catch (IllegalAccessException e) {
+                    throw new CodeException("反射获取字段失败: " + field.getName(), e);
+                }
+            }
+            result.add(sqlParameterSource);
+        }
+        return result.toArray(new MapSqlParameterSource[0]);
+    }
+
     /**
      * 把List<ObjectNode>转为SqlParameterSource[]
      *
@@ -157,7 +178,8 @@ public class SqlCreator {
      * @param fields      转为SqlParameterSource的字段
      * @return SqlParameterSource[]
      */
-    public static SqlParameterSource[] toSqlParameterSourceArray(List<ObjectNode> objectNodes, String... fields) {
+    public static SqlParameterSource[] nodeToSqlParameterSourceArray(List<ObjectNode> objectNodes, String... fields) {
+        //todo 改fields逻辑
         if (fields.length == 0) {
             fields = ParamsUtils.fields(objectNodes).toArray(new String[0]);
         }
@@ -168,6 +190,7 @@ public class SqlCreator {
 
             for (String field : fields) {
                 ObjectNode objectNode = objectNodes.get(i);
+
                 JsonNode jsonNode = objectNode.get(field);
                 if (jsonNode == null) {
                     sqlParameterSource.addValue(field, null);

@@ -1,5 +1,6 @@
 package com.semifinished.web.listener;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.cache.CoreCacheKey;
@@ -17,8 +18,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-//@Component
-@Order(-1000)
+@Component
+@Order(-800)
 @AllArgsConstructor
 public class SemiColumnListener implements ApplicationListener<RefreshCacheApplication> {
 
@@ -31,7 +32,9 @@ public class SemiColumnListener implements ApplicationListener<RefreshCacheAppli
             List<Column> columnList = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName);
             List<ObjectNode> columns = executor.list("select id,table_name,column_name from semi_column");
             List<ObjectNode> add = columnList.stream()
-                    .filter(c -> columns.stream().noneMatch(node -> node.has(c.getColumn())))
+                    .filter(c -> columns.stream()
+                            .noneMatch(node -> c.getTable().equals(node.get("table_name").asText())
+                                    && c.getColumn().equals(node.get("column_name").asText())))
                     .map(c -> {
                         ObjectNode objectNode = JsonNodeFactory.instance.objectNode();
                         objectNode.put("table_name", c.getTable());
@@ -42,30 +45,18 @@ public class SemiColumnListener implements ApplicationListener<RefreshCacheAppli
                     })
                     .collect(Collectors.toList());
 
-//
-//            List<ObjectNode> add = tablesNode.stream()
-//                .filter(t -> columns.stream()
-//                        .noneMatch(c -> equals(t, c, "table_name") &&
-//                                equals(t, c, "column_name")))
-//                .peek(o -> {
-//                    o.remove("id");
-//                    o.put("allow", 1);
-//                })
-//                .collect(Collectors.toList());
-//
-//
-//        List<String> remove = columns.stream()
-//                .filter(c -> tablesNode.stream()
-//                        .noneMatch(t -> equals(t, c, "table_name") &&
-//                                equals(t, c, "column_name"))
-//                ).map(o -> o.get("id").asText())
-//                .collect(Collectors.toList());
-//
-//
-//        sqlExecutor.transaction(executor -> {
-//            executor.batchInsert("semi_column", add);
-//            executor.batchDelete("semi_column", "id", remove);
-//        });
+
+            List<String> remove = columns.stream()
+                    .filter(node -> columnList.stream()
+                            .noneMatch(c -> c.getTable().equals(node.get("table_name").asText())
+                                    && c.getColumn().equals(node.get("column_name").asText())))
+                    .map(c -> c.get("id").asText())
+                    .collect(Collectors.toList());
+
+
+            executor.batchInsert("semi_column", add, "id");
+            executor.batchDelete("semi_column", "id", remove);
+
         });
     }
 }

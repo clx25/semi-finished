@@ -17,15 +17,15 @@ public class RequiredValidator implements Validator {
         if (!"required".equals(pattern) && !"require".equals(pattern)) {
             return false;
         }
-        Assert.isTrue(value == null, () -> new ParamsException(msg));
+        Assert.isFalse(value == null, () -> new ParamsException(msg));
         if (value instanceof ValueNode) {
-            Assert.isFalse(StringUtils.hasText(value.asText()), () -> new ParamsException(msg));
+            Assert.isTrue(StringUtils.hasText(value.asText()), () -> new ParamsException(msg));
             return true;
         } else if (value instanceof ArrayNode) {
-            Assert.isEmpty((ArrayNode) value, () -> new ParamsException(msg));
+            Assert.notEmpty((ArrayNode) value, () -> new ParamsException(msg));
             return true;
         } else if (value instanceof ObjectNode) {
-            Assert.isTrue(value.isEmpty(), () -> new ParamsException(msg));
+            Assert.isFalse(value.isEmpty(), () -> new ParamsException(msg));
             return true;
         }
         return false;

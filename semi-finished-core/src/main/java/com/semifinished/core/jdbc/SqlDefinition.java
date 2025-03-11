@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.constant.ParserStatus;
 import com.semifinished.core.jdbc.parser.paramsParser.keyvalueparser.KeyValueParamsParser;
-import com.semifinished.core.pojo.AggregationFun;
-import com.semifinished.core.pojo.Column;
-import com.semifinished.core.pojo.ValueCondition;
-import com.semifinished.core.pojo.ValueReplace;
+import com.semifinished.core.pojo.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.math3.util.Pair;
@@ -157,7 +154,7 @@ public class SqlDefinition {
     /**
      * 获取指定序号或范围的数据
      */
-    private int rowStart=-1;
+    private int rowStart = -1;
     private int rowEnd;
 
     /**
@@ -170,6 +167,12 @@ public class SqlDefinition {
      * 数据替换规则
      */
     private List<ValueReplace> valueReplaces;
+
+
+    /**
+     * 树结构信息
+     */
+    private Tree tree;
 
     /**
      * 扩展参数
@@ -310,11 +313,11 @@ public class SqlDefinition {
         return expand;
     }
 
-    public void setExpandItem(String field,JsonNode node){
+    public void setExpandItem(String field, JsonNode node) {
         if (expand == null) {
             expand = JsonNodeFactory.instance.objectNode();
         }
-        this.expand.set(field,node);
+        this.expand.set(field, node);
     }
 
 }

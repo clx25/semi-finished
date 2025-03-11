@@ -40,7 +40,7 @@ public class AliasKeyValueParser implements KeyValueParamsParser {
             return false;
         }
 
-        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("别名规则位置错误"));
+        Assert.isTrue(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("别名规则位置错误"));
 
 
         String[] values;
@@ -48,7 +48,7 @@ public class AliasKeyValueParser implements KeyValueParamsParser {
             values = new String[value.size()];
             for (int i = 0; i < value.size(); i++) {
                 values[i] = value.get(i).asText(null);
-                Assert.hasNotText(values[i], () -> new ParamsException("别名不能为空：" + key));
+                Assert.notBlank(values[i], () -> new ParamsException("别名不能为空：" + key));
             }
         } else {
             values = value.asText().split(",");
@@ -58,7 +58,7 @@ public class AliasKeyValueParser implements KeyValueParamsParser {
         for (int i = 0; i < values.length; i++) {
 
             String[] alias = values[i].split(":");
-            Assert.isTrue(alias.length != 2, () -> new ParamsException("别名参数错误"));
+            Assert.isFalse(alias.length != 2, () -> new ParamsException("别名参数错误"));
 
             values[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0]);
             //todo 已知问题，当使用了子查询，且别名为不合法别名时，外层查询无法匹配到对应字段

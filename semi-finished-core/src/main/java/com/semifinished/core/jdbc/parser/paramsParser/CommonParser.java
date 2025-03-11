@@ -52,7 +52,7 @@ public class CommonParser {
             }
         }
 
-        Assert.isFalse(mapping.get(key) == null, () -> new ParamsException("参数错误：" + key));
+        Assert.isTrue(mapping.get(key) == null, () -> new ParamsException("参数错误：" + key));
 
         return key;
     }
@@ -85,7 +85,7 @@ public class CommonParser {
         sqlDefinition.setDataSource(dataSource);
         sqlDefinition.setStatus(ParserStatus.BRACKET.getStatus());
         value = params.remove(configProperties.getBracketsKey());
-        Assert.isTrue(value == null, () -> new ParamsException(key + "参数错误"));
+        Assert.isFalse(value == null, () -> new ParamsException(key + "参数错误"));
         if (params.isEmpty()) {
             return value;
         }

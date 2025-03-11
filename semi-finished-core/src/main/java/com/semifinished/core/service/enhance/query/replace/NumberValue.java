@@ -24,7 +24,7 @@ public class NumberValue implements ValueReplacer {
         }
 
         String pattern = key.substring(3);
-        Assert.hasNotText(pattern, () -> new ParamsException("缺少数字格式化规则：" + key));
+        Assert.notBlank(pattern, () -> new ParamsException("缺少数字格式化规则：" + key));
         double d = value.asDouble(0);
 
         try {

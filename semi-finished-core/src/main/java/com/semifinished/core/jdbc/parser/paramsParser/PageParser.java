@@ -43,7 +43,7 @@ public class PageParser implements ParamsParser {
             return;
         }
 
-        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE), () -> new ParamsException("分页规则位置错误"));
+        Assert.isTrue(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE), () -> new ParamsException("分页规则位置错误"));
 
 
         if (pageNumNode != null) {

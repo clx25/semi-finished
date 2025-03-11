@@ -40,7 +40,7 @@ public class FileController {
      */
     @PostMapping("upload/image")
     private Result uploadImage(MultipartFile file) throws IOException {
-        Assert.isNull(file, () -> new ParamsException("缺少文件"));
+        Assert.notNull(file, () -> new ParamsException("缺少文件"));
         return fileService.uploadImage(file);
     }
 
@@ -53,7 +53,7 @@ public class FileController {
      */
     @PostMapping("upload")
     private Result upload(MultipartFile file) throws IOException {
-        Assert.isNull(file, () -> new ParamsException("缺少文件"));
+        Assert.notNull(file, () -> new ParamsException("缺少文件"));
         return fileService.upload(file);
     }
 
@@ -68,7 +68,7 @@ public class FileController {
      */
     @PostMapping("uploadChunk")
     public Result uploadChunk(MultipartFile file, @ModelAttribute @Validated(FileInfo.uploadChunk.class) FileInfo info) throws IOException {
-        Assert.isNull(file, () -> new ParamsException("缺少文件"));
+        Assert.notNull(file, () -> new ParamsException("缺少文件"));
         String fileName = fileService.uploadChunk(file, info);
         return Result.success(fileName);
     }

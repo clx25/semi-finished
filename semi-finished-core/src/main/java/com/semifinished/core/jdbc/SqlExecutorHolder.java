@@ -21,6 +21,9 @@ public class SqlExecutorHolder {
         this.configProperties = configProperties;
     }
 
+    public SqlExecutor dataSource(){
+        return dataSource(null);
+    }
     public SqlExecutor dataSource(String name) {
         if (!StringUtils.hasText(name)) {
             name = configProperties.getDataSource();

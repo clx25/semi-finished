@@ -67,7 +67,7 @@ public class ValueReplaceEnhance implements AfterQueryEnhance {
                     .filter(col -> col.getColumn().equals(column))
                     .map(col -> ParamsUtils.hasText(col.getAlias(), col.getColumn()))
                     .findFirst().orElse("");
-            Assert.hasNotText(recodeKey, () -> new ParamsException("字段不存在：" + field));
+            Assert.notBlank(recodeKey, () -> new ParamsException("字段不存在：" + field));
             recodeKeys.add(recodeKey);
         }
         String pattern = valueReplace.getPattern();

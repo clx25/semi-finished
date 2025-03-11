@@ -23,7 +23,7 @@ public class NumberValidator implements Validator {
             return true;
         }
 
-        Assert.isFalse(ParamsUtils.isNumber(value.asText()), () -> new ParamsException(msg));
+        Assert.isTrue(ParamsUtils.isNumber(value.asText()), () -> new ParamsException(msg));
 
         return true;
     }

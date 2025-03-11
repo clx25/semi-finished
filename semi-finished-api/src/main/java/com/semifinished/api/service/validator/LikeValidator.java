@@ -22,11 +22,11 @@ public class LikeValidator implements Validator {
         String text = value.asText();
         String patternValue = pattern.substring(left ? 1 : 0, text.length() - (right ? 1 : 0));
         if (left && right) {
-            Assert.isFalse(text.contains(patternValue), () -> new ParamsException(msg));
+            Assert.isTrue(text.contains(patternValue), () -> new ParamsException(msg));
             return true;
         }
 
-        Assert.isTrue(left ? text.startsWith(patternValue) : text.endsWith(patternValue), () -> new ParamsException(msg));
+        Assert.isFalse(left ? text.startsWith(patternValue) : text.endsWith(patternValue), () -> new ParamsException(msg));
         return true;
     }
 }

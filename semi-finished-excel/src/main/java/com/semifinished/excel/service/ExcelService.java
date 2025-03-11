@@ -50,21 +50,21 @@ public class ExcelService {
      */
     public void parseExcel(MultipartFile file) {
 
-        Assert.isTrue(this.excelHandlers == null, () -> new CodeException("未配置excel处理类"));
+        Assert.isFalse(this.excelHandlers == null, () -> new CodeException("未配置excel处理类"));
 
         HttpServletRequest request = RequestUtils.getRequest();
         String servletPath = request.getServletPath();
         
         // 从headerMap中获取header
         Map<String, String> header = headerMap.get(servletPath);
-        Assert.isTrue(header == null, () -> new ConfigException("未配置该请求header"));
+        Assert.isFalse(header == null, () -> new ConfigException("未配置该请求header"));
 
         //获取此次excel请求的参数
         Map<String, ObjectNode> configs = semiCache.getHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), "POST");
-        Assert.isTrue(configs == null, () -> new ConfigException("未配置excel解析"));
+        Assert.isFalse(configs == null, () -> new ConfigException("未配置excel解析"));
 
         ObjectNode currentConfigs = configs.get(servletPath);
-        Assert.isTrue(currentConfigs == null, () -> new ConfigException("未配置该请求excel解析"));
+        Assert.isFalse(currentConfigs == null, () -> new ConfigException("未配置该请求excel解析"));
 
         //获取表头的配置信息
         JsonNode headerNode = currentConfigs.path("header");
@@ -72,7 +72,7 @@ public class ExcelService {
         if (headerNode == null || headerNode.isNull()) {
             // 如果headerNode为空，则从headerMap获取
             headerConfig = headerMap.get(servletPath);
-            Assert.isTrue(headerConfig == null, () -> new ConfigException("未配置表头信息"));
+            Assert.isFalse(headerConfig == null, () -> new ConfigException("未配置表头信息"));
         } else {
             headerConfig = objectMapper.convertValue(headerNode, new TypeReference<Map<String, String>>() {
             });
@@ -101,7 +101,7 @@ public class ExcelService {
                         }).anyMatch(servletPath::equals))
                 .collect(Collectors.toList());
 
-        Assert.isTrue(matchHandlers.isEmpty(), () -> new CodeException("没有对应处理器"));
+        Assert.isFalse(matchHandlers.isEmpty(), () -> new CodeException("没有对应处理器"));
         matchHandlers.forEach(handler -> handler.handle(currentConfigs, rows, parsedHeader));
     }
 

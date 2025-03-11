@@ -3,10 +3,7 @@ package com.semifinished.core.jdbc;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
-import com.semifinished.core.pojo.AggregationFun;
-import com.semifinished.core.pojo.Column;
-import com.semifinished.core.pojo.ValueCondition;
-import com.semifinished.core.pojo.ValueReplace;
+import com.semifinished.core.pojo.*;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParamsUtils;
 import com.semifinished.core.utils.ParserUtils;
@@ -146,12 +143,12 @@ public class QuerySqlCombiner {
     public static List<Column> columnAggregationAll(SqlDefinition sqlDefinition) {
         List<Column> columnAll = queryColumns(sqlDefinition);
         List<Column> aggregationColumns = aggregationColumns(sqlDefinition);
-        Assert.isTrue(!columnAll.isEmpty() &&
+        Assert.isFalse(!columnAll.isEmpty() &&
                         !aggregationColumns.isEmpty() &&
                         (sqlDefinition.getGroupBy() == null || sqlDefinition.getGroupBy().isEmpty()),
                 () -> new ParamsException("同时存在聚合函数与查询字段，缺少group by规则"));
         columnAll.addAll(aggregationColumns);
-        Assert.isEmpty(columnAll, () -> new ParamsException("未指定查询字段"));
+        Assert.notEmpty(columnAll, () -> new ParamsException("未指定查询字段"));
         return columnAll;
     }
 
@@ -219,6 +216,18 @@ public class QuerySqlCombiner {
         aliasColumns(sqlDefinition, columnAll);
 
         return columnAll;
+    }
+
+    public static Tree getTree(SqlDefinition sqlDefinition) {
+        List<Tree> trees = new ArrayList<>();
+        integration(sqlDefinition, poll -> {
+            Tree tree = poll.getTree();
+            if (tree != null) {
+                trees.add(tree);
+            }
+        }, poll -> ParserUtils.asList(poll.getSubTable()), SqlDefinition::getDict, SqlDefinition::getJoin);
+        Assert.isFalse(trees.size() > 1, () -> new ParamsException("树查询规则重复"));
+        return trees.isEmpty() ? null : trees.get(0);
     }
 
 
@@ -315,7 +324,7 @@ public class QuerySqlCombiner {
         }, SqlDefinition::getJoin, SqlDefinition::getDict);
 
 
-        Assert.isTrue(joiner.length() > 0, () -> new ParamsException("字段名重复：" + joiner));
+        Assert.isFalse(joiner.length() > 0, () -> new ParamsException("字段名重复：" + joiner));
     }
 
 

@@ -30,7 +30,7 @@ public class MatchValidator implements Validator {
             return true;
         }
         for (String v : pattern.trim().split(",")) {
-            Assert.isFalse(!match ^ v.trim().equals(value.asText()), () -> new ParamsException(msg));
+            Assert.isTrue(!match ^ v.trim().equals(value.asText()), () -> new ParamsException(msg));
         }
 
         return true;

@@ -2,7 +2,6 @@ package com.semifinished.core.config;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -36,7 +35,6 @@ import java.util.concurrent.TimeUnit;
  * 项目的自动配置类
  */
 @Configuration
-@AllArgsConstructor
 @ComponentScan(basePackages = "com.semifinished")
 public class SemiFinishedAutoConfiguration {
 
@@ -76,10 +74,10 @@ public class SemiFinishedAutoConfiguration {
     @Bean
     public DataSource dataSource(DataSourceProperties dataSourceProperties, ConfigProperties configProperties) {
         Map<String, ? extends HikariDataSource> dataSourceMap = dataSourceProperties.getDataSource();
-        Assert.isNull(dataSourceMap, () -> new ConfigException("未配置数据源"));
-        Assert.hasNotText(configProperties.getDataSource(), () -> new ConfigException("未指定默认数据源"));
+        Assert.notNull(dataSourceMap, () -> new ConfigException("未配置数据源"));
+        Assert.notBlank(configProperties.getDataSource(), () -> new ConfigException("未指定默认数据源"));
         HikariDataSource dataSource = dataSourceMap.get(configProperties.getDataSource());
-        Assert.isNull(dataSource, () -> new ConfigException("默认数据源" + configProperties.getDataSource() + "不存在"));
+        Assert.notNull(dataSource, () -> new ConfigException("默认数据源" + configProperties.getDataSource() + "不存在"));
 
 
         return dataSource;

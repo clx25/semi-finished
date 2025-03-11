@@ -32,11 +32,10 @@ import java.util.concurrent.CompletionException;
 
 /**
  * 异常的统一处理类
- * //todo 开发与上线使用不同的错误提示？
  */
 @Slf4j
 @RestControllerAdvice
-@Order(Ordered.LOWEST_PRECEDENCE-1000)
+@Order(Ordered.LOWEST_PRECEDENCE - 1000)
 public class CoreExceptionHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -27,7 +27,7 @@ public class DateTimeValue implements ValueReplacer {
             return value;
         }
         String pattern = key.substring(4);
-        Assert.hasNotText(pattern, () -> new ParamsException("缺少时间格式化规则：" + key));
+        Assert.notBlank(pattern, () -> new ParamsException("缺少时间格式化规则：" + key));
 
         try {
             String date = LocalDate.parse(text, text.contains(":") ? dateTimeFormatter : dateFormatter)

@@ -2,13 +2,11 @@ package com.semifinished.web.enhance;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
 import com.semifinished.core.utils.Assert;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -38,7 +36,7 @@ public class SaveBatchEnhance implements AfterUpdateEnhance {
         params = params.without(arrayName);
         String msg = "参数" + arrayName + "数据类型错误";
         arrayName=arrayName.substring(0,arrayName.length()-1);
-        Assert.isTrue(jsonNode instanceof ObjectNode, () -> new ParamsException(msg));
+        Assert.isFalse(jsonNode instanceof ObjectNode, () -> new ParamsException(msg));
         if (jsonNode instanceof ArrayNode) {
             ArrayNode arrayNode = (ArrayNode)jsonNode;
             for (JsonNode node : arrayNode) {

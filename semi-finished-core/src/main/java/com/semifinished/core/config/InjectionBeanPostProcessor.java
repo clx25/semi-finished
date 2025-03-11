@@ -202,7 +202,7 @@ public class InjectionBeanPostProcessor implements ApplicationListener<ContextRe
         } else if (Map.class.isAssignableFrom(fieldType)) {
             ResolvableType resolvableType = ResolvableType.forField(field, 1, null).asMap();
             Class<?> aClass = resolvableType.resolveGeneric(0);
-            Assert.isFalse(aClass == String.class, () -> new CodeException("@Semi注入的Map，key必须为String类型 " + field));
+            Assert.isTrue(aClass == String.class, () -> new CodeException("@Semi注入的Map，key必须为String类型 " + field));
             return resolvableType.resolveGeneric(1);
         } else {
             return fieldType;

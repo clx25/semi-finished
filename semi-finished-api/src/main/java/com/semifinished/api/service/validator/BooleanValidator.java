@@ -21,9 +21,9 @@ public class BooleanValidator implements Validator {
         if (value == null) {
             return true;
         }
-        Assert.isFalse(value instanceof BooleanNode, () -> new ParamsException(msg));
+        Assert.isTrue(value instanceof BooleanNode, () -> new ParamsException(msg));
 
-        Assert.isFalse(value.asBoolean(), () -> new ParamsException(msg));
+        Assert.isTrue(value.asBoolean(), () -> new ParamsException(msg));
 
         return true;
     }

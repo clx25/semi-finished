@@ -27,7 +27,7 @@ public class CancelCronTaskEnhance implements AfterQueryEnhance {
     public void afterQuery(ResultHolder resultHolder, SqlDefinition sqlDefinition) {
         List<ObjectNode> records = resultHolder.getRecords();
 
-        Assert.isFalse(records.size() == 1, () -> new ParamsException("定时任务名称错误"));
+        Assert.isTrue(records.size() == 1, () -> new ParamsException("定时任务名称错误"));
 
         ObjectNode objectNode = records.get(0);
         JsonNode rawParams = sqlDefinition.getRawParams();

@@ -22,7 +22,7 @@ public class EmailValidator implements Validator {
             return true;
         }
         boolean valid = new org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator().isValid(value.asText(), null);
-        Assert.isFalse(valid, () -> new ParamsException(msg));
+        Assert.isTrue(valid, () -> new ParamsException(msg));
         return true;
     }
 }

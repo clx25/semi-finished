@@ -11,9 +11,10 @@ import java.util.List;
 
 @Component
 @AllArgsConstructor
-public class ToCamelEnhance implements AfterQueryEnhance{
+public class ToCamelEnhance implements AfterQueryEnhance {
 
     private final ConfigProperties configProperties;
+
     @Override
     public void afterQuery(ResultHolder resultHolder, SqlDefinition sqlDefinition) {
         List<ObjectNode> records = resultHolder.getRecords();

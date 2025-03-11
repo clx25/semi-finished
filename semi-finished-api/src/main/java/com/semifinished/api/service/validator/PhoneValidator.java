@@ -20,7 +20,7 @@ public class PhoneValidator implements Validator {
         if (value == null || value.isMissingNode() || value.isEmpty()) {
             return true;
         }
-        Assert.isFalse(PATTERN.matcher(value.asText()).matches(), () -> new ParamsException(msg));
+        Assert.isTrue(PATTERN.matcher(value.asText()).matches(), () -> new ParamsException(msg));
         return true;
     }
 }

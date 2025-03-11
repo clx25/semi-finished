@@ -47,7 +47,7 @@ public class DictKeyValueParser implements KeyValueParamsParser {
         boolean statusAnyMatch = ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL,
                 ParserStatus.DICTIONARY, ParserStatus.SUB_TABLE);
 
-        Assert.isFalse(statusAnyMatch, () -> new ParamsException("表字典规则位置错误"));
+        Assert.isTrue(statusAnyMatch, () -> new ParamsException("表字典规则位置错误"));
 
         if (value instanceof ArrayNode) {
             for (JsonNode jsonNode : value) {
@@ -63,7 +63,7 @@ public class DictKeyValueParser implements KeyValueParamsParser {
     }
 
     private void parseDict(String table, String key, JsonNode value, SqlDefinition sqlDefinition) {
-        Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("表字典规则错误：" + key));
+        Assert.isTrue(value instanceof ObjectNode, () -> new ParamsException("表字典规则错误：" + key));
 
         String column = key.substring(0, key.length() - 1);
         column = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, column);
@@ -73,7 +73,7 @@ public class DictKeyValueParser implements KeyValueParamsParser {
 
         //删除并获取on规则，在这里获取是为了校验表字典规则与on规则同时存在
         JsonNode onNode = node.remove("@on");
-        Assert.isTrue(onNode == null, () -> new ParamsException("表字典规则需要配合@on规则使用：" + key));
+        Assert.isFalse(onNode == null, () -> new ParamsException("表字典规则需要配合@on规则使用：" + key));
         String on = onNode.asText().trim();
 
         //解析表字典规则

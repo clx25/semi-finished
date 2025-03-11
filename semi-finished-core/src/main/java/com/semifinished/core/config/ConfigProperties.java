@@ -5,8 +5,6 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
-
 
 @Data
 @Component
@@ -18,7 +16,7 @@ public class ConfigProperties {
     /**
      * 在没有指定分页参数时的最大获取行数
      */
-    private int maxPageSize = 0;
+    private int maxPageSize = 100;
 
     /**
      * 分页参数pageSize与pageNum的键名
@@ -82,5 +80,5 @@ public class ConfigProperties {
      */
     private String logicDeleteColumn = "deleted";
 
-    private boolean toCamel=true;
+    private boolean toCamel = true;
 }

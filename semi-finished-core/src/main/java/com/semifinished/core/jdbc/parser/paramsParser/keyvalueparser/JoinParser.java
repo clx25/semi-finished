@@ -49,11 +49,11 @@ public class JoinParser implements KeyValueParamsParser {
         if (!left && !inner) {
             return false;
         }
-        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
+        Assert.isTrue(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE,
                 ParserStatus.JOIN, ParserStatus.DICTIONARY), () -> new ParamsException("join规则位置错误"));
 
 
-        Assert.isTrue(left && inner, () -> new ParamsException("join规则错误：" + key));
+        Assert.isFalse(left && inner, () -> new ParamsException("join规则错误：" + key));
 
         if (value instanceof ArrayNode) {
             for (JsonNode jsonNode : value) {
@@ -70,15 +70,15 @@ public class JoinParser implements KeyValueParamsParser {
     }
 
     private void parseJoin(String table, String key, JsonNode value, SqlDefinition sqlDefinition, boolean left, boolean inner) {
-        Assert.isFalse(value.isObject(), () -> new ParamsException("join规则错误"));
+        Assert.isTrue(value.isObject(), () -> new ParamsException("join规则错误"));
 
         String col = left ? key.substring(1) : key.substring(0, key.length() - 1);
-        Assert.isFalse(StringUtils.hasText(col), () -> new ParamsException("join规则字段名不能为空：" + key));
+        Assert.isTrue(StringUtils.hasText(col), () -> new ParamsException("join规则字段名不能为空：" + key));
 
         ObjectNode node = (ObjectNode) value;
 
         JsonNode onNode = node.remove("@on");
-        Assert.isTrue(onNode == null, () -> new ParamsException("join规则需要配合@on规则使用：" + key));
+        Assert.isFalse(onNode == null, () -> new ParamsException("join规则需要配合@on规则使用：" + key));
         String on = onNode.asText();
 
         SqlDefinition join = new SqlDefinition(node);

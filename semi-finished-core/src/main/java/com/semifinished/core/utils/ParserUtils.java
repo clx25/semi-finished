@@ -23,7 +23,7 @@ public class ParserUtils {
      */
     public static ValueCondition columnValue(String table, String key) {
         char[] chars = key.trim().toCharArray();
-        Assert.isTrue(chars.length == 0, () -> new ParamsException("key长度不能为0"));
+        Assert.isFalse(chars.length == 0, () -> new ParamsException("key长度不能为0"));
 
         boolean eq = true;
         boolean and = true;
@@ -45,7 +45,7 @@ public class ParserUtils {
 
         key = key.substring(begin);
 
-        Assert.isTrue(key.length() == 0, () -> new ParamsException("key长度不能为0"));
+        Assert.isFalse(key.length() == 0, () -> new ParamsException("key长度不能为0"));
 
         return ValueCondition.builder()
                 .table(table)

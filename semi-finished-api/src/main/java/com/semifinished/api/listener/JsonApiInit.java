@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.semifinished.api.annotation.ApiGroup;
+import com.semifinished.api.config.ApiConfigurer;
 import com.semifinished.api.config.ApiProperties;
 import com.semifinished.api.utils.JsonFileUtils;
 import com.semifinished.core.cache.CoreCacheKey;
@@ -39,10 +40,10 @@ import java.util.stream.Collectors;
 public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
     private final RequestMappingHandlerMapping requestMappingHandlerMapping;
+    private final List<ApiConfigurer> apiConfigurers;
     private final ApiProperties apiProperties;
     private final ObjectMapper objectMapper;
     private final SemiCache semiCache;
-
     public static final Map<String, String> apiRequestNameGroupMapping = new HashMap<>();
 
     static {
@@ -81,6 +82,9 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
             }
         }
 
+        for (ApiConfigurer apiConfigurer : apiConfigurers) {
+            apiConfigurer.addApiMap(apiMap);
+        }
 
         Map<String, Map<String, ObjectNode>> allPath = uniqueVersion(handlerMethods, apiMap);
 
@@ -124,7 +128,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
             } catch (IOException e) {
                 throw new ConfigException(file + "配置文件格式错误", e);
             }
-            Assert.isFalse(json instanceof ObjectNode, () -> new ConfigException("配置文件%s格式错误", file.getName()));
+            Assert.isTrue(json instanceof ObjectNode, () -> new ConfigException("配置文件%s格式错误", file.getName()));
 
             json.fields().forEachRemaining(entry -> {
                 JsonNode configs = entry.getValue();
@@ -150,7 +154,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
             if (!path.startsWith("/")) {
                 path = "/" + path;
             }
-            Assert.isFalse(apiRequestNameGroupMapping.containsValue(groupName), () -> new ConfigException("api配置文件%s：组名%s不存在", fileName, groupName));
+            Assert.isTrue(apiRequestNameGroupMapping.containsValue(groupName), () -> new ConfigException("api配置文件%s：组名%s不存在", fileName, groupName));
 
             Map<String, ObjectNode> apiConfigs = apiMap.computeIfAbsent(groupName, k -> new HashMap<>());
 
@@ -159,7 +163,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
             //新的配置
             JsonNode value = entry.getValue();
-            Assert.isFalse(value instanceof ObjectNode, () -> new ConfigException("%s配置错误", value));
+            Assert.isTrue(value instanceof ObjectNode, () -> new ConfigException("%s配置错误", value));
             ObjectNode newConfig = (ObjectNode) value;
 
             //如果旧的配置不为空，表示有重复，则比较版本
@@ -167,7 +171,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
                 double oldVersion = oldConfig.path("version").asDouble(0);
                 double newVersion = newConfig.path("version").asDouble(0);
                 String finalPath = path;
-                Assert.isTrue(oldVersion == newVersion, () -> new ConfigException("接口%s重复", finalPath));
+                Assert.isFalse(oldVersion == newVersion, () -> new ConfigException("接口%s重复", finalPath));
 
                 //如果已存在的版本高，则直接舍弃新的版本
                 if (oldVersion > newVersion) {
@@ -218,7 +222,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
                     //新
                     String newVersion = newConfig.path("version").asText("");
 
-                    Assert.isTrue(version.equals(newVersion), () -> new ConfigException("接口重复：" + path));
+                    Assert.isFalse(version.equals(newVersion), () -> new ConfigException("接口重复：" + path));
 
                     int compare = version.compareTo(newVersion);
 
@@ -332,7 +336,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
                 uniqueSet.retainAll(patternValues);
 
-                Assert.isFalse(uniqueSet.isEmpty(), () -> new ConfigException("接口重复：" + uniqueSet));
+                Assert.isTrue(uniqueSet.isEmpty(), () -> new ConfigException("接口重复：" + uniqueSet));
 
                 remain.addAll(patternValues);
             }

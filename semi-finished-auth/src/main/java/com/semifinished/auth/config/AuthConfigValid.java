@@ -19,10 +19,15 @@ public class AuthConfigValid implements InitializingBean {
 
         log.info((authProperties.isCaptcha() ? "启用" : "关闭") + "验证码");
 
-        log.info(authProperties.isAuthEnable() ? "登录验证开启" : "登录验证关闭");
+        boolean authEnable = authProperties.isAuthEnable();
+        log.info(authEnable ? "登录验证开启" : "登录验证关闭");
 
-        Assert.isFalse(authProperties.getTokenDuration() > 0, () -> new ConfigException("token有效期配置错误"));
-        Assert.hasNotText(authProperties.getTokenKey(), () -> new ConfigException("未配置tokenKey"));
-        Assert.hasNotText(authProperties.getAdminCode(), () -> new ConfigException("未配置管理员编码"));
+        if (!authEnable) {
+            return;
+        }
+
+        Assert.isTrue(authProperties.getTokenDuration() > 0, () -> new ConfigException("token有效期配置错误"));
+        Assert.notBlank(authProperties.getTokenKey(), () -> new ConfigException("未配置tokenKey"));
+        Assert.notBlank(authProperties.getAdminCode(), () -> new ConfigException("未配置管理员编码"));
     }
 }

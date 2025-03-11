@@ -57,13 +57,13 @@ public class HeaderInit implements ApplicationListener<ContextRefreshedEvent> {
         ObjectNode configs = objectNode.with("excel");
         configs.fields().forEachRemaining(entry -> {
             String code = entry.getKey();
-            Assert.isTrue(excel.containsKey(code), () -> new ConfigException("excel上传code重复：" + code));
+            Assert.isFalse(excel.containsKey(code), () -> new ConfigException("excel上传code重复：" + code));
             JsonNode value = entry.getValue();
-            Assert.isFalse(value instanceof ObjectNode, () -> new ConfigException("excel上传code格式错误：" + code));
+            Assert.isTrue(value instanceof ObjectNode, () -> new ConfigException("excel上传code格式错误：" + code));
             JsonNode table = value.get("table");
-            Assert.isTrue(table == null, () -> new ConfigException("缺少table配置：" + code));
-            Assert.isFalse(StringUtils.hasText(table.asText(null)), () -> new ConfigException("table配置不能为空：" + code));
-            Assert.isFalse(value.has("header"), () -> new ConfigException("缺少header配置：" + code));
+            Assert.isFalse(table == null, () -> new ConfigException("缺少table配置：" + code));
+            Assert.isTrue(StringUtils.hasText(table.asText(null)), () -> new ConfigException("table配置不能为空：" + code));
+            Assert.isTrue(value.has("header"), () -> new ConfigException("缺少header配置：" + code));
             excel.put("/excel/" + code, (ObjectNode) value);
         });
     }

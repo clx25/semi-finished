@@ -33,7 +33,7 @@ public class UniqueValidator implements Validator {
                 boolean match = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
                         .existMatch(sql, MapUtils.of(field, value.asText()));
 
-                Assert.isTrue(match, () -> new ParamsException(msg));
+                Assert.isFalse(match, () -> new ParamsException(msg));
             }
         }
 

@@ -52,13 +52,13 @@ public class DetermineColumnsParser implements ParamsParser {
         JsonNode columnsNode = params.remove("@");
 
         if (!ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN, ParserStatus.DICTIONARY)) {
-            Assert.isTrue(columnsNode != null, () -> new ParamsException("列名规则位置错误"));
+            Assert.isFalse(columnsNode != null, () -> new ParamsException("列名规则位置错误"));
             return;
         }
 
 
         String table = sqlDefinition.getTable();
-        Assert.hasNotText(table, () -> new ParamsException("未指定表名"));
+        Assert.notBlank(table, () -> new ParamsException("未指定表名"));
         //如果没有指定字段，默认所有字段
         if (columnsNode == null || columnsNode instanceof NullNode) {
             allColumns(table, sqlDefinition);
@@ -75,10 +75,10 @@ public class DetermineColumnsParser implements ParamsParser {
         List<String> validColumns = new ArrayList<>();
 
         for (String col : columns) {
-            Assert.isFalse(StringUtils.hasText(col), () -> new ParamsException("查询字段错误，字段名不能为空：" + column));
+            Assert.isTrue(StringUtils.hasText(col), () -> new ParamsException("查询字段错误，字段名不能为空：" + column));
 
             String[] alias = col.split(":");
-            Assert.isFalse(StringUtils.hasText(alias[0]) && alias.length < 3, () -> new ParamsException("查询字段错误：" + column));
+            Assert.isTrue(StringUtils.hasText(alias[0]) && alias.length < 3, () -> new ParamsException("查询字段错误：" + column));
 
             String actualColumn = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, alias[0].trim());
 
@@ -149,10 +149,10 @@ public class DetermineColumnsParser implements ParamsParser {
             SqlDefinition subTable = sqlDefinition.getSubTable();
             if (subTable != null) {
                 columns = QuerySqlCombiner.queryColumns(subTable);
-                Assert.isEmpty(columns, () -> new ParamsException("请求字段为空"));
+                Assert.notEmpty(columns, () -> new ParamsException("请求字段为空"));
             }
         }
-        Assert.isEmpty(columns, () -> new ParamsException(table + "参数错误"));
+        Assert.notEmpty(columns, () -> new ParamsException(table + "参数错误"));
 
         columns.stream()
                 .map(column -> ParamsUtils.hasText(column.getAlias(), column.getColumn()))

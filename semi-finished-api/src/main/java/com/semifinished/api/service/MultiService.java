@@ -7,7 +7,7 @@ import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
-import com.semifinished.core.service.QueryService;
+import com.semifinished.core.service.CommonService;
 import com.semifinished.core.service.UpdateService;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParamsUtils;
@@ -26,26 +26,26 @@ public class MultiService {
     private final SqlExecutorHolder sqlExecutorHolder;
     private final ConfigProperties configProperties;
     private final UpdateService updateService;
-    private final QueryService queryService;
+    private final CommonService commonService;
 
     public void multi(ObjectNode params) {
         ObjectNode template = apiSqlDefinitionFactory.getTemplate();
 
-        sqlExecutorHolder.dataSource(null).transaction(executor -> {
+        sqlExecutorHolder.dataSource().transaction(executor -> {
 
             List<Pair<Integer, Runnable>> execute = new ArrayList<>();
 
             template.fields().forEachRemaining(entry -> {
                 String key = entry.getKey();
                 JsonNode value = entry.getValue();
-                Assert.isFalse(value instanceof ObjectNode, () -> new ParamsException("%参数类型错误", key));
+                Assert.isTrue(value instanceof ObjectNode, () -> new ParamsException("%参数类型错误", key));
 
 
                 //获取执行排序
                 String[] keys = key.split(":");
-                Assert.isFalse(keys.length == 2, () -> new ParamsException("参数%s错误", key));
+                Assert.isTrue(keys.length == 2, () -> new ParamsException("参数%s错误", key));
                 String index = keys[1];
-                Assert.isFalse(ParamsUtils.isInteger(index), () -> new ParamsException("参数%s错误", key));
+                Assert.isTrue(ParamsUtils.isInteger(index), () -> new ParamsException("参数%s错误", key));
 
 
                 switch (keys[0]) {
@@ -74,7 +74,7 @@ public class MultiService {
                         break;
                     case "r":
                         SqlDefinition definition = apiSqlDefinitionFactory.getSqlDefinition(value, params);
-                        queryService.query(definition);
+                        commonService.commonQuery(definition);
                 }
             });
 

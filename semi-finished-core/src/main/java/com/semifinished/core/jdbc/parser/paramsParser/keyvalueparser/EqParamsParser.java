@@ -47,7 +47,7 @@ public class EqParamsParser implements KeyValueParamsParser {
         if (key.endsWith("=")) {
             key = key.substring(0, key.length() - 1);
         }
-        Assert.isFalse(ParamsUtils.isLegalName(key),()->new ParamsException("%s错误",valueCondition.getColumn()));
+        Assert.isTrue(ParamsUtils.isLegalName(key), () -> new ParamsException("%s错误", valueCondition.getColumn()));
 
 
         value = commonParser.brackets(valueCondition, sqlDefinition.getDataSource(), key, value);

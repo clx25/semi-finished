@@ -42,7 +42,7 @@ public class AdminParser implements ParamsParser {
             return;
         }
         String roleId = RequestUtils.getRequestAttributes("roleId");
-        Assert.isTrue(roleId == null, () -> new CodeException("缺少角色信息"));
+        Assert.isFalse(roleId == null, () -> new CodeException("缺少角色信息"));
         String[] roleIds = roleId.split(",");
         String sql = SqlCreator.builder()
                 .table("semi_role")

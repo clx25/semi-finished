@@ -38,7 +38,7 @@ public class NullAbleValidateEnhance implements AfterUpdateEnhance {
                 ).map(c -> ParamsUtils.hasText(c.getAlias(), c.getColumn()))
                 .collect(Collectors.joining(","));
 
-        Assert.hasText(nullValue, () -> new ParamsException("%s参数不能为空", nullValue));
+        Assert.isBlank(nullValue, () -> new ParamsException("%s参数不能为空", nullValue));
 
     }
 }

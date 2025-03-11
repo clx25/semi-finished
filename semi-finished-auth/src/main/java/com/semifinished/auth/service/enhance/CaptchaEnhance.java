@@ -39,12 +39,12 @@ public class CaptchaEnhance implements AfterUpdateEnhance, AfterQueryEnhance {
         if (!authProperties.isCaptcha()) {
             return;
         }
-        Assert.isFalse(params.has("key"), () -> new ParamsException("缺少验证码key"));
-        Assert.isFalse(params.has("captcha"), () -> new ParamsException("缺少验证码"));
+        Assert.isTrue(params.has("key"), () -> new ParamsException("缺少验证码key"));
+        Assert.isTrue(params.has("captcha"), () -> new ParamsException("缺少验证码"));
 
         boolean match = captchaMatch(semiCache, params.path("key").asText(), params.path("captcha").asText());
 
-        Assert.isFalse(match, () -> new AuthException(AuthResultInfo.CAPTCHA_ERROR));
+        Assert.isTrue(match, () -> new AuthException(AuthResultInfo.CAPTCHA_ERROR));
     }
 
     /**

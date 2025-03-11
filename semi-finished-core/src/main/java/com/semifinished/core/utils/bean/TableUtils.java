@@ -58,7 +58,7 @@ public class TableUtils {
      */
     public void validColumnsName(SqlDefinition sqlDefinition, String table, Collection<String> columns) {
         if (columns == null || columns.isEmpty()) {
-            Assert.isFalse(validTableName(sqlDefinition.getDataSource(), table), () -> new ParamsException("表%s不存在", table));
+            Assert.isTrue(validTableName(sqlDefinition.getDataSource(), table), () -> new ParamsException("表%s不存在", table));
             return;
         }
         List<Column> tableColumnsName = getColumns(sqlDefinition.getDataSource(), table);
@@ -72,14 +72,14 @@ public class TableUtils {
             }
         }
 
-        Assert.isEmpty(tableColumnsName, () -> new ParamsException(table + "参数错误"));
+        Assert.notEmpty(tableColumnsName, () -> new ParamsException(table + "参数错误"));
         List<String> columnsName = tableColumnsName.stream().map(column -> ParamsUtils.hasText(column.getAlias(), column.getColumn())).collect(Collectors.toList());
         boolean finSub = sub;
         for (String column : columns) {
-            Assert.hasNotText(column, () -> new ParamsException("字段名不能为空"));
+            Assert.notBlank(column, () -> new ParamsException("字段名不能为空"));
             boolean flag = columnsName.stream()
                     .anyMatch(col -> col.equals(column));
-            Assert.isFalse(flag, () -> new ParamsException("参数错误" + (finSub ? ",子查询外层应该使用内层返回的字段名" : "") + "：" + column));
+            Assert.isTrue(flag, () -> new ParamsException("参数错误" + (finSub ? ",子查询外层应该使用内层返回的字段名" : "") + "：" + column));
         }
 
 
@@ -107,7 +107,7 @@ public class TableUtils {
         }
 
         List<Column> columns = semiCache.getValue(CoreCacheKey.COLUMNS.getKey() + dataSource);
-        Assert.isEmpty(columns, () -> new ParamsException("数据源" + dataSource + "不存在"));
+        Assert.notEmpty(columns, () -> new ParamsException("数据源" + dataSource + "不存在"));
 
         return columns.stream().anyMatch(column -> table.equals(column.getTable()));
     }

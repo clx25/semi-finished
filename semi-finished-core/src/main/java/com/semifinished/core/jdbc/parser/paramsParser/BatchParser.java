@@ -32,12 +32,12 @@ public class BatchParser implements ParamsParser {
             return;
         }
 
-        Assert.isFalse(batch instanceof ArrayNode, () -> new ParamsException("批量参数错误"));
+        Assert.isTrue(batch instanceof ArrayNode, () -> new ParamsException("批量参数错误"));
 
         //获取参数所有存在的字段
         Set<String> columns = new HashSet<>();
         batch.forEach(node -> {
-            Assert.isFalse(node instanceof ObjectNode, () -> new ParamsException("批量参数错误"));
+            Assert.isTrue(node instanceof ObjectNode, () -> new ParamsException("批量参数错误"));
             node.fieldNames().forEachRemaining(columns::add);
         });
 

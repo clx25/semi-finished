@@ -50,7 +50,7 @@ public class RedisCache implements SemiCache {
     private void execute(String key, Executor executor) {
         //避免重复操作，设置5分钟的锁，且不解锁
         Boolean locked = redisTemplate.opsForValue().setIfAbsent(RedisCacheKey.MUTEX.getKey() + key, 1, 5, TimeUnit.MINUTES);
-        Assert.isTrue(locked == null, () -> new ProjectRuntimeException("redis获取锁异常"));
+        Assert.isFalse(locked == null, () -> new ProjectRuntimeException("redis获取锁异常"));
         if (locked) {
             redisTemplate.delete(key);
             executor.execute();

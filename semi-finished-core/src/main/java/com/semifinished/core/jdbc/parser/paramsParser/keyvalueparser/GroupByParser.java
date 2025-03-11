@@ -31,10 +31,10 @@ public class GroupByParser implements KeyValueParamsParser {
             return false;
         }
 
-        Assert.isFalse(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN), () -> new ParamsException("@group规则位置错误"));
+        Assert.isTrue(ParserUtils.statusAnyMatch(sqlDefinition, ParserStatus.NORMAL, ParserStatus.SUB_TABLE, ParserStatus.JOIN), () -> new ParamsException("@group规则位置错误"));
 
         String columns = value.asText();
-        Assert.hasNotText(columns, () -> new ParamsException("group规则字段不能为空：" + key));
+        Assert.notBlank(columns, () -> new ParamsException("group规则字段不能为空：" + key));
         String[] columnArray = columns.split(",");
         for (int i = 0; i < columnArray.length; i++) {
             columnArray[i] = commonParser.getActualColumn(sqlDefinition.getDataSource(), table, columnArray[i]);
@@ -54,7 +54,7 @@ public class GroupByParser implements KeyValueParamsParser {
 
 
         if (sqlDefinition.getStatus() == ParserStatus.SUB_TABLE.getStatus()) {
-            Assert.isFalse(cover, () -> new ParamsException("子查询中的group字段必须包含查询字段"));
+            Assert.isTrue(cover, () -> new ParamsException("子查询中的group字段必须包含查询字段"));
         }
 
         return true;

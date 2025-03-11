@@ -4,7 +4,7 @@
       "summary": "查询内置api",
       "params": {
         "@tb": "semi_api",
-        "@bean": "semiApi",
+        ":": "group_name:groupName",
         "pageNum$$": "pageNum",
         "pageSize$$": "pageSize"
       },
@@ -24,50 +24,58 @@
     }
   },
   "post": {
-    "/semi-api": {
-      "summary": "新增semi_api表数据",
+    "/semiApi": {
+      "summary": "新增api",
       "version": 1,
       "params": {
         "@tb": "semi_api",
-        "@bean": "dataValidateEnhance"
+        "group_name$$": "groupName",
+        "pattern$$": "pattern",
+        "params$$": "params",
+        "summary$$": "summary"
       },
       "ruler": {
-        "api_name": {
-          "text": "API名称不能为空",
-          "len>=2": "API名称长度至少2个字符",
-          "desc": "API名称"
+        "groupName": {
+          "required": "组名不能为空",
+          "desc": "API组名"
         },
-        "api_path": {
-          "text": "API路径不能为空",
-          "unique": "API路径已存在",
+        "pattern": {
+          "required": "API规则不能为空",
           "desc": "API路径"
         }
       }
     }
   },
   "put": {
-    "/semi-api": {
-      "summary": "修改semi_api表数据",
+    "/semiApi": {
+      "summary": "修改api",
+      "version": 1,
       "params": {
-        "@tb": "semi_api"
+        "@tb": "semi_api",
+        "id$$": "id",
+        "group_name$$": "groupName",
+        "pattern$$": "pattern",
+        "params$$": "params",
+        "summary$$": "summary"
       },
       "ruler": {
-        "id": {
-          "!null": "ID不能为空",
-          "desc": "API ID"
+        "groupName": {
+          "required": "组名不能为空",
+          "desc": "API组名"
         },
-        "api_name": {
-          "text": "API名称不能为空",
-          "desc": "API名称"
+        "pattern": {
+          "required": "API规则不能为空",
+          "desc": "API路径"
         }
       }
     }
   },
   "delete": {
-    "/semi-api/{id}": {
+    "/semiApi": {
       "summary": "删除semi_api表数据",
       "params": {
-        "@tb": "semi_api"
+        "@tb": "semi_api",
+        "id$$": "id"
       },
       "ruler": {
         "id": {

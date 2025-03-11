@@ -8,54 +8,107 @@ DROP TABLE IF EXISTS "menu";
 
 CREATE TABLE IF NOT EXISTS "users"
 (
-    id     INT PRIMARY KEY,
-    name   VARCHAR(50),
+    id
+    INT
+    PRIMARY
+    KEY,
+    name
+    VARCHAR
+(
+    50
+),
     gender INT
-);
+    );
 
 
 
 CREATE TABLE IF NOT EXISTS "user_order"
 (
-    id         INT PRIMARY KEY,
-    user_id    INT,
-    order_date DATETIME,
-    money      DECIMAL(10, 2)
-);
+    id
+    INT
+    PRIMARY
+    KEY,
+    user_id
+    INT,
+    order_date
+    DATETIME,
+    money
+    DECIMAL
+(
+    10,
+    2
+)
+    );
 
 
 CREATE TABLE IF NOT EXISTS "gender"
 (
-    id   INT PRIMARY KEY,
-    name VARCHAR(50)
-);
+    id
+    INT
+    PRIMARY
+    KEY,
+    name
+    VARCHAR
+(
+    50
+)
+    );
 
 
 -- 角色表
 CREATE TABLE IF NOT EXISTS "role"
 (
-    id        INT PRIMARY KEY,
-    name_cn   VARCHAR(50) NOT NULL,
-    code      VARCHAR(10) NOT NULL,
+    id
+    INT
+    PRIMARY
+    KEY,
+    name_cn
+    VARCHAR
+(
+    50
+) NOT NULL,
+    code VARCHAR
+(
+    10
+) NOT NULL,
     parent_id INT
-);
+    );
 
 
 -- 角色与用户的关联表
 CREATE TABLE IF NOT EXISTS "user_role"
 (
-    id      INT PRIMARY KEY,
-    user_id INT NOT NULL,
-    role_id INT NOT NULL
+    id
+    INT
+    PRIMARY
+    KEY,
+    user_id
+    INT
+    NOT
+    NULL,
+    role_id
+    INT
+    NOT
+    NULL
 );
 
 CREATE TABLE IF NOT EXISTS "menu"
 (
-    id    INT PRIMARY KEY,
-    label VARCHAR(255),
-    icon  VARCHAR(255),
+    id
+    INT
+    PRIMARY
+    KEY,
+    label
+    VARCHAR
+(
+    255
+),
+    icon VARCHAR
+(
+    255
+),
     route BOOLEAN
-);
+    );
 
 INSERT INTO "users" (id, name, gender)
 VALUES (1, 'Alice', 23);

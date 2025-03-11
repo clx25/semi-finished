@@ -34,8 +34,8 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
     private final DataSourceProperties dataSourceProperties;
 
     /**
-     * 对semi_column表中的数据进行梳理
-     * 把项目的表结构保存到缓存中
+     * 对配置的数据库的表进行梳理
+     * 表结构保存到缓存中
      *
      * @param event ContextRefreshedEvent
      */
@@ -49,14 +49,14 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
             String db = objectNode.get("db").asText();
 
             String databaseProductName = executor.getDatabaseProductName();
-            log.info("数据库产品名称{}",databaseProductName);
+            log.info("数据库产品名称{}", databaseProductName);
             List<Column> tables;
             if ("H2".equalsIgnoreCase(databaseProductName)) {
                 tables = executor.list("SELECT  TABLE_NAME `table`,COLUMN_NAME `column`,TYPE_NAME  `type` ,CASE WHEN IS_NULLABLE = 'YES' THEN TRUE ELSE FALSE END AS NULL_ABLE FROM INFORMATION_SCHEMA.COLUMNS  WHERE  TABLE_SCHEMA = 'PUBLIC'", Column.class);
             } else if ("mysql".equalsIgnoreCase(databaseProductName)) {
                 tables = executor.list("SELECT '" + db + "', col.TABLE_NAME `table`,col.COLUMN_NAME `column`,col.COLUMN_TYPE type,if(IS_NULLABLE='YES',true,false) null_able FROM information_schema.`COLUMNS` col  WHERE TABLE_SCHEMA='" + db + "'", Column.class);
             } else {
-                throw new CodeException("无法识别的数据库");
+                throw new CodeException("目前只支持MySQL");
             }
 
 
@@ -70,8 +70,7 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
     }
 
     /**
-     * 监测排除字段
-     * todo 添加到columnList中
+     * 添加排除字段
      *
      * @param columnList       数据源对应的数据库字段
      * @param dataSourceConfig 数据源配置
@@ -83,7 +82,7 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
             return;
         }
         String tableMatch = excludes.keySet().stream().filter(tb -> columnList.stream().noneMatch(column -> column.getTable().equals(tb))).collect(Collectors.joining(","));
-        Assert.hasText(tableMatch, () -> new ConfigException("请检查排除规则," + tableMatch + "表不存在"));
+        Assert.isBlank(tableMatch, () -> new ConfigException("请检查排除规则," + tableMatch + "表不存在"));
 
         excludes.forEach((table, columns) -> {
             String noneMatch = columns.stream()
@@ -93,14 +92,13 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
                     )
                     .collect(Collectors.joining(","));
 
-            Assert.hasText(noneMatch, () -> new ConfigException("请检查排除规则," + table + "表不存在" + noneMatch + "字段"));
+            Assert.isBlank(noneMatch, () -> new ConfigException("请检查排除规则," + table + "表不存在" + noneMatch + "字段"));
         });
 
     }
 
     /**
-     * 监测映射字段
-     * todo 添加到columnList中
+     * 添加映射字段
      *
      * @param columnList       数据源对应的数据库字段
      * @param dataSourceConfig 数据源配置
@@ -116,17 +114,17 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
             return;
         }
         String tableMatch = tableMap.keySet().stream().filter(tb -> columnList.stream().noneMatch(column -> column.getTable().equals(tb))).collect(Collectors.joining(","));
-        Assert.hasText(tableMatch, () -> new ConfigException("请检查表映射规则," + tableMatch + "表不存在"));
+        Assert.isBlank(tableMatch, () -> new ConfigException("请检查表映射规则," + tableMatch + "表不存在"));
 
         Map<String, Map<String, String>> columnMap = mapping.getColumn();
         if (columnMap == null) {
             return;
         }
         String columnTableMatch = columnMap.keySet().stream().filter(tb -> columnList.stream().noneMatch(column -> column.getTable().equals(tb))).collect(Collectors.joining(","));
-        Assert.hasText(columnTableMatch, () -> new ConfigException("请检查字段映射规则," + columnTableMatch + "表不存在"));
+        Assert.isBlank(columnTableMatch, () -> new ConfigException("请检查字段映射规则," + columnTableMatch + "表不存在"));
         columnMap.forEach((table, columns) -> {
             String columnMatch = columns.keySet().stream().filter(column -> columnList.stream().noneMatch(col -> table.equals(col.getTable()) && col.getColumn().equals(column))).collect(Collectors.joining(","));
-            Assert.hasText(columnMatch, () -> new ConfigException("请检查表映射规则," + table + "表不存在" + columnMatch + "字段"));
+            Assert.isBlank(columnMatch, () -> new ConfigException("请检查表映射规则," + table + "表不存在" + columnMatch + "字段"));
         });
 
     }

@@ -28,7 +28,7 @@ public interface Executor {
      * 新增
      *
      * @param sqlDefinition SQL定义信息
-     * @param idKey 主键字段
+     * @param idKey         主键字段
      */
     void add(SqlDefinition sqlDefinition, String idKey);
 

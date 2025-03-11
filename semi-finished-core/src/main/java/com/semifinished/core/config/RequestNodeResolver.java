@@ -48,7 +48,7 @@ public class RequestNodeResolver extends AbstractNamedValueMethodArgumentResolve
         Class<?> type = methodParameter.getParameter().getType();
 
 
-        Assert.isFalse(ObjectNode.class.isAssignableFrom(type), () -> new ParamsException(name + "格式错误"));
+        Assert.isTrue(ObjectNode.class.isAssignableFrom(type), () -> new ParamsException(name + "格式错误"));
         try {
 
             return objectMapper.convertValue(result, type);
