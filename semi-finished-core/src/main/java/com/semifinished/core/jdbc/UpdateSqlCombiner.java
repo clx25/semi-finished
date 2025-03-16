@@ -43,7 +43,7 @@ public class UpdateSqlCombiner {
                 .map(v -> "`" + v.getColumn() + "` = :" + v.getArgName())
                 .collect(Collectors.joining(" , "));
 
-
+        sqlDefinition.setId(String.valueOf(valueCondition.getValue()));
         return sql.append(value)
                 .append(" where ")
                 .append(idKey)

@@ -1,10 +1,8 @@
 package com.semifinished.web.pojo;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
 public class Api {
 
     /**
@@ -28,9 +26,9 @@ public class Api {
     private String params;
 
     /**
-     * 跳过验证
+     * 是否关闭接口
      */
-    private boolean skipAuth;
+    private boolean disabled;
 
     /**
      * 版本，高版本会覆盖低版本

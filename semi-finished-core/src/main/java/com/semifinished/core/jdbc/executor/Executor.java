@@ -6,13 +6,13 @@ import com.semifinished.core.jdbc.SqlDefinition;
 import java.util.List;
 
 /**
- * 执行器
+ * SQL执行器，可通过该接口适配不同的数据库
  */
 public interface Executor {
     /**
      * 查询方言，对应了查询条件中的@dialect规则，如果与该方法返回的字符串相同，那么就使用该对象进行增删查改操作
      *
-     * @return 方言
+     * @return 方言,忽略大小写
      */
     String dialect();
 

@@ -10,7 +10,7 @@ import com.semifinished.auth.config.AuthResultInfo;
 import com.semifinished.auth.exception.AuthException;
 import com.semifinished.auth.utils.CaptchaCreator;
 import com.semifinished.auth.utils.JwtUtils;
-import com.semifinished.core.annontation.Api;
+import com.semifinished.core.annontation.RequestApi;
 import com.semifinished.core.cache.SemiCache;
 import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.ConfigException;
@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-@Api(path = "/login", method = "post")
+@RequestApi(path = "/login", method = "post")
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService extends QueryAbstractService implements QueryService {

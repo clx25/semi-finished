@@ -37,7 +37,7 @@ public interface AfterUpdateEnhance extends ServiceEnhance {
         private final AtomicBoolean skip = new AtomicBoolean(false);
 
         public SqlAutoExecutor(SqlExecutor sqlExecutor, Consumer<SqlExecutor> consumer) {
-            super(sqlExecutor.getJdbcTemplate(), sqlExecutor.getTransactionTemplate());
+            super(sqlExecutor.getJdbcTemplate(), sqlExecutor.getNamedParameterJdbcTemplate(), sqlExecutor.getTransactionTemplate());
             this.consumer = consumer;
         }
 

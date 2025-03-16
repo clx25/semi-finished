@@ -47,7 +47,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
     public static final Map<String, String> apiRequestNameGroupMapping = new HashMap<>();
 
     static {
-        //内置的接口name与组名的对应关系
+        // 内置的接口name与组名的对应关系
         apiRequestNameGroupMapping.put("SEMI-JSON-API-POST-QUERY", "POSTQ");
         apiRequestNameGroupMapping.put("SEMI-JSON-API-POST", "POST");
         apiRequestNameGroupMapping.put("SEMI-JSON-API-GET", "GET");
@@ -61,7 +61,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        //如果开启通用查询规则，则直接返回，不解析json文件
+        // 如果开启通用查询规则，则直接返回，不解析json文件
         if (apiProperties.isCommonApiEnable()) {
             return;
         }
@@ -75,7 +75,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
             parseJsonFile(folder, apiMap);
         }
 
-        //获取类路径api json文件夹路径
+        // 获取类路径api json文件夹路径
         for (File file : JsonFileUtils.classPathFiles(apiProperties)) {
             if (file.exists()) {
                 parseJsonFile(file, apiMap);
@@ -86,14 +86,64 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
             apiConfigurer.addApiMap(apiMap);
         }
 
+        refreshApi(apiMap);
+    }
+
+    public void refreshApi(Map<String, Map<String, ObjectNode>> apiMap) {
+        Map<RequestMappingInfo, HandlerMethod> handlerMethods = requestMappingHandlerMapping.getHandlerMethods();
+
         Map<String, Map<String, ObjectNode>> allPath = uniqueVersion(handlerMethods, apiMap);
 
         addApi(handlerMethods, apiMap);
 
         unique(handlerMethods);
 
+        Map<String, Map<String, ObjectNode>> oldAllPath = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey());
+
+        if (oldAllPath != null) {
+            oldAllPath.forEach((key, value) ->
+                    allPath.merge(key, value, (newMap, oldMap) -> {
+                        oldMap.putAll(newMap);
+                        return oldMap;
+                    }));
+        }
+
         semiCache.initHashValue(CoreCacheKey.JSON_CONFIGS.getKey(), allPath);
     }
+
+    public void removeApi(String groupName, String path) {
+        Map<String, Map<String, ObjectNode>> oldAllPath = semiCache.getValue(CoreCacheKey.JSON_CONFIGS.getKey());
+        // if (!oldAllPath.containsKey(groupName)) {
+        //     return;
+        // }
+        // ObjectNode remove = oldAllPath.get(groupName).remove(path);
+        // if (remove == null) {
+        //     return;
+        // }
+        requestMappingHandlerMapping.getHandlerMethods()
+                .forEach((info, handlerMethod) -> {
+                    Set<String> patternValues = info.getPatternValues();
+                    // 匹配请求的组名，删除对应的path
+                    String group = getGroupKey(info, handlerMethod);
+                    if (group == null) {
+                        return;
+                    }
+
+                    if (!group.equalsIgnoreCase(groupName)) {
+                        return;
+                    }
+                    patternValues.remove(path);
+
+                    info.getMethodsCondition()
+                            .getMethods()
+                            .forEach(m -> {
+                                Map<String, ObjectNode> map = oldAllPath.get(m.name());
+                                map.remove(path);
+                            });
+
+                });
+    }
+
 
     private void addApiRequestNameGroupMapping(Collection<HandlerMethod> handlerMethods) {
         for (HandlerMethod handlerMethod : handlerMethods) {
@@ -158,26 +208,26 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
             Map<String, ObjectNode> apiConfigs = apiMap.computeIfAbsent(groupName, k -> new HashMap<>());
 
-            //已存在的配置
+            // 已存在的配置
             ObjectNode oldConfig = apiConfigs.get(path);
 
-            //新的配置
+            // 新的配置
             JsonNode value = entry.getValue();
             Assert.isTrue(value instanceof ObjectNode, () -> new ConfigException("%s配置错误", value));
             ObjectNode newConfig = (ObjectNode) value;
 
-            //如果旧的配置不为空，表示有重复，则比较版本
+            // 如果旧的配置不为空，表示有重复，则比较版本
             if (oldConfig != null) {
                 double oldVersion = oldConfig.path("version").asDouble(0);
                 double newVersion = newConfig.path("version").asDouble(0);
                 String finalPath = path;
                 Assert.isFalse(oldVersion == newVersion, () -> new ConfigException("接口%s重复", finalPath));
 
-                //如果已存在的版本高，则直接舍弃新的版本
+                // 如果已存在的版本高，则直接舍弃新的版本
                 if (oldVersion > newVersion) {
                     return;
                 }
-                //如果新的版本高，则删除旧版
+                // 如果新的版本高，则删除旧版
                 apiConfigs.remove(path);
             }
 
@@ -203,7 +253,7 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
                     return;
                 }
                 Map<String, ObjectNode> methodConfigs = allPath.computeIfAbsent(requestMethodName, k -> new HashMap<>());
-                //如果存在相同请求方式，相同path的请求，则判断版本
+                // 如果存在相同请求方式，相同path的请求，则判断版本
                 Iterator<Map.Entry<String, ObjectNode>> iterator = config.entrySet().iterator();
                 while (iterator.hasNext()) {
                     Map.Entry<String, ObjectNode> entry = iterator.next();
@@ -217,9 +267,9 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
                         continue;
                     }
 
-                    //旧
+                    // 旧
                     String version = oldConfig.path("version").asText("");
-                    //新
+                    // 新
                     String newVersion = newConfig.path("version").asText("");
 
                     Assert.isFalse(version.equals(newVersion), () -> new ConfigException("接口重复：" + path));
@@ -256,34 +306,34 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
 
             Set<String> patternValues = info.getPatternValues();
 
-            //获取该请求的组名
+            // 获取该请求的组名
             String group = getGroupKey(info, handlerMethod);
 
-            //如果不是配置中的组名，则表示不是系统增强的接口，直接返回
+            // 如果不是配置中的组名，则表示不是系统增强的接口，直接返回
             if (!apiMap.containsKey(group)) {
                 return;
             }
 
-            //清除通用接口path
-            patternValues.clear();
+            // 清除通用接口path
+            patternValues.removeAll(apiMap.get(group).keySet());
 
-            //获取该组名对应的请求配置
+            // 获取该组名对应的请求配置
             Map<String, ObjectNode> apiConfig = apiMap.getOrDefault(group, new HashMap<>());
 
 
             Set<RequestMethod> methods = info.getMethodsCondition().getMethods();
             apiConfig.forEach((path, config) -> {
-                //添加path到当前controller方法，此时就可以通过path请求，spring会调用当前controller方法进行处理
+                // 添加path到当前controller方法，此时就可以通过path请求，spring会调用当前controller方法进行处理
                 patternValues.add(path);
 
-                //把api对应的实际请求方式保存到配置中，提供给api文档展示
+                // 把api对应的实际请求方式保存到配置中，提供给api文档展示
                 ArrayNode methodNode = config.withArray("method");
                 List<String> methodlist = methods.stream()
                         .map(Enum::name)
                         .peek(methodNode::add)
                         .collect(Collectors.toList());
 
-                //全局crossOrigin配置为false时才启用接口级的crossOrigin配置
+                // 全局crossOrigin配置为false时才启用接口级的crossOrigin配置
                 if (!apiProperties.isCrossOrigin()) {
                     populateCorsConfig(source, path, config, methodlist);
                 }
@@ -291,13 +341,13 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
             });
 
         });
-        //全局crossOrigin配置
+        // 全局crossOrigin配置
         if (apiProperties.isCrossOrigin()) {
             populateCorsConfig(source, "/**", Collections.singletonList("*"),
                     Arrays.asList("GET", "POST", "PUT", "DELETE"));
         }
 
-        //注册自定义crossOrigin配置替换默认配置
+        // 注册自定义crossOrigin配置替换默认配置
         requestMappingHandlerMapping.setCorsConfigurationSource(source);
     }
 
@@ -332,6 +382,8 @@ public class JsonApiInit implements ApplicationListener<ContextRefreshedEvent> {
                 String name = method.name();
                 Set<String> remain = uniqueMap.computeIfAbsent(name, k -> new HashSet<>());
                 Set<String> patternValues = info.getPatternValues();
+
+                // todo 需要根据ant规则判断
                 Set<String> uniqueSet = new HashSet<>(remain);
 
                 uniqueSet.retainAll(patternValues);

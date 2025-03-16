@@ -6,7 +6,8 @@
         "@tb": "semi_api",
         ":": "group_name:groupName",
         "pageNum$$": "pageNum",
-        "pageSize$$": "pageSize"
+        "pageSize$$": "pageSize",
+        "#boolean": "disabled"
       },
       "ruler": {
         "pageNum": {
@@ -67,6 +68,14 @@
           "required": "API规则不能为空",
           "desc": "API路径"
         }
+      }
+    },
+    "/refresh/api": {
+      "summary": "刷新接口",
+      "params": {
+        "@tb": "semi_api",
+        "id$$": "id",
+        "disabled$$":"disabled"
       }
     }
   },

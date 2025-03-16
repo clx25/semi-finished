@@ -37,6 +37,13 @@ import java.util.concurrent.CompletionException;
 @RestControllerAdvice
 @Order(Ordered.LOWEST_PRECEDENCE - 1000)
 public class CoreExceptionHandler {
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Result throwable(Throwable t){
+        log.error("未知错误", t);
+        return Result.info(500, "网络异常");
+    }
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result exception(Exception e) {

@@ -8,6 +8,7 @@ import com.semifinished.core.utils.ParamsUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -30,7 +31,8 @@ import java.util.function.Function;
 @Getter
 @RequiredArgsConstructor
 public class SqlExecutor {
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final TransactionTemplate transactionTemplate;
     private final ObjectNodeRowMapper objectNodeRowMapper = new ObjectNodeRowMapper();
 
@@ -60,15 +62,15 @@ public class SqlExecutor {
 
     public List<ObjectNode> list(String sql, Map<String, ?> params) {
         log.info("执行查询 sql:{},参数{}", sql, params);
-        return jdbcTemplate.query(sql, params, objectNodeRowMapper);
+        return namedParameterJdbcTemplate.query(sql, params, objectNodeRowMapper);
     }
 
     public List<ObjectNode> list(String sql, SqlParameterSource params) {
-        return jdbcTemplate.query(sql, params, objectNodeRowMapper);
+        return namedParameterJdbcTemplate.query(sql, params, objectNodeRowMapper);
     }
 
     public int total(String sql, Map<String, Object> args) {
-        Integer count = jdbcTemplate.queryForObject("select count(*) count from (" + sql + ") a", args, Integer.class);
+        Integer count = namedParameterJdbcTemplate.queryForObject("select count(*) count from (" + sql + ") a", args, Integer.class);
         return count == null ? 0 : count;
     }
 
@@ -82,7 +84,7 @@ public class SqlExecutor {
      */
     public List<ObjectNode> list(String table, String... fields) {
         String sql = SqlCreator.builder().table(table, fields).build();
-        return jdbcTemplate.query(sql, this::populateData);
+        return namedParameterJdbcTemplate.query(sql, this::populateData);
     }
 
 
@@ -93,19 +95,19 @@ public class SqlExecutor {
      * @return 获取的数据集合
      */
     public List<ObjectNode> list(String sql) {
-        return jdbcTemplate.query(sql, objectNodeRowMapper);
+        return namedParameterJdbcTemplate.query(sql, objectNodeRowMapper);
     }
 
     public <T> List<T> list(String sql, Class<T> t) {
-        return jdbcTemplate.query(sql, new ObjectNodeDataClassRowMapper<>(t));
+        return namedParameterJdbcTemplate.query(sql, new ObjectNodeDataClassRowMapper<>(t));
     }
 
     public ObjectNode get(String sql, Map<String, ?> args) {
-        return jdbcTemplate.query(sql, args, this::populateOne);
+        return namedParameterJdbcTemplate.query(sql, args, this::populateOne);
     }
 
     public ObjectNode get(String sql) {
-        return jdbcTemplate.query(sql, this::populateOne);
+        return namedParameterJdbcTemplate.query(sql, this::populateOne);
     }
 
     private ObjectNode populateOne(ResultSet row) throws SQLException {
@@ -135,12 +137,12 @@ public class SqlExecutor {
      * @param args sql中的数据
      */
     public void exec(String sql, Map<String, ?> args) {
-        jdbcTemplate.update(sql, args);
+        namedParameterJdbcTemplate.update(sql, args);
     }
 
     public void batch(String sql, List<ObjectNode> list) {
         SqlParameterSource[] sqlParameterSources = SqlCreator.nodeToSqlParameterSourceArray(list);
-        jdbcTemplate.batchUpdate(sql, sqlParameterSources);
+        namedParameterJdbcTemplate.batchUpdate(sql, sqlParameterSources);
     }
 
 
@@ -151,7 +153,7 @@ public class SqlExecutor {
      * @param args SQL对应的参数
      */
     public void batchUpdate(String sql, Map<String, Object>[] args) {
-        jdbcTemplate.batchUpdate(sql, args);
+        namedParameterJdbcTemplate.batchUpdate(sql, args);
     }
 
     /**
@@ -174,7 +176,7 @@ public class SqlExecutor {
         }
 
         String sql = SqlCreator.delete(table, field);
-        jdbcTemplate.batchUpdate(sql, sqlParameterSources);
+        namedParameterJdbcTemplate.batchUpdate(sql, sqlParameterSources);
     }
 
 
@@ -191,7 +193,7 @@ public class SqlExecutor {
         Set<String> fields = ParamsUtils.fields(objectNodes);
         fields.remove(idKey);
         String sql = SqlCreator.insert(table, fields);
-        jdbcTemplate.batchUpdate(sql, SqlCreator.nodeToSqlParameterSourceArray(objectNodes));
+        namedParameterJdbcTemplate.batchUpdate(sql, SqlCreator.nodeToSqlParameterSourceArray(objectNodes));
     }
 
     /**
@@ -209,7 +211,7 @@ public class SqlExecutor {
             return;
         }
         String sql = SqlCreator.insert(table, Arrays.asList(parameterNames));
-        jdbcTemplate.batchUpdate(sql, batch);
+        namedParameterJdbcTemplate.batchUpdate(sql, batch);
     }
 
 
@@ -219,16 +221,16 @@ public class SqlExecutor {
      * @return 表名列表
      */
     public List<String> tables() {
-        return jdbcTemplate.queryForList("show tables", new HashMap<>(), String.class);
+        return namedParameterJdbcTemplate.queryForList("show tables", new HashMap<>(), String.class);
     }
 
     public void update(String sql, Map<String, ?> params) {
-        jdbcTemplate.update(sql, params);
+        namedParameterJdbcTemplate.update(sql, params);
     }
 
     public void delete(String table, String id) {
         String sql = SqlCreator.delete(table, "id");
-        jdbcTemplate.update(sql, MapUtils.of("id", id));
+        namedParameterJdbcTemplate.update(sql, MapUtils.of("id", id));
     }
 
     /**
@@ -252,7 +254,7 @@ public class SqlExecutor {
      */
     public String insert(String sql, SqlParameterSource sqlParameterSource) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(sql, sqlParameterSource, keyHolder);
+        namedParameterJdbcTemplate.update(sql, sqlParameterSource, keyHolder);
         Map<String, Object> keys = keyHolder.getKeys();
         if (keys == null) {
             return "";
@@ -264,12 +266,12 @@ public class SqlExecutor {
     public boolean has(String table, Map<String, ?> params) {
 
         String sql = SqlCreator.count(table, params.keySet());
-        Integer integer = jdbcTemplate.queryForObject(sql, params, Integer.class);
+        Integer integer = namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
         return integer != null && (integer > 0);
     }
 
     public String getDatabaseProductName() {
-        DataSource dataSource = jdbcTemplate.getJdbcTemplate().getDataSource();
+        DataSource dataSource = namedParameterJdbcTemplate.getJdbcTemplate().getDataSource();
         if (dataSource == null) {
             return "";
         }

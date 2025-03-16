@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 
+/**
+ * MySQL执行器
+ */
 @Component
 @AllArgsConstructor
 public class MySqlExecutor implements Executor {

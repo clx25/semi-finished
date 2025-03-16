@@ -29,38 +29,37 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private final PathMatcher pathMatcher = new AntPathMatcher();
     private final ConfigProperties configProperties;
     private final AuthProperties authProperties;
-    private final Map<String, String> skipAuth;
+    private final SemiCache semiCache;
 
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-
-        //如果关闭了验证，直接跳过验证
+        // 如果关闭了验证，直接跳过验证
         if (!authProperties.isAuthEnable()) {
             return true;
         }
 
-        //判断该请求是否匹配跳过规则
+        // 判断该请求是否匹配跳过规则
         if (skipAuth(request)) {
             return true;
         }
 
-        //获取token并验证
+        // 获取token并验证
         String token = request.getHeader(authProperties.getTokenKey());
         if (!StringUtils.hasText(token)) {
             throw new AuthException(AuthResultInfo.UNAUTHORIZED);
         }
 
         try {
-            //获取token信息放入attribute中方便在其他地方使用
+            // 获取token信息放入attribute中方便在其他地方使用
             DecodedJWT decodedJWT = JwtUtils.parseToken(token);
             String idKey = configProperties.getIdKey();
             request.setAttribute(idKey, decodedJWT.getSubject());
 
             decodedJWT.getClaims().forEach((k, v) -> request.setAttribute(k, v.asString()));
 
-            //刷新token，放入响应头
+            // 刷新token，放入响应头
             String newToken = JwtUtils.refreshToken(token, decodedJWT);
             response.setHeader(authProperties.getTokenKey(), newToken);
 
@@ -78,7 +77,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
      * @return 是否跳过认证
      */
     private boolean skipAuth(HttpServletRequest req) {
-
+        Map<String, String> skipAuth = semiCache.getValue(AuthCacheKey.SKIP_AUTH.getKey());
         if (CollectionUtils.isEmpty(skipAuth)) {
             return false;
         }
@@ -94,7 +93,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             }
             if (!"*".equals(methods.trim())) {
                 String[] matchMethods = methods.split(",");
-                //请求方式是否匹配
+                // 请求方式是否匹配
                 if (Arrays.stream(matchMethods).noneMatch(method::equalsIgnoreCase)) {
                     continue;
                 }

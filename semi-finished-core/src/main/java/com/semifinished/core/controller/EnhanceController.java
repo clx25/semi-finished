@@ -1,14 +1,18 @@
 package com.semifinished.core.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.semifinished.core.annontation.Api;
+import com.semifinished.core.annontation.RequestApi;
 import com.semifinished.core.annontation.RequestParamNode;
 import com.semifinished.core.pojo.Result;
-import com.semifinished.core.service.CommonService;
+import com.semifinished.core.service.QueryCommonService;
 import com.semifinished.core.service.QueryService;
+import com.semifinished.core.service.UpdateCommonService;
 import com.semifinished.core.service.UpdateService;
 import com.semifinished.core.utils.RequestUtils;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +21,15 @@ import java.util.List;
 
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class EnhanceController {
 
-    private final UpdateService updateService;
-    private final CommonService commonService;
+    private final UpdateCommonService updateCommonService;
+    private final QueryCommonService queryCommonService;
+
+    private final List<UpdateService> updateServices;
     private final List<QueryService> queryServices;
+    private final PathMatcher pathMatcher = new AntPathMatcher();
 
     /**
      * 根据条件获取所有数据
@@ -32,7 +39,7 @@ public class EnhanceController {
      */
     @PostMapping(value = "enhance", name = "SEMI-JSON-API-POST-QUERY")
     public Object queryPostMapping(@RequestBody(required = false) ObjectNode params) {
-        return Result.success(chooseService().commonQuery(params));
+        return Result.success(chooseService(queryServices, queryCommonService).commonQuery(params));
     }
 
     /**
@@ -43,7 +50,32 @@ public class EnhanceController {
      */
     @GetMapping(value = "enhance", name = "SEMI-JSON-API-GET")
     public Object queryGetMapping(@RequestParamNode(required = false) ObjectNode params) {
-        return Result.success(chooseService().commonQuery(params));
+        return Result.success(chooseService(queryServices, queryCommonService).commonQuery(params));
+    }
+
+
+    /**
+     * 新增数据
+     *
+     * @param params 请求参数
+     * @return 执行结果
+     */
+    @PostMapping(value = "common", name = "SEMI-JSON-API-POST")
+    public Result add(@RequestBody JsonNode params) {
+        String id = chooseService(updateServices, updateCommonService).add(params);
+        return Result.success(id);
+    }
+
+    /**
+     * 修改数据
+     *
+     * @param params 请求参数
+     * @return 执行结果
+     */
+    @PutMapping(value = "common", name = "SEMI-JSON-API-PUT")
+    public Result update(@RequestBody JsonNode params) {
+        chooseService(updateServices, updateCommonService).update(params);
+        return Result.success();
     }
 
     /**
@@ -54,17 +86,24 @@ public class EnhanceController {
      */
     @DeleteMapping(value = "enhance", name = "SEMI-JSON-API-DELETE")
     public Result delete(@RequestParamNode(required = false) ObjectNode params) {
-        updateService.delete(params);
+        chooseService(updateServices, updateCommonService).delete(params);
         return Result.success();
     }
 
-    private QueryService chooseService() {
+    /**
+     * 选择调用的service对象
+     *
+     * @param services       service对象集合
+     * @param defaultService 当没有符合条件的service对象，则返回这个默认的对象
+     * @return 删选出的或者默认的service对象
+     */
+    private <T> T chooseService(List<T> services, T defaultService) {
         HttpServletRequest request = RequestUtils.getRequest();
         String servletPath = request.getServletPath();
         String method = request.getMethod();
 
-        for (QueryService queryService : queryServices) {
-            Api api = queryService.getClass().getAnnotation(Api.class);
+        for (T service : services) {
+            RequestApi api = service.getClass().getAnnotation(RequestApi.class);
             if (api == null) {
                 continue;
             }
@@ -72,10 +111,10 @@ public class EnhanceController {
             if (!StringUtils.hasText(path)) {
                 continue;
             }
-            if (servletPath.equalsIgnoreCase(path) && method.equalsIgnoreCase(api.method())) {
-                return queryService;
+            if (method.equalsIgnoreCase(api.method()) && pathMatcher.match(path, servletPath)) {
+                return service;
             }
         }
-        return commonService;
+        return defaultService;
     }
 }

@@ -6,7 +6,8 @@
         "@tb": "semi_api_auth",
         "pattern$$": "pattern",
         "pageNum$$": "pageNum",
-        "pageSize$$": "pageSize"
+        "pageSize$$": "pageSize",
+        "#boolean": "disabled"
       }
     }
   },
@@ -26,8 +27,17 @@
       "params": {
         "@tb": "semi_api_auth",
         "id$$": "id",
+
         "pattern$$": "pattern",
         "method$$": "method"
+      }
+    },
+    "/refresh/apiAuth": {
+      "summary": "刷新接口权限",
+      "params": {
+        "@tb": "semi_api_auth",
+        "id$$": "id",
+        "disabled$$": "disabled"
       }
     }
   },

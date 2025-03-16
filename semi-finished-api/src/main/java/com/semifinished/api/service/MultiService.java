@@ -7,8 +7,9 @@ import com.semifinished.core.config.ConfigProperties;
 import com.semifinished.core.exception.ParamsException;
 import com.semifinished.core.jdbc.SqlDefinition;
 import com.semifinished.core.jdbc.SqlExecutorHolder;
-import com.semifinished.core.service.CommonService;
-import com.semifinished.core.service.UpdateService;
+import com.semifinished.core.service.QueryCommonService;
+import com.semifinished.core.service.UpdateAbstractService;
+import com.semifinished.core.service.UpdateCommonService;
 import com.semifinished.core.utils.Assert;
 import com.semifinished.core.utils.ParamsUtils;
 import lombok.AllArgsConstructor;
@@ -25,8 +26,8 @@ public class MultiService {
     private final ApiSqlDefinitionFactory apiSqlDefinitionFactory;
     private final SqlExecutorHolder sqlExecutorHolder;
     private final ConfigProperties configProperties;
-    private final UpdateService updateService;
-    private final CommonService commonService;
+    private final UpdateCommonService updateAbstractService;
+    private final QueryCommonService queryCommonService;
 
     public void multi(ObjectNode params) {
         ObjectNode template = apiSqlDefinitionFactory.getTemplate();
@@ -52,14 +53,14 @@ public class MultiService {
                     case "u":
                         execute.add(Pair.create(Integer.parseInt(index), () -> {
                             SqlDefinition definition = apiSqlDefinitionFactory.getSqlDefinition(value, params);
-                            updateService.update(definition);
+                            updateAbstractService.update(definition);
                         }));
                         break;
                     case "c":
                         //todo  把上一个新增返回的id作为下一个新增的参数
                         execute.add(Pair.create(Integer.parseInt(index), () -> {
                             SqlDefinition definition = apiSqlDefinitionFactory.getSqlDefinition(value, params);
-                            updateService.add(definition);
+                            updateAbstractService.add(definition);
                             if (!params.has(configProperties.getIdKey())) {
                                 params.put(configProperties.getIdKey(), definition.getId());
                             }
@@ -69,12 +70,12 @@ public class MultiService {
                     case "d":
                         execute.add(Pair.create(Integer.parseInt(index), () -> {
                             SqlDefinition definition = apiSqlDefinitionFactory.getSqlDefinition(value, params);
-                            updateService.delete(definition);
+                            updateAbstractService.delete(definition);
                         }));
                         break;
                     case "r":
                         SqlDefinition definition = apiSqlDefinitionFactory.getSqlDefinition(value, params);
-                        commonService.commonQuery(definition);
+                        queryCommonService.commonQuery(definition);
                 }
             });
 

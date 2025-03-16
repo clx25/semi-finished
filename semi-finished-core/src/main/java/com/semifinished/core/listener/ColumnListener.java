@@ -65,8 +65,6 @@ public class ColumnListener implements ApplicationListener<RefreshCacheApplicati
             validMapping(tables, config);
             semiCache.initValue(CoreCacheKey.COLUMNS.getKey() + dataSourceName, tables);
         });
-
-
     }
 
     /**

@@ -19,6 +19,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -94,12 +95,13 @@ public class SemiFinishedAutoConfiguration {
 
     @Bean
     public SqlExecutorHolder sqlExecutorHolder(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+                                               JdbcTemplate jdbcTemplate,
                                                DataSourceProperties dataSourceProperties,
                                                TransactionTemplate transactionTemplate,
                                                ConfigProperties configProperties) {
 
         Map<String, SqlExecutor> sqlExecutorMap = new HashMap<>();
-        sqlExecutorMap.put(configProperties.getDataSource(), new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate));
+        sqlExecutorMap.put(configProperties.getDataSource(), new SqlExecutor(jdbcTemplate,namedParameterJdbcTemplate, transactionTemplate));
 
 
         Map<String, ? extends HikariDataSource> dataSourceMap = dataSourceProperties.getDataSource();
@@ -115,7 +117,7 @@ public class SemiFinishedAutoConfiguration {
 
             transactionTemplate = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
 
-            sqlExecutorMap.put(name, new SqlExecutor(namedParameterJdbcTemplate, transactionTemplate));
+            sqlExecutorMap.put(name, new SqlExecutor(jdbcTemplate,namedParameterJdbcTemplate, transactionTemplate));
         }
         return new SqlExecutorHolder(sqlExecutorMap, configProperties);
     }
