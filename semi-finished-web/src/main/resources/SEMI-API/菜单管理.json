@@ -8,7 +8,7 @@
         "%label%$$": "name",
         "#json": "icon",
         "^": {},
-        ":": "route_path:routePath,route_name:routeName,table_name:tableName"
+        ":": "route_path:routePath,route_name:routeName,table_name:tableName,is_hidden:isHidden"
       }
     },
     "/icon": {
@@ -60,6 +60,14 @@
         "sort$$": "sort",
         "query$$": "query",
         "variable$$": "variable"
+      }
+    },
+    "/hidden": {
+      "summary": "修改隐藏权限",
+      "params": {
+        "@tb": "semi_menu",
+        "id$$": "id",
+        "is_hidden$$": "isHidden"
       }
     }
   },

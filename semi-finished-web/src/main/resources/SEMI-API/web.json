@@ -4,6 +4,7 @@
       "summary": "获取用户菜单",
       "params": {
         "@tb1": "semi_menu",
+        ":": "route_path:routePath,route_name:routeName,table_name:tableName,is_hidden:isHidden",
         "\\": "sort",
         "#json": "icon",
         "?id&": {
