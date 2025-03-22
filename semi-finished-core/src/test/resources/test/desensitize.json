@@ -1,0 +1,38 @@
+{
+  "手机号": {
+    "query": {
+      "@tb": "user_sensitive_info",
+      "@": "id,phone",
+      "id": "1",
+      "@row": 0
+    },
+    "match": {
+      "id": "1",
+      "phone": "138****8001"
+    }
+  },
+  "身份证": {
+    "query": {
+      "@tb": "user_sensitive_info",
+      "@": "id,id_card",
+      "id": "2",
+      "@row": 0
+    },
+    "match": {
+      "id": "2",
+      "id_card": "110************678"
+    }
+  },
+  "地址": {
+    "query": {
+      "@tb": "user_sensitive_info",
+      "@": "id,address",
+      "id": "3",
+      "@row": 0
+    },
+    "match": {
+      "id": "3",
+      "address": "**市**区"
+    }
+  }
+}

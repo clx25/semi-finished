@@ -1,0 +1,160 @@
+{
+  "新增": {
+    "update": {
+      "@tb": "role",
+      "name_cn": "测试",
+      "code": "0011",
+      "parent_id": "7"
+    },
+    "query": {
+      "@tb": "role",
+      "id": "11",
+      "@row": 0
+    },
+    "match": {
+      "id": "11",
+      "name_cn": "测试",
+      "code": "0011",
+      "parent_id": "7"
+    }
+  },
+  "修改": {
+    "update": {
+      "@tb": "role",
+      "id": "11",
+      "name_cn": "测试2",
+      "code": "999",
+      "parent_id": "7"
+    },
+    "query": {
+      "@tb": "role",
+      "id": "11",
+      "@row": 0
+    },
+    "match": {
+      "id": "11",
+      "name_cn": "测试2",
+      "code": "999",
+      "parent_id": "7"
+    }
+  },
+  "删除": {
+    "update": {
+      "@tb": "role",
+      "id": "11"
+    },
+    "query": {
+      "@tb": "role",
+      "id": "11",
+      "@row": 0
+    },
+    "match": {
+    }
+  },
+  "批量新增": {
+    "update": {
+      "@tb": "role",
+      "@batch": [
+        {
+          "name_cn": "测试1",
+          "code": "00111",
+          "parent_id": "7"
+        },
+        {
+          "name_cn": "测试2",
+          "code": "00112",
+          "parent_id": "7"
+        },
+        {
+          "name_cn": "测试3",
+          "code": "00113",
+          "parent_id": "7"
+        }
+      ]
+    },
+    "query": {
+      "@tb": "role",
+      "[id]": "12,13,14"
+    },
+    "match": [
+      {
+        "id": "12",
+        "name_cn": "测试1",
+        "code": "00111",
+        "parent_id": "7"
+      },
+      {
+        "id": "13",
+        "name_cn": "测试2",
+        "code": "00112",
+        "parent_id": "7"
+      },
+      {
+        "id": "14",
+        "name_cn": "测试3",
+        "code": "00113",
+        "parent_id": "7"
+      }
+    ]
+  },
+  "批量修改": {
+    "update": {
+      "@tb": "role",
+      "@batch": [
+        {
+          "id": "12",
+          "name_cn": "测试12",
+          "code": "001111",
+          "parent_id": "7"
+        },
+        {
+          "id": "13",
+          "name_cn": "测试22",
+          "code": "001121",
+          "parent_id": "7"
+        },
+        {
+          "id": "14",
+          "name_cn": "测试32",
+          "code": "001131",
+          "parent_id": "7"
+        }
+      ]
+    },
+    "query": {
+      "@tb": "role",
+      "[id]": "12,13,14"
+    },
+    "match": [
+      {
+        "id": "12",
+        "name_cn": "测试12",
+        "code": "001111",
+        "parent_id": "7"
+      },
+      {
+        "id": "13",
+        "name_cn": "测试22",
+        "code": "001121",
+        "parent_id": "7"
+      },
+      {
+        "id": "14",
+        "name_cn": "测试32",
+        "code": "001131",
+        "parent_id": "7"
+      }
+    ]
+  },
+  "批量删除": {
+    "update": {
+      "@tb": "role",
+      "[id]": "12,13,14"
+    },
+    "query": {
+      "@tb": "role",
+      "[id]": "12,13,14"
+    },
+    "match": []
+  }
+}

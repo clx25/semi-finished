@@ -13,12 +13,14 @@ import com.semifinished.core.jdbc.parser.ParserExecutor;
 import com.semifinished.core.pojo.Page;
 import com.semifinished.core.pojo.ResultHolder;
 import com.semifinished.core.service.enhance.query.AfterQueryEnhance;
+import com.semifinished.core.utils.MapUtils;
 import com.semifinished.core.utils.ParamsUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -49,7 +51,7 @@ public abstract class QueryAbstractService {
             params = JsonNodeFactory.instance.objectNode();
         }
 
-        //解析后的sql定义信息类
+        // 解析后的sql定义信息类
         SqlDefinition sqlDefinition = sqlDefinitionFactory.getSqlDefinition(params);
         return commonQuery(sqlDefinition);
     }
@@ -63,30 +65,30 @@ public abstract class QueryAbstractService {
      */
     public Object commonQuery(SqlDefinition sqlDefinition) {
 
-        //判断此次请求使用的增强
+        // 判断此次请求使用的增强
         List<AfterQueryEnhance> enhances = supportEnhances(sqlDefinition);
 
-        //执行增强中的beforeParse方法
+        // 执行增强中的beforeParse方法
         beforeParse(sqlDefinition, enhances);
 
-        //执行参数解析器
+        // 执行参数解析器
         parse(sqlDefinition);
 
-        //执行增强中的afterParse方法
+        // 执行增强中的afterParse方法
         afterParse(sqlDefinition, enhances);
 
-        //创建分页信息
+        // 创建分页信息
         Page page = wrapPage(sqlDefinition);
 
-        //执行查询
+        // 执行查询
         List<ObjectNode> records = query(sqlDefinition);
 
         ResultHolder resultHolder = new ResultHolder(page, records);
 
-        //执行增强的afterQuery方法
+        // 执行增强的afterQuery方法
         afterQuery(sqlDefinition, enhances, resultHolder);
 
-        //执行@row规则
+        // 执行@row规则
         executeRows(resultHolder, sqlDefinition);
 
         return result(resultHolder, sqlDefinition);
@@ -159,7 +161,7 @@ public abstract class QueryAbstractService {
         if (rowStart == -1) {
             return;
         }
-        //执行@row结束规则
+        // 执行@row结束规则
         int rowEnd = sqlDefinition.getRowEnd();
 
 
@@ -170,7 +172,7 @@ public abstract class QueryAbstractService {
                 rows.add(records.get(i));
                 break;
             }
-            //如果@row开始结束数值不相同，则返回@row指定范围的数据
+            // 如果@row开始结束数值不相同，则返回@row指定范围的数据
             if (i >= rowStart && i <= rowEnd) {
                 rows.add(records.get(i));
             }
@@ -191,20 +193,20 @@ public abstract class QueryAbstractService {
         }
 
         Page page = new Page();
-        //分页查询
+        // 分页查询
         int pageNum = sqlDefinition.getPageNum();
         int pageSize = sqlDefinition.getPageSize();
 
         int total = sqlExecutorHolder.dataSource(sqlDefinition.getDataSource())
                 .total(QuerySqlCombiner.creatorSqlWithoutLimit(sqlDefinition), QuerySqlCombiner.getArgs(sqlDefinition));
 
-        //参数合理化
+        // 参数合理化
         if (configProperties.isPageNormalized() && total != 0 && (pageNum - 1) * pageSize >= total) {
             pageNum = (int) Math.ceil((double) total / pageSize);
             sqlDefinition.setPageNum(pageNum);
         }
 
-        //设置分页信息
+        // 设置分页信息
         page.setTotal(total);
         page.setPageNum(pageNum);
         page.setPageSize(pageSize);
@@ -232,7 +234,7 @@ public abstract class QueryAbstractService {
         int rowStart = sqlDefinition.getRowStart();
         int rowEnd = sqlDefinition.getRowEnd();
         if (records.isEmpty()) {
-            return records;
+            return rowStart == rowEnd ? MapUtils.map : records;
         }
 
         return rowStart == rowEnd ? records.get(0) : records;

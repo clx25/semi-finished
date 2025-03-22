@@ -10,6 +10,9 @@ import java.util.Map;
  * Map相关工具类
  */
 public class MapUtils {
+
+    public static Map<String,Object> map=new HashMap<>();
+
     /**
      * 用于创建Map<String, Object>格式的map
      *

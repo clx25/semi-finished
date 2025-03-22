@@ -1,4 +1,4 @@
-package com.semifinished.core;
+package com.semifinished.core.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.IntNode;

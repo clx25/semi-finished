@@ -1,0 +1,13 @@
+{
+  "查询": {
+    "query": {
+      "@tb": "users",
+      "[id]": "4,5,6"
+    },
+    "match": [
+      {"id": 4, "name": "David", "gender": 14},
+      {"id": 5, "name": "Emma", "gender": 24},
+      {"id": 6, "name": "Frank", "gender": 40}
+    ]
+  }
+}

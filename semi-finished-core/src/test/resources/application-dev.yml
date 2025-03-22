@@ -12,19 +12,19 @@ spring:
           - password
     test:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://192.168.2.3:3306/javdb?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+      jdbc-url: jdbc:mysql://192.168.2.3:3306/hotel_order?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
       username: root
       password: XYvw#P5ftc
       mapping:
         enable: true
         table:
-          info: iifo
+          order_details: orderDetails
         column:
-          info:
-            evaluate: xxx
+          classify:
+            name: cname
       excludes:
-        info:
-          - comment
+        order_details:
+          - order_id
   jackson:
     property-naming-strategy: LOWER_CAMEL_CASE
 server:

@@ -113,7 +113,7 @@ public class UpdateSqlCombiner {
         }
         ValueCondition valueCondition = getIdArgName(sqlDefinition, idKey);
 
-        return " delete from " + sqlDefinition.getTable() + " where " + idKey + valueCondition.getCondition();
+        return " delete from " + sqlDefinition.getTable() + " where " + idKey + " " + valueCondition.getCondition();
     }
 
     /**

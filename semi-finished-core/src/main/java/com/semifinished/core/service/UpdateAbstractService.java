@@ -14,6 +14,7 @@ import com.semifinished.core.jdbc.parser.paramsParser.ParamsParser;
 import com.semifinished.core.service.enhance.update.AfterUpdateEnhance;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -24,7 +25,7 @@ public abstract class UpdateAbstractService {
 
     @Autowired
     private List<ParamsParser> paramsParsers;
-    @Autowired
+    @Autowired(required = false)
     private List<AfterUpdateEnhance> afterUpdateEnhances;
     @Autowired
     private SqlExecutorHolder sqlExecutorHolder;
@@ -135,8 +136,6 @@ public abstract class UpdateAbstractService {
     }
 
 
-
-
     public void beforeParse(SqlDefinition sqlDefinition, List<AfterUpdateEnhance> afterUpdateEnhances) {
         afterUpdateEnhances.forEach(enhance -> enhance.beforeParse(sqlDefinition));
     }
@@ -164,6 +163,9 @@ public abstract class UpdateAbstractService {
      * @return 支持此次请求的增强方法
      */
     private List<AfterUpdateEnhance> supportEnhance(SqlDefinition sqlDefinition) {
+        if(afterUpdateEnhances==null){
+            return new ArrayList<>();
+        }
         return this.afterUpdateEnhances.stream()
                 .filter(enhance -> enhance.support(sqlDefinition))
                 .collect(Collectors.toList());

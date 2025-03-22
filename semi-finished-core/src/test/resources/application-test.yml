@@ -7,7 +7,21 @@ spring:
       excludes:
         gender:
           - id
-
+    test:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://192.168.2.3:3306/hotel_order?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&allowmultiqueries=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+      username: root
+      password: XYvw#P5ftc
+      mapping:
+        enable: true
+        table:
+          order_details: orderDetails
+        column:
+          classify:
+            name: cname
+      excludes:
+        order_details:
+          - order_id
 
 logging:
   level:
